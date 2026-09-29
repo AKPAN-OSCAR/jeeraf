@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@theme {
+  --color-theme-bg: var(--theme-bg);
+  --color-theme-text: var(--theme-text);
+  --color-theme-border: var(--theme-border);
+  --color-theme-accent: var(--theme-accent);
+  --color-theme-card: var(--theme-card);
+  --color-theme-muted: var(--theme-muted);
+}
+
+:root {
+  --theme-bg: #f8fafc; /* slate-50 */
+  --theme-text: #0f172a; /* slate-900 */
+  --theme-border: #e2e8f0; /* slate-200 */
+  --theme-accent: #2563eb; /* blue-600 */
+  --theme-card: #ffffff;
+  --theme-muted: #64748b; /* slate-500 */
+}
+
+.theme-black {
+  --theme-bg: #020617; /* slate-950 */
+  --theme-text: #f8fafc; /* slate-50 */
+  --theme-border: #1e293b; /* slate-800 */
+  --theme-accent: #3b82f6; /* blue-500 */
+  --theme-card: #0f172a; /* slate-900 */
+  --theme-muted: #94a3b8; /* slate-400 */
+}
+
+.theme-gold {
+  --theme-bg: #fdfaf3; /* warm background */
+  --theme-text: #451a03; /* amber-950 */
+  --theme-border: #fde68a; /* amber-200 */
+  --theme-accent: #d97706; /* amber-600 */
+  --theme-card: #fffcf0; 
+  --theme-muted: #92400e; /* amber-800 */
+}
+
+.theme-silver {
+  --theme-bg: #f1f5f9; /* slate-100 */
+  --theme-text: #334155; /* slate-700 */
+  --theme-border: #cbd5e1; /* slate-300 */
+  --theme-accent: #64748b; /* slate-500 */
+  --theme-card: #f8fafc; /* slate-50 */
+  --theme-muted: #475569; /* slate-600 */
+}
+
+.theme-red {
+  --theme-bg: #fef2f2;
+  --theme-text: #7f1d1d;
+  --theme-border: #fecaca;
+  --theme-accent: #dc2626;
+  --theme-card: #ffffff;
+  --theme-muted: #991b1b;
+}
+
+.theme-green {
+  --theme-bg: #f0fdf4;
+  --theme-text: #14532d;
+  --theme-border: #bbf7d0;
+  --theme-accent: #16a34a;
+  --theme-card: #ffffff;
+  --theme-muted: #166534;
+}
+
+.theme-yellow {
+  --theme-bg: #fefce8;
+  --theme-text: #713f12;
+  --theme-border: #fef08a;
+  --theme-accent: #ca8a04;
+  --theme-card: #ffffff;
+  --theme-muted: #854d0e;
+}
+
+.theme-cyan {
+  --theme-bg: #ecfeff;
+  --theme-text: #164e63;
+  --theme-border: #a5f3fc;
+  --theme-accent: #0891b2;
+  --theme-card: #ffffff;
+  --theme-muted: #155e75;
+}
+
+.theme-violet {
+  --theme-bg: #f5f3ff;
+  --theme-text: #4c1d95;
+  --theme-border: #ddd6fe;
+  --theme-accent: #7c3aed;
+  --theme-card: #ffffff;
+  --theme-muted: #5b21b6;
+}
+
+.theme-pink {
+  --theme-bg: #fdf2f8;
+  --theme-text: #831843;
+  --theme-border: #fbcfe8;
+  --theme-accent: #db2777;
+  --theme-card: #ffffff;
+  --theme-muted: #9d174d;
+}
+
+/* Theme transitions and global root binding */
+html, body {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  min-height: 100vh;
+}
+
+body, button, input, select, textarea, .theme-card, .theme-transition {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.markdown-vault-focused h1 { @apply text-5xl font-black text-white mb-8 tracking-tighter; }
+.markdown-vault-focused h2 { @apply text-4xl font-black text-rose-500 mb-6 tracking-tight mt-12; }
+.markdown-vault-focused h3 { @apply text-2xl font-black text-white mb-4 tracking-tight mt-8; }
+.markdown-vault-focused p { @apply mb-6 leading-relaxed; }
+.markdown-vault-focused ul { @apply space-y-4 mb-8 list-none p-0; }
+.markdown-vault-focused li { @apply flex items-start gap-4 text-white/80; }
+.markdown-vault-focused li::before { content: "→"; @apply text-rose-500 font-black; }
+.markdown-vault-focused strong { @apply text-rose-500 font-black; }
+.markdown-vault-focused blockquote { @apply border-l-4 border-rose-500 pl-8 py-2 bg-white/5 rounded-r-3xl italic text-white/50 mb-8; }

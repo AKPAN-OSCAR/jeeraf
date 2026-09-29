@@ -1,0 +1,225 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Unified user profile including auth metadata and extended information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique identifier (Firebase Auth UID)." },
+        "email": { "type": "string", "description": "User email address." },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "System role." },
+        "fullName": { "type": "string", "description": "Full name of the user." },
+        "nickname": { "type": "string", "description": "User's nickname." },
+        "gender": { "type": "string", "description": "User's gender." },
+        "age": { "type": "string", "description": "User's age." },
+        "profileImage": { "type": "string", "description": "URL to profile image." },
+        "theme": { "type": "string", "enum": ["white", "black", "gold", "silver"], "description": "User's selected theme color." },
+        "subscriptionStatus": { "type": "string", "enum": ["free", "pending", "paid", "premium"], "description": "Current subscription state." },
+        "isPremium": { "type": "boolean", "description": "Whether the user has premium access." },
+        "forcedAiMode": { "type": "string", "enum": ["default", "tokens", "without_tokens"], "description": "Forced AI/Tokens engine override mode." },
+        "trialExpiresAt": { "type": "string", "format": "date-time", "description": "When the trial ends." },
+        "isDisabled": { "type": "boolean", "description": "Whether the account is disabled by admin." },
+        "lastSeen": { "type": "string", "format": "date-time", "description": "Last activity timestamp." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation time." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp." }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "QuizResult": {
+      "title": "QuizResult",
+      "description": "The result of a completed CBT examination.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who took the exam." },
+        "userName": { "type": "string", "description": "Email or name of the user." },
+        "subject": { "type": "string", "description": "The subject of the exam." },
+        "score": { "type": "number", "description": "Number of correct answers." },
+        "totalQuestions": { "type": "number", "description": "Total number of questions in the exam." },
+        "timeTaken": { "type": "number", "description": "Time taken in seconds." },
+        "date": { "type": "string", "format": "date-time", "description": "When the exam was completed." },
+        "answers": {
+          "type": "array",
+          "description": "List of answers provided by the user."
+        }
+      },
+      "required": ["userId", "subject", "score", "totalQuestions", "timeTaken", "date"]
+    },
+    "PaymentRequest": {
+      "title": "PaymentRequest",
+      "description": "Information about a user's payment submission.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user." },
+        "userEmail": { "type": "string", "description": "Email of the user." },
+        "userName": { "type": "string", "description": "Name of the user." },
+        "receiptUrl": { "type": "string", "description": "Base64 string or URL of the payment receipt." },
+        "status": { "type": "string", "enum": ["pending", "verified", "rejected"], "description": "Current status of the verification." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the request was submitted." },
+        "verifiedAt": { "type": "string", "format": "date-time", "description": "When the request was verified." }
+      }
+    },
+    "Question": {
+      "title": "Question",
+      "description": "Standard exam question for SilverIBOM CBT.",
+      "type": "object",
+      "properties": {
+        "subject": { "type": "string", "description": "Subject name." },
+        "examType": { "type": "string", "description": "Exam type." },
+        "set": { "type": "number", "description": "Set number." },
+        "year": { "type": "number", "description": "Year of the question." },
+        "difficulty": { "type": "string", "description": "Difficulty level." },
+        "section": { "type": "string", "description": "Section of the exam." },
+        "passage": { "type": "string", "description": "Reading comprehension passage if any." },
+        "question": { "type": "string", "description": "Question text." },
+        "options": { "type": "array", "description": "List of choices." },
+        "correctAnswer": { "type": "number", "description": "Index of correct answer (0-3)." },
+        "explanation": { "type": "string", "description": "Explanation text." },
+        "topic": { "type": "string", "description": "Topic name." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when created." }
+      },
+      "required": ["subject", "examType", "set", "question", "options", "correctAnswer"]
+    },
+    "SystemAlert": {
+      "title": "SystemAlert",
+      "description": "System alerts and API provider notification logs for the admin console.",
+      "type": "object",
+      "properties": {
+        "service": { "type": "string", "description": "Service name (e.g. Gemini API)" },
+        "errorType": { "type": "string", "description": "Error classification" },
+        "message": { "type": "string", "description": "Human-friendly or developer error message" },
+        "context": { "type": "string", "description": "The function context where the error occurred" },
+        "userId": { "type": "string", "description": "UID of the user who triggered the error" },
+        "userEmail": { "type": "string", "description": "Email of the user who triggered the error" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the error occurred" },
+        "rawError": { "type": "string", "description": "Full stringified JSON of the raw error object" }
+      },
+      "required": ["service", "errorType", "message", "timestamp"]
+    },
+    "InstitutionalCbtRequest": {
+      "title": "InstitutionalCbtRequest",
+      "description": "Request submitted by institutional or group representatives for a custom CBT room.",
+      "type": "object",
+      "properties": {
+        "representativeName": { "type": "string" },
+        "representativeEmail": { "type": "string" },
+        "representativePhone": { "type": "string" },
+        "institutionName": { "type": "string" },
+        "examTitle": { "type": "string" },
+        "subjectCategory": { "type": "string" },
+        "expectedCandidates": { "type": "number" },
+        "preferredDurationMinutes": { "type": "number" },
+        "paymentReference": { "type": "string" },
+        "paymentVerified": { "type": "boolean" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "in_conversation", "approved", "active", "completed", "rejected"] },
+        "roomId": { "type": "string" }
+      },
+      "required": ["representativeName", "representativeEmail", "institutionName", "examTitle", "status"]
+    },
+    "InstitutionalCbtRoom": {
+      "title": "InstitutionalCbtRoom",
+      "description": "Active custom CBT exam room generated by Admin.",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "requestId": { "type": "string" },
+        "institutionName": { "type": "string" },
+        "examTitle": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "dispatched": { "type": "boolean" }
+      },
+      "required": ["roomId", "institutionName", "examTitle", "durationMinutes", "isActive"]
+    },
+    "InstitutionalCbtSubmission": {
+      "title": "InstitutionalCbtSubmission",
+      "description": "Exam submission result by candidate in an institutional CBT room.",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "institutionName": { "type": "string" },
+        "candidateName": { "type": "string" },
+        "candidateRegNo": { "type": "string" },
+        "score": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "timeTaken": { "type": "number" },
+        "submittedAt": { "type": "string" }
+      },
+      "required": ["roomId", "candidateName", "candidateRegNo", "score", "totalQuestions", "timeTaken"]
+    },
+    "LibraryBook": {
+      "title": "LibraryBook",
+      "description": "Textbook and digital learning resource metadata.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "section": { "type": "string" },
+        "subject": { "type": "string" },
+        "description": { "type": "string" },
+        "keywords": { "type": "array" },
+        "format": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "examTarget": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileSize": { "type": "string" },
+        "fileType": { "type": "string" },
+        "pageCount": { "type": "number" },
+        "fileUrl": { "type": "string" },
+        "storageKey": { "type": "string" },
+        "chapters": { "type": "array" },
+        "amazonUrl": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "uploadedBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["title", "author", "section", "subject"]
+    }
+  },
+  "firestore": {
+    "/sib_profiles/{userId}": {
+      "schema": "UserProfile",
+      "description": "Collection of unified user profiles for SilverIBOM CBT."
+    },
+    "/sib_results/{resultId}": {
+      "schema": "QuizResult",
+      "description": "Collection of examination results for SilverIBOM CBT."
+    },
+    "/sib_payments/{paymentId}": {
+      "schema": "PaymentRequest",
+      "description": "Collection of payment verification requests for SilverIBOM CBT."
+    },
+    "/sib_questions/{questionId}": {
+      "schema": "Question",
+      "description": "Collection of exam questions for CBT."
+    },
+    "/sib_alerts/{alertId}": {
+      "schema": "SystemAlert",
+      "description": "Collection of system alerts and provider notifications for admin review."
+    },
+    "/sib_inst_requests/{requestId}": {
+      "schema": "InstitutionalCbtRequest",
+      "description": "Institutional custom CBT exam requests."
+    },
+    "/sib_inst_rooms/{roomId}": {
+      "schema": "InstitutionalCbtRoom",
+      "description": "Active institutional custom CBT rooms."
+    },
+    "/sib_inst_submissions/{submissionId}": {
+      "schema": "InstitutionalCbtSubmission",
+      "description": "Candidate exam submissions for institutional CBT rooms."
+    },
+    "/library_books/{bookId}": {
+      "schema": "LibraryBook",
+      "description": "Textbooks and digital learning materials in the SilverIBOM library."
+    },
+    "/sib_library_files/{fileId}": {
+      "description": "Chunked file storage for library books and uploaded textbook documents."
+    },
+    "/sib_library_deletions/{docId}": {
+      "description": "Synchronization document tracking deleted books across clients."
+    }
+  }
+}
