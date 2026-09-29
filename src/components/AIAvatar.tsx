@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 
 // SVG GOLD CREST - Crown, Monogram, Twin Crescents
-export const ZeeRafGoldIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({ className = "w-full h-full", style, ...props }) => {
+export const JeeRafGoldIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({ className = "w-full h-full", style, ...props }) => {
   return (
     <svg 
       viewBox="0 0 500 500" 
@@ -98,8 +98,8 @@ export const ZeeRafGoldIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({ classN
   );
 };
 
-// SVG SILVER LOGO WITH TYPOGRAPHY - Interlocking Monogram, "ZeeRaf", "INTEGRITY. PURPOSE. IMPACT."
-export const ZeeRafSilverLogo: React.FC<React.SVGProps<SVGSVGElement>> = ({ className = "w-full h-full", style, ...props }) => {
+// SVG SILVER LOGO WITH TYPOGRAPHY - Interlocking Monogram, "JeeRaf", "INTEGRITY. PURPOSE. IMPACT."
+export const JeeRafSilverLogo: React.FC<React.SVGProps<SVGSVGElement>> = ({ className = "w-full h-full", style, ...props }) => {
   return (
     <svg 
       viewBox="0 0 800 800" 
@@ -221,7 +221,7 @@ export const ZeeRafSilverLogo: React.FC<React.SVGProps<SVGSVGElement>> = ({ clas
 
       {/* BRAND TYPOGRAPHY - matches image 3 perfectly */}
       <g filter="url(#luxuryShadow)">
-        {/* "ZeeRaf" text in a luxury Serif font */}
+        {/* "JeeRaf" text in a luxury Serif font */}
         <text 
           x="400" 
           y="575" 
@@ -232,7 +232,7 @@ export const ZeeRafSilverLogo: React.FC<React.SVGProps<SVGSVGElement>> = ({ clas
           fill="url(#silverMetalLogo)"
           letterSpacing="4"
         >
-          ZeeRaf
+          JeeRaf
         </text>
 
         {/* Pure bright overlay for pristine contrast */}
@@ -247,7 +247,7 @@ export const ZeeRafSilverLogo: React.FC<React.SVGProps<SVGSVGElement>> = ({ clas
           letterSpacing="4"
           opacity="0.3"
         >
-          ZeeRaf
+          JeeRaf
         </text>
 
         {/* Elegant horizontal divider with center bead */}
@@ -368,7 +368,7 @@ export const GoldSpinner: React.FC<GoldSpinnerProps> = ({ size = 64, text, class
           }}
           className="absolute inset-1 rounded-full overflow-hidden border border-amber-500/20 shadow-xl shadow-amber-500/10 bg-slate-950 flex items-center justify-center"
         >
-          <ZeeRafGoldIcon className="w-[85%] h-[85%] object-contain" />
+          <JeeRafGoldIcon className="w-[85%] h-[85%] object-contain" />
         </motion.div>
       </div>
       {text && (
@@ -379,7 +379,9 @@ export const GoldSpinner: React.FC<GoldSpinnerProps> = ({ size = 64, text, class
 };
 
 // Backward compatibility exports
-export const SilverIbomGoldIcon = ZeeRafGoldIcon;
-export const SilverIbomSilverLogo = ZeeRafSilverLogo;
+export const ZeeRafGoldIcon = JeeRafGoldIcon;
+export const ZeeRafSilverLogo = JeeRafSilverLogo;
+export const SilverIbomGoldIcon = JeeRafGoldIcon;
+export const SilverIbomSilverLogo = JeeRafSilverLogo;
 
 

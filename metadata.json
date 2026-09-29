@@ -1,5 +1,5 @@
 {
-  "name": "ZeeRaf CBT system",
+  "name": "JeeRaf CBT system",
   "description": "A professional JAMB-style Computer Based Test (CBT) system for English, Mathematics, Physics, and Chemistry.",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

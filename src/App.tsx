@@ -30,7 +30,7 @@ import { IbomAIPage } from './components/IbomAIPage';
 import { WebBrowserPage } from './components/WebBrowserPage';
 import { MainDirectoryDashboard } from './components/MainDirectoryDashboard';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoldSpinner, ZeeRafSilverLogo } from './components/AIAvatar';
+import { GoldSpinner, JeeRafSilverLogo } from './components/AIAvatar';
 
 enum OperationType {
   CREATE = 'create',
@@ -79,7 +79,7 @@ export default function App() {
   const [adminQuestions, setAdminQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
-    // Show splash (ZeeRaf Silver Logo) for 3.5 seconds
+    // Show splash (JeeRaf Silver Logo) for 3.5 seconds
     const timer = setTimeout(() => {
       setSplashStage('done');
     }, 3500);
@@ -233,7 +233,7 @@ export default function App() {
 
   useEffect(() => {
     // Initial theme hydration from localStorage or profile
-    const savedTheme = localStorage.getItem('zeeraf_theme') || profile?.theme || 'white';
+    const savedTheme = localStorage.getItem('jeeraf_theme') || localStorage.getItem('zeeraf_theme') || profile?.theme || 'white';
     document.documentElement.className = savedTheme === 'white' ? '' : `theme-${savedTheme}`;
 
     const handleThemeChange = (e: any) => {
@@ -242,14 +242,18 @@ export default function App() {
         document.documentElement.className = newTheme === 'white' ? '' : `theme-${newTheme}`;
       }
     };
+    window.addEventListener('jeeraf-theme-change', handleThemeChange);
     window.addEventListener('zeeraf-theme-change', handleThemeChange);
-    return () => window.removeEventListener('zeeraf-theme-change', handleThemeChange);
+    return () => {
+      window.removeEventListener('jeeraf-theme-change', handleThemeChange);
+      window.removeEventListener('zeeraf-theme-change', handleThemeChange);
+    };
   }, []);
 
   useEffect(() => {
     // Sync theme with profile preference
     if (profile?.theme) {
-      localStorage.setItem('zeeraf_theme', profile.theme);
+      localStorage.setItem('jeeraf_theme', profile.theme);
       document.documentElement.className = profile.theme === 'white' ? '' : `theme-${profile.theme}`;
     }
   }, [profile?.theme]);
@@ -479,7 +483,7 @@ export default function App() {
           transition={{ duration: 1.2, ease: "easeInOut" }}
           className="w-full h-full max-w-[650px] max-h-[650px] flex items-center justify-center p-6 bg-black"
         >
-          <ZeeRafSilverLogo className="w-full h-full" />
+          <JeeRafSilverLogo className="w-full h-full" />
         </motion.div>
       </div>
     );

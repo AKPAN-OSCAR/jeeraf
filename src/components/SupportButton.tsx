@@ -12,7 +12,7 @@ interface Message {
 }
 
 const SUGGESTED_QUESTIONS = [
-  "What is ZeeRaf CBT?",
+  "What is JeeRaf CBT?",
   "How does the AI-powered custom exam work?",
   "Which subjects are supported?",
   "How can I get Premium full access?",
@@ -20,13 +20,13 @@ const SUGGESTED_QUESTIONS = [
 
 // Pre-coded offline JS response database (0 API tokens consumed)
 const OFFLINE_FAQ_RESPONSES: Record<string, string> = {
-  "What is ZeeRaf CBT?": `🌟 **ZeeRaf CBT** is Nigeria's elite Computer-Based Testing preparation environment designed for candidates taking **JAMB UTME, WAEC, NECO**, and post-UTME examinations.
+  "What is JeeRaf CBT?": `🌟 **JeeRaf CBT** is Nigeria's elite Computer-Based Testing preparation environment designed for candidates taking **JAMB UTME, WAEC, NECO**, and post-UTME examinations.
 
 It features:
 - Real-time countdown exam timers and score analytics.
 - Built-in scientific calculator and past question banks.
 - Personal CBT mode allowing candidates to upload study notes/textbooks for custom AI question parsing.
-- Fun competitions and real-time ZeeRaf AI assistant.`,
+- Fun competitions and real-time JeeRaf AI assistant.`,
 
   "How does the AI-powered custom exam work?": `📚 **Personal CBT AI Extraction**:
 1. Simply navigate to the **Personal CBT** tab.
@@ -40,9 +40,9 @@ We support all major arts, commercial, and science subjects:
 - **Commercial & Arts**: Economics, Government, Literature, Geography, Commerce, Accounting, CRK, IRK, and General Knowledge.`,
 
   "How can I get Premium full access?": `💳 **Half-Yearly Subscription Plans**:
-ZeeRaf offers two flexible 6-month subscription options:
-- **Claxy Mode (₦5,000 / 6 Months)**: Unlocks full CBT exam simulations, 2 ZeeRaf AI name edits, and 1v1 duel matches in the Fun Hub.
-- **Claxy Pro Mode (₦8,000 / 6 Months)**: Unlocks 8 ZeeRaf AI name edits, priority audio lecture transcription, and full trophy cabinet access!`
+JeeRaf offers two flexible 6-month subscription options:
+- **Claxy Mode (₦5,000 / 6 Months)**: Unlocks full CBT exam simulations, 2 JeeRaf AI name edits, and 1v1 duel matches in the Fun Hub.
+- **Claxy Pro Mode (₦8,000 / 6 Months)**: Unlocks 8 JeeRaf AI name edits, priority audio lecture transcription, and full trophy cabinet access!`
 };
 
 export const SupportButton: React.FC = () => {
@@ -51,7 +51,7 @@ export const SupportButton: React.FC = () => {
     {
       id: 'welcome',
       role: 'model',
-      text: "Hello! Welcome to the **ZeeRaf CBT AI Help Desk**. 🌟\n\nI can answer any questions you have about our Computer-Based Testing preparation platform. Ask me about our subjects, custom AI question extraction, simulator features, or subscription plans!\n\nHow can I support your study journey today?",
+      text: "Hello! Welcome to the **JeeRaf CBT AI Help Desk**. 🌟\n\nI can answer any questions you have about our Computer-Based Testing preparation platform. Ask me about our subjects, custom AI question extraction, simulator features, or subscription plans!\n\nHow can I support your study journey today?",
       timestamp: new Date(),
     },
   ]);
@@ -97,7 +97,7 @@ export const SupportButton: React.FC = () => {
       if (!responseText) {
         const lower = textToSend.toLowerCase();
         if (lower.includes('jamb') || lower.includes('utme') || lower.includes('waec')) {
-          responseText = OFFLINE_FAQ_RESPONSES["What is ZeeRaf CBT?"];
+          responseText = OFFLINE_FAQ_RESPONSES["What is JeeRaf CBT?"];
         } else if (lower.includes('price') || lower.includes('cost') || lower.includes('pay') || lower.includes('claxy')) {
           responseText = OFFLINE_FAQ_RESPONSES["How can I get Premium full access?"];
         } else if (lower.includes('ai') || lower.includes('pdf') || lower.includes('audio')) {
@@ -105,7 +105,7 @@ export const SupportButton: React.FC = () => {
         } else if (lower.includes('subject')) {
           responseText = OFFLINE_FAQ_RESPONSES["Which subjects are supported?"];
         } else {
-          responseText = `👋 Thank you for reaching out to **ZeeRaf Help Desk**!\n\nZeeRaf CBT provides full practice simulations for JAMB, WAEC, and NECO, interactive 1v1 duels, and offline question parsers. Choose one of our suggested questions below or create an account to start practicing immediately!`;
+          responseText = `👋 Thank you for reaching out to **JeeRaf Help Desk**!\n\nJeeRaf CBT provides full practice simulations for JAMB, WAEC, and NECO, interactive 1v1 duels, and offline question parsers. Choose one of our suggested questions below or create an account to start practicing immediately!`;
         }
       }
 
@@ -144,7 +144,7 @@ export const SupportButton: React.FC = () => {
           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
         </span>
         <Sparkles size={14} className="animate-pulse" />
-        <span>Ask ZeeRaf AI</span>
+        <span>Ask JeeRaf AI</span>
       </motion.button>
 
       <AnimatePresence>
@@ -171,7 +171,7 @@ export const SupportButton: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="font-black text-sm tracking-wide uppercase text-white flex items-center gap-2">
-                      ZeeRaf Offline AI Help Desk
+                      JeeRaf Offline AI Help Desk
                       <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
                         0 Tokens Used
                       </span>
@@ -239,7 +239,7 @@ export const SupportButton: React.FC = () => {
                     <div className="flex gap-3.5 justify-start">
                       <AIAvatar size="xs" isLoading={true} />
                       <div className="bg-slate-800/40 border border-slate-800/60 px-5 py-3 rounded-2xl text-slate-400 text-xs">
-                        ZeeRaf AI is processing...
+                        JeeRaf AI is processing...
                       </div>
                     </div>
                   )}

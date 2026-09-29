@@ -157,7 +157,7 @@ export const FunPage: React.FC<FunPageProps> = ({ user, profile, onBack, onNavig
   // Room Creation Handler
   const handleCreateFunRoom = async () => {
     if (!user || !db) return;
-    const randomCode = `ZEERAF-${Math.floor(1000 + Math.random() * 9000)}`;
+    const randomCode = `JEERAF-${Math.floor(1000 + Math.random() * 9000)}`;
     setCreatedRoomId(randomCode);
 
     try {
@@ -504,7 +504,7 @@ export const FunPage: React.FC<FunPageProps> = ({ user, profile, onBack, onNavig
                       type="text"
                       value={joinRoomInput}
                       onChange={(e) => setJoinRoomInput(e.target.value.toUpperCase())}
-                      placeholder="ENTER ROOM CODE (e.g. ZEERAF-8910)"
+                      placeholder="ENTER ROOM CODE (e.g. JEERAF-8910)"
                       className="flex-1 bg-theme-card border border-theme-border rounded-xl px-3 py-2.5 text-xs font-bold tracking-widest text-center uppercase text-theme-text focus:outline-none focus:ring-1 focus:ring-indigo-500/40"
                     />
                     <button
@@ -681,7 +681,7 @@ export const FunPage: React.FC<FunPageProps> = ({ user, profile, onBack, onNavig
                   type="text" 
                   value={createdRoomId}
                   onChange={(e) => setCreatedRoomId(e.target.value.toUpperCase())}
-                  placeholder="Enter Room Code (e.g. ZEERAF-2026)"
+                  placeholder="Enter Room Code (e.g. JEERAF-2026)"
                   className="w-full bg-theme-bg border border-theme-border rounded-xl px-4 py-3 text-sm text-center font-bold tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                 />
                 <button 

@@ -278,7 +278,7 @@ export const WebBrowserPage: React.FC<WebBrowserPageProps> = ({
         <iframe
           key={iframeKey}
           src={currentUrl}
-          title="ZeeRaf Web Browser"
+          title="JeeRaf Web Browser"
           className="w-full flex-1 border-none min-h-[600px] bg-white"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation-by-user-activation"
         />

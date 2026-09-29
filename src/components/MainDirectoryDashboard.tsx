@@ -39,8 +39,8 @@ const DAILY_BLOG_PREVIEWS = [
   },
   {
     day: 'Today\'s Featured Article',
-    title: 'How to Convert Course Audio Lectures into Smart CBT Notes with ZeeRaf AI',
-    snippet: 'Learn how university students use ZeeRaf personal CBT to transcribe long recordings into searchable practice questions.',
+    title: 'How to Convert Course Audio Lectures into Smart CBT Notes with JeeRaf AI',
+    snippet: 'Learn how university students use JeeRaf personal CBT to transcribe long recordings into searchable practice questions.',
     readTime: '4 min read',
     tag: 'University & AI'
   }
@@ -103,10 +103,10 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
           />
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 bg-theme-accent rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm">
-              Z
+              J
             </div>
             <div>
-              <h1 className="text-lg font-black text-theme-text leading-none tracking-tight">ZeeRaf CBT</h1>
+              <h1 className="text-lg font-black text-theme-text leading-none tracking-tight">JeeRaf CBT</h1>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-theme-accent bg-theme-accent/10 px-2 py-0.5 rounded-md border border-theme-accent/20">
                   {getCountryFlag()} {cbtCountry}
@@ -199,7 +199,7 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
             </button>
           </motion.div>
 
-          {/* Card 2: INTERACT WITH ZEERAF AI */}
+          {/* Card 2: INTERACT WITH JEERAF AI */}
           <motion.div
             whileHover={{ y: -6, scale: 1.02 }}
             onClick={() => onNavigateTo('system_ai')}
@@ -209,7 +209,7 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
             <div className="w-full h-28 sm:h-28 lg:h-24 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-indigo-500/30 bg-slate-900">
               <img 
                 src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop" 
-                alt="ZeeRaf AI Tutor" 
+                alt="JeeRaf AI Tutor" 
                 className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500 opacity-90"
                 referrerPolicy="no-referrer"
               />
@@ -222,7 +222,7 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-base sm:text-lg font-black text-theme-text tracking-tight">ZeeRaf AI</h3>
+              <h3 className="text-base sm:text-lg font-black text-theme-text tracking-tight">JeeRaf AI</h3>
               <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 bg-indigo-500/10 px-2.5 py-0.5 rounded-full">
                 Interactive Tutor
               </span>

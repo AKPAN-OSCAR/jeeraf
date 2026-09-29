@@ -3688,7 +3688,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
                   <div className="flex items-center justify-between border-b border-theme-border pb-3">
                     <div className="flex items-center gap-2">
                       <Bot className="text-amber-500" size={20} />
-                      <h5 className="font-black text-theme-text text-sm">ZeeRaf AI Assistant</h5>
+                      <h5 className="font-black text-theme-text text-sm">JeeRaf AI Assistant</h5>
                     </div>
                     <span className="text-[10px] font-bold bg-amber-500/10 text-amber-500 px-2.5 py-0.5 rounded-full border border-amber-500/20">
                       Student AI Engine
@@ -3718,7 +3718,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
 
                     <div>
                       <label className="text-[11px] font-black text-theme-muted uppercase tracking-wider block mb-1">
-                        Switch Active API Key (ZeeRaf AI):
+                        Switch Active API Key (JeeRaf AI):
                       </label>
                       <select
                         value={
@@ -4008,7 +4008,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
                 <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">Model Architecture Blueprint</span>
                 <h4 className="text-lg font-black text-theme-text mt-0.5">AI Tools Operating Under Paid Tokens</h4>
                 <p className="text-[11px] text-theme-muted mt-1">
-                  The ZeeRaf CBT platform leverages these elite Gemini models for contextual execution. Click to configure credentials or purchase tokens.
+                  The JeeRaf CBT platform leverages these elite Gemini models for contextual execution. Click to configure credentials or purchase tokens.
                 </p>
               </div>
 
@@ -4370,7 +4370,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
             <div className="bg-gradient-to-r from-amber-500/20 via-slate-900 to-indigo-950 border border-amber-500/30 p-6 sm:p-8 rounded-3xl shadow-xl space-y-3">
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1 bg-amber-500/20 text-amber-300 text-[10px] font-black uppercase tracking-widest rounded-full border border-amber-500/30">
-                  ZeeRaf Admin Control
+                  JeeRaf Admin Control
                 </span>
                 <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-500/30">
                   {adminLibraryBooks.length} Admin Uploaded Books
@@ -4434,7 +4434,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Dr. A. Johnson / ZeeRaf Faculty"
+                      placeholder="e.g. Dr. A. Johnson / JeeRaf Faculty"
                       value={uploadBookAuthor}
                       onChange={(e) => setUploadBookAuthor(e.target.value)}
                       className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-2xl text-xs font-bold text-theme-text focus:border-amber-500 outline-none"
@@ -4628,7 +4628,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
                     </label>
                     <textarea
                       rows={2}
-                      placeholder="Paste electronic chapter text or book content for reading inside the ZeeRaf E-Reader..."
+                      placeholder="Paste electronic chapter text or book content for reading inside the JeeRaf E-Reader..."
                       value={uploadBookChapters}
                       onChange={(e) => setUploadBookChapters(e.target.value)}
                       className="w-full p-2.5 bg-theme-card border border-theme-border rounded-xl text-xs font-mono text-theme-text focus:border-amber-500 outline-none"

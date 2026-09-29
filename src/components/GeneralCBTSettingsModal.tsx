@@ -96,7 +96,7 @@ export const GeneralCBTSettingsModal: React.FC<GeneralCBTSettingsModalProps> = (
         if (isPersonal) {
           setAiFeedback({
             show: true,
-            title: 'ZeeRaf AI Personal CBT Router',
+            title: 'JeeRaf AI Personal CBT Router',
             message: `I have analyzed your request: "${explorePrompt}". To construct your exact test questions, please upload your lecture audio, PDF materials, or study notes on the next screen. Directing you straight to your Personal CBT workspace...`,
             suggestsUpload: true
           });
@@ -104,7 +104,7 @@ export const GeneralCBTSettingsModal: React.FC<GeneralCBTSettingsModalProps> = (
         } else {
           setAiFeedback({
             show: true,
-            title: 'ZeeRaf AI Exam Router',
+            title: 'JeeRaf AI Exam Router',
             message: `I have prepared the exact practice center for "${explorePrompt}". Directing you straight to the test simulation center...`,
             suggestsUpload: false
           });

@@ -788,7 +788,7 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
   const [browserHistoryIndex, setBrowserHistoryIndex] = useState<number>(0);
   const [iframeKey, setIframeKey] = useState<number>(0);
 
-  // Open URL inside Standalone ZeeRaf Web Browser
+  // Open URL inside Standalone JeeRaf Web Browser
   const handleOpenBrowserUrl = (url: string) => {
     let target = url.trim();
     if (!target) return;

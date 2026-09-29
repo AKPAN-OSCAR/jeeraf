@@ -151,9 +151,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
             }}
           />
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-theme-accent rounded-lg flex items-center justify-center text-white font-bold">Z</div>
+            <div className="w-10 h-10 bg-theme-accent rounded-lg flex items-center justify-center text-white font-bold">J</div>
             <div>
-              <h1 className="text-xl font-bold text-theme-text leading-tight tracking-tight">ZeeRaf CBT</h1>
+              <h1 className="text-xl font-bold text-theme-text leading-tight tracking-tight">JeeRaf CBT</h1>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-theme-accent bg-theme-accent/10 px-2 py-1 rounded-md border border-theme-accent/20 shadow-sm">
                   {examType || 'Practice'}
@@ -241,7 +241,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-theme-text leading-tight">
-                        {profile?.subscriptionStatus === 'pending' ? 'Verification in Progress' : 'ZeeRaf Premium Trial'}
+                        {profile?.subscriptionStatus === 'pending' ? 'Verification in Progress' : 'JeeRaf Premium Trial'}
                       </h3>
                       <p className="text-sm text-theme-muted">
                         {profile?.subscriptionStatus === 'pending' 

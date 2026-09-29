@@ -23,7 +23,7 @@ export const Welcome: React.FC<WelcomeProps> = ({ onProceed }) => {
             <GraduationCap size={48} className="text-theme-accent" />
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-white mb-4 tracking-tight">
-            ZeeRaf <span className="text-theme-accent">CBT</span>
+            JeeRaf <span className="text-theme-accent">CBT</span>
           </h1>
           <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto font-light leading-relaxed">
             Excellence in Computer Based Testing. Prepare for your future with our JAMB-style examination system.

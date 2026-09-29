@@ -136,11 +136,11 @@ export const TextbookSelection: React.FC<TextbookSelectionProps> = ({
           </button>
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 bg-theme-accent rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm">
-              Z
+              J
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-black text-theme-text leading-none tracking-tight">
-                ZeeRaf Library
+                JeeRaf Library
               </h1>
               <p className="text-[10px] text-theme-muted font-bold uppercase tracking-widest mt-1">
                 Digital Academic Repository

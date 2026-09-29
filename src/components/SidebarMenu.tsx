@@ -107,8 +107,10 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ user, profile, onLogou
 
   const handleSetTheme = async (newTheme: string) => {
     setProfileData(prev => ({ ...prev, theme: newTheme }));
+    localStorage.setItem('jeeraf_theme', newTheme);
     localStorage.setItem('zeeraf_theme', newTheme);
     document.documentElement.className = newTheme === 'white' ? '' : `theme-${newTheme}`;
+    window.dispatchEvent(new CustomEvent('jeeraf-theme-change', { detail: newTheme }));
     window.dispatchEvent(new CustomEvent('zeeraf-theme-change', { detail: newTheme }));
     if (db && user) {
       try {
@@ -123,8 +125,8 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ user, profile, onLogou
   };
 
   const menuItems = [
-    { id: 'browser', label: 'ZeeRaf Web Browser', keywords: 'web browser internet search engine chrome url link page google bing wikipedia zeeraf', icon: <Globe className="text-amber-500" size={20} />, action: 'browser' },
-    { id: 'system_ai', label: 'ZeeRaf Real-time AI', keywords: 'zeeraf ai tutor chat solver camera questions assistant', icon: <Sparkles className="text-indigo-500" size={20} />, action: 'system_ai' },
+    { id: 'browser', label: 'JeeRaf Web Browser', keywords: 'web browser internet search engine chrome url link page google bing wikipedia jeeraf zeeraf', icon: <Globe className="text-amber-500" size={20} />, action: 'browser' },
+    { id: 'system_ai', label: 'JeeRaf Real-time AI', keywords: 'jeeraf zeeraf ai tutor chat solver camera questions assistant', icon: <Sparkles className="text-indigo-500" size={20} />, action: 'system_ai' },
     { id: 'main_dashboard', label: 'Main Directory Hub', keywords: 'directory home hub navigation main', icon: <LayoutDashboard className="text-theme-accent" size={20} />, action: 'dashboard' },
     { id: 'cbt_subjects', label: 'CBT Subjects & Practice', keywords: 'cbt exam subject questions jamb waec neco practice', icon: <Book className="text-blue-500" size={20} />, action: 'dashboard' },
     { id: 'exam_select', label: 'Select Exam Category', keywords: 'exam type category jamb waec neco personal cbt', icon: <LayoutDashboard className="text-emerald-500" size={20} />, action: 'exam_select' },
@@ -286,11 +288,11 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ user, profile, onLogou
               <h2 className="text-xl font-bold">Users Guide</h2>
             </div>
             <div className="prose prose-slate text-sm space-y-4">
-              <p className="text-theme-text opacity-90">Welcome to ZeeRaf CBT! Follow these steps to get started:</p>
+              <p className="text-theme-text opacity-90">Welcome to JeeRaf CBT! Follow these steps to get started:</p>
               <ol className="space-y-2 list-decimal list-inside text-theme-muted">
                 <li>Select your exam type (JAMB, WAEC, NECO) or Personal CBT.</li>
                 <li>Practice with interactive CBT timers and detailed explanations.</li>
-                <li>Visit the Fun Hub to duel peers, or chat with ZeeRaf AI for real-time tutoring.</li>
+                <li>Visit the Fun Hub to duel peers, or chat with JeeRaf AI for real-time tutoring.</li>
               </ol>
             </div>
           </div>
@@ -412,9 +414,9 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ user, profile, onLogou
             {/* Logo & User Info Header */}
             <div className="pt-2">
               <div className="flex items-center gap-3 mb-1">
-                <div className="w-10 h-10 bg-theme-accent rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-md">Z</div>
+                <div className="w-10 h-10 bg-theme-accent rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-md">J</div>
                 <div>
-                  <h2 className="text-lg font-black text-theme-text leading-none">ZeeRaf</h2>
+                  <h2 className="text-lg font-black text-theme-text leading-none">JeeRaf</h2>
                   <p className="text-[10px] text-theme-accent font-black tracking-widest uppercase">CBT System</p>
                 </div>
               </div>
