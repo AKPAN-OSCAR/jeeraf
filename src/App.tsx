@@ -117,6 +117,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // Preserve initial intended URL if user arrives at a deep link while unauthenticated
+    const currentPath = window.location.pathname;
+    if (currentPath && currentPath !== '/' && currentPath !== '') {
+      sessionStorage.setItem('intended_path', currentPath);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!auth) {
       setIsAuthReady(true);
       return;
@@ -129,10 +137,19 @@ export default function App() {
         setIsLocked(false);
         setProfileLoading(false);
       } else {
-        const pathTarget = getStateFromPath(window.location.pathname);
+        const intended = sessionStorage.getItem('intended_path') || window.location.pathname;
+        const pathTarget = getStateFromPath(intended);
         setState(prevState => {
           if (prevState === 'auth' || prevState === 'welcome') {
-            return pathTarget || 'dashboard';
+            if (pathTarget && pathTarget !== 'auth' && pathTarget !== 'welcome') {
+              sessionStorage.removeItem('intended_path');
+              const targetUrl = getPathFromState(pathTarget);
+              if (window.location.pathname !== targetUrl) {
+                window.history.replaceState(null, '', targetUrl);
+              }
+              return pathTarget;
+            }
+            return 'dashboard';
           }
           return prevState;
         });
@@ -349,7 +366,14 @@ export default function App() {
 
   const handleAuthSuccess = (userData: any) => {
     setUser(userData);
-    setState('dashboard');
+    const intended = sessionStorage.getItem('intended_path') || window.location.pathname;
+    const targetState = getStateFromPath(intended);
+    if (targetState && targetState !== 'auth' && targetState !== 'welcome') {
+      sessionStorage.removeItem('intended_path');
+      navigateToState(targetState);
+    } else {
+      navigateToState('dashboard');
+    }
   };
 
   const handleExamTypeSelect = (type: ExamType, questions?: Question[], preferredDuration?: number) => {

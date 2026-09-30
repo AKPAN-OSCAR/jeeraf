@@ -5,6 +5,7 @@ import { QuizResult, Question } from '../types';
 import { cn } from '../data/lib/utils';
 import { SidebarMenu } from './SidebarMenu';
 import { MathRenderer } from './MathRenderer';
+import { CBTQuestionAISolutionModal } from './CBTQuestionAISolutionModal';
 
 interface ResultDashboardProps {
   result: QuizResult;
@@ -28,6 +29,12 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
   onNavigateTo,
 }) => {
   const [showCorrections, setShowCorrections] = useState(false);
+  const [activeAiQuestion, setActiveAiQuestion] = useState<{
+    question: Question;
+    index: number;
+    userAnswer?: { selectedAnswer: number | null; isCorrect?: boolean };
+  } | null>(null);
+
   const percentage = Math.round((result.score / result.totalQuestions) * 100);
 
   // Peer Benchmark calculation
@@ -246,13 +253,35 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                       })}
                     </div>
 
-                    <div className="bg-theme-accent/5 rounded-2xl p-6 border border-theme-accent/10">
-                      <h5 className="text-theme-accent font-bold text-sm mb-4 flex items-center gap-2 border-b border-theme-accent/10 pb-2">
-                        <Info size={16} />
-                        Detailed Solution
-                      </h5>
+                    <div className="bg-theme-accent/5 rounded-2xl p-6 border border-theme-accent/10 space-y-4">
+                      <div className="flex items-center justify-between border-b border-theme-accent/10 pb-2">
+                        <h5 className="text-theme-accent font-bold text-sm flex items-center gap-2">
+                          <Info size={16} />
+                          Detailed Solution
+                        </h5>
+                        <span className="text-[10px] font-bold text-theme-muted uppercase tracking-wider">
+                          Syllabus Verified
+                        </span>
+                      </div>
+
                       <div className="text-theme-text text-base leading-relaxed opacity-90 whitespace-pre-line">
                         <MathRenderer text={q.explanation} />
+                      </div>
+
+                      {/* Interactive Ask JeeRaf AI Copilot Bar */}
+                      <div className="pt-3 border-t border-theme-border/60 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 text-xs text-theme-muted font-medium">
+                          <Sparkles size={14} className="text-amber-500" />
+                          <span>Not satisfied or need step-by-step mathematical reasoning?</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveAiQuestion({ question: q, index: idx, userAnswer: userAns })}
+                          className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
+                        >
+                          <Sparkles size={14} className="text-slate-950 fill-slate-950/20" />
+                          <span>Ask JeeRaf AI: Why is this option correct?</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -262,6 +291,27 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Real-Time Contextual AI Solution Pop-Out Drawer */}
+      {activeAiQuestion && (
+        <CBTQuestionAISolutionModal
+          isOpen={!!activeAiQuestion}
+          onClose={() => setActiveAiQuestion(null)}
+          question={activeAiQuestion.question}
+          questionIndex={activeAiQuestion.index}
+          userAnswer={activeAiQuestion.userAnswer}
+          subject={result.subject}
+          examType={result.examType}
+          user={user}
+          profile={profile}
+          onOpenFullScreenAI={(initialQuery) => {
+            setActiveAiQuestion(null);
+            if (onNavigateTo) {
+              onNavigateTo('system_ai');
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Clock, Send, AlertCircle, Menu, Flag, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Send, AlertCircle, Menu, Flag, X, Sparkles } from 'lucide-react';
 import { Question, Subject, ExamType } from '../types';
 import { cn } from '../data/lib/utils';
 import { Calculator } from './Calculator';
 import { SidebarMenu } from './SidebarMenu';
 import { MathRenderer } from './MathRenderer';
+import { CBTQuestionAISolutionModal } from './CBTQuestionAISolutionModal';
 
 interface CBTInterfaceProps {
   subject: Subject;
@@ -39,6 +40,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [visitedQuestions, setVisitedQuestions] = useState<Set<string>>(new Set([questions[0]?.id]));
+  const [showAiModal, setShowAiModal] = useState(false);
 
   const currentQuestion = questions[currentIndex];
 
@@ -154,6 +156,17 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               <span className="hidden md:inline text-sm font-bold text-theme-text transition-colors">Calc</span>
             </button>
           )}
+
+          {/* JeeRaf AI Study Helper Button */}
+          <button
+            type="button"
+            onClick={() => setShowAiModal(true)}
+            className="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 rounded-xl transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+            title="Ask JeeRaf AI for guidance or concept clarity on this question"
+          >
+            <Sparkles size={16} className="text-amber-500" />
+            <span className="hidden sm:inline text-xs font-black text-amber-500">AI Help</span>
+          </button>
 
           <button
             disabled={isSubmitting}
@@ -551,6 +564,27 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
           </div>
         )}
       </AnimatePresence>
+
+      {/* In-Exam Contextual JeeRaf AI Guidance Modal */}
+      {showAiModal && currentQuestion && (
+        <CBTQuestionAISolutionModal
+          isOpen={showAiModal}
+          onClose={() => setShowAiModal(false)}
+          question={currentQuestion}
+          questionIndex={currentIndex}
+          userAnswer={{
+            selectedAnswer: answers[currentQuestion.id] ?? null
+          }}
+          subject={subject}
+          examType={examType}
+          user={user}
+          profile={profile}
+          onOpenFullScreenAI={() => {
+            setShowAiModal(false);
+            if (onNavigateTo) onNavigateTo('system_ai');
+          }}
+        />
+      )}
     </div>
   );
 };
