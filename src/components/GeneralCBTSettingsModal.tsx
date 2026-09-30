@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Globe, GraduationCap, BookOpen, Layers, Check, X, Settings2, Sparkles, Send, ArrowRight, Bot, Upload } from 'lucide-react';
 import { db } from '../firebase';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { JeeRafHeadIcon } from './AIAvatar';
 
 interface GeneralCBTSettingsModalProps {
   user: any;
@@ -149,8 +150,8 @@ export const GeneralCBTSettingsModal: React.FC<GeneralCBTSettingsModalProps> = (
               exit={{ opacity: 0, y: -10 }}
               className="space-y-5 p-2 text-center"
             >
-              <div className="w-16 h-16 bg-indigo-500/10 text-indigo-500 border border-indigo-500/30 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
-                <Bot size={36} />
+              <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto shadow-sm overflow-hidden p-2">
+                <JeeRafHeadIcon className="w-full h-full object-cover rounded-xl" />
               </div>
 
               <div className="space-y-2">

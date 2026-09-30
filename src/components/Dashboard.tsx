@@ -13,6 +13,7 @@ import { SidebarMenu } from './SidebarMenu';
 import { SubjectGuide } from './SubjectGuide';
 import { subjectGuides } from '../data/subjectGuides';
 import { questions as staticQuestions } from '../data/questions';
+import { JeeRafHeadIcon } from './AIAvatar';
 
 interface DashboardProps {
   user: any;
@@ -150,8 +151,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
               onNavigateTo(target);
             }}
           />
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-theme-accent rounded-lg flex items-center justify-center text-white font-bold">J</div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-950 border border-amber-500/30 flex items-center justify-center shadow-sm shrink-0">
+              <JeeRafHeadIcon className="w-full h-full object-cover" />
+            </div>
             <div>
               <h1 className="text-xl font-bold text-theme-text leading-tight tracking-tight">JeeRaf CBT</h1>
               <div className="flex items-center gap-2">

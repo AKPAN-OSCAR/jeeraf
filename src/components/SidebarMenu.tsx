@@ -12,6 +12,7 @@ import { auth, db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { cn } from '../data/lib/utils';
 import { GeneralCBTSettingsModal } from './GeneralCBTSettingsModal';
+import { JeeRafHeadIcon } from './AIAvatar';
 
 interface SidebarMenuProps {
   user: any;
@@ -411,7 +412,9 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ user, profile, onLogou
             {/* Logo & User Info Header */}
             <div className="pt-2">
               <div className="flex items-center gap-3 mb-1">
-                <div className="w-10 h-10 bg-theme-accent rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-md">J</div>
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden bg-slate-950 border border-amber-500/30 shadow-md shrink-0">
+                  <JeeRafHeadIcon className="w-full h-full object-cover" />
+                </div>
                 <div>
                   <h2 className="text-lg font-black text-theme-text leading-none">JeeRaf</h2>
                   <p className="text-[10px] text-theme-accent font-black tracking-widest uppercase">CBT System</p>

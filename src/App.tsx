@@ -556,15 +556,34 @@ export default function App() {
 
   if (splashStage !== 'done') {
     return (
-      <div className="fixed inset-0 w-full h-full bg-black flex items-center justify-center overflow-hidden select-none z-50">
+      <div className="fixed inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden select-none z-50 p-4">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.05 }}
-          transition={{ duration: 1.2, ease: "easeInOut" }}
-          className="w-full h-full max-w-[650px] max-h-[650px] flex items-center justify-center p-6 bg-black"
+          transition={{ duration: 1.0, ease: "easeInOut" }}
+          className="relative flex flex-col items-center justify-center max-w-[440px] w-full"
         >
-          <JeeRafSilverLogo className="w-full h-full" />
+          {/* Ambient luminous glow */}
+          <div className="absolute inset-0 bg-amber-500/15 blur-3xl rounded-full scale-110 pointer-events-none" />
+          
+          <img 
+            src="/jeeraf-with-name.jpeg" 
+            alt="JeeRaf CBT System" 
+            className="w-full max-w-[320px] md:max-w-[360px] h-auto object-contain rounded-3xl shadow-2xl drop-shadow-[0_15px_40px_rgba(0,0,0,0.9)] border border-white/10"
+          />
+
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="mt-6 flex items-center gap-2"
+          >
+            <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            <p className="text-amber-200/80 text-xs font-black uppercase tracking-[0.25em]">
+              Initializing JeeRaf System...
+            </p>
+          </motion.div>
         </motion.div>
       </div>
     );

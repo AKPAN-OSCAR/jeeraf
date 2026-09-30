@@ -421,7 +421,9 @@ INSTRUCTIONS:
                   <div className="flex items-center gap-1.5 text-[10px] text-theme-muted font-bold px-1">
                     {msg.sender === 'ai' ? (
                       <>
-                        <Bot size={12} className="text-amber-400" />
+                        <div className="w-3.5 h-3.5 rounded-full overflow-hidden shrink-0 border border-amber-500/30">
+                          <JeeRafGoldIcon className="w-full h-full object-cover" />
+                        </div>
                         <span className="text-amber-400">JeeRaf AI Copilot</span>
                       </>
                     ) : (

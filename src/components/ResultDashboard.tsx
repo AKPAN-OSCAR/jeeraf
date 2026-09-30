@@ -6,6 +6,7 @@ import { cn } from '../data/lib/utils';
 import { SidebarMenu } from './SidebarMenu';
 import { MathRenderer } from './MathRenderer';
 import { CBTQuestionAISolutionModal } from './CBTQuestionAISolutionModal';
+import { JeeRafHeadIcon } from './AIAvatar';
 
 interface ResultDashboardProps {
   result: QuizResult;
@@ -279,7 +280,9 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                           onClick={() => setActiveAiQuestion({ question: q, index: idx, userAnswer: userAns })}
                           className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
                         >
-                          <Sparkles size={14} className="text-slate-950 fill-slate-950/20" />
+                          <div className="w-4 h-4 rounded-full overflow-hidden border border-slate-950/40 shrink-0">
+                            <JeeRafHeadIcon className="w-full h-full object-cover" />
+                          </div>
                           <span>Ask JeeRaf AI: Why is this option correct?</span>
                         </button>
                       </div>

@@ -17,16 +17,20 @@ export const Welcome: React.FC<WelcomeProps> = ({ onProceed }) => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
-          className="mb-8"
+          className="mb-8 flex flex-col items-center"
         >
-          <div className="w-24 h-24 bg-theme-accent/20 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-theme-accent/30 backdrop-blur-md">
-            <GraduationCap size={48} className="text-theme-accent" />
+          <div className="w-36 h-36 md:w-44 md:h-44 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-2xl backdrop-blur-md overflow-hidden bg-slate-950 p-2">
+            <img 
+              src="/jeeraf-with-name.jpeg" 
+              alt="JeeRaf CBT" 
+              className="w-full h-full object-contain rounded-2xl"
+            />
           </div>
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-4 tracking-tight">
+          <h1 className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tight">
             JeeRaf <span className="text-theme-accent">CBT</span>
           </h1>
-          <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto font-light leading-relaxed">
-            Excellence in Computer Based Testing. Prepare for your future with our JAMB-style examination system.
+          <p className="text-lg md:text-xl text-white/80 max-w-xl mx-auto font-light leading-relaxed">
+            Excellence in Computer Based Testing. Comprehensive JAMB, WAEC, and AI-Powered Examination Studio.
           </p>
         </motion.div>
 

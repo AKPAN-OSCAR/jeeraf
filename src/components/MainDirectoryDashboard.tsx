@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { SidebarMenu } from './SidebarMenu';
 import { GeneralCBTSettingsModal } from './GeneralCBTSettingsModal';
+import { JeeRafHeadIcon } from './AIAvatar';
 import { ExamType, Subject, Question } from '../types';
 
 interface MainDirectoryDashboardProps {
@@ -73,8 +74,8 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
             onNavigate={onNavigateTo} 
           />
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-theme-accent rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm">
-              J
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm flex items-center justify-center bg-slate-950 border border-amber-500/30 shrink-0">
+              <JeeRafHeadIcon className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="text-lg font-black text-theme-text leading-none tracking-tight">JeeRaf CBT</h1>
@@ -174,19 +175,18 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
           <motion.div
             whileHover={{ y: -6, scale: 1.02 }}
             onClick={() => onNavigateTo('system_ai')}
-            className="bg-theme-card border border-theme-border hover:border-indigo-500/50 rounded-3xl p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-4 relative overflow-hidden group"
+            className="bg-theme-card border border-theme-border hover:border-amber-500/50 rounded-3xl p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-4 relative overflow-hidden group"
           >
-            {/* Custom Designed Card Cover Image */}
-            <div className="w-full h-32 sm:h-28 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-indigo-500/30 bg-slate-900">
+            {/* Authentic JeeRaf Head Emblem Card Cover */}
+            <div className="w-full h-32 sm:h-28 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-amber-500/30 bg-slate-950 flex items-center justify-center p-2">
+              <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/20 via-transparent to-indigo-500/20 pointer-events-none" />
               <img 
-                src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop" 
-                alt="JeeRaf AI Tutor" 
-                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500 opacity-90"
-                referrerPolicy="no-referrer"
+                src="/jeeraf-head.jpeg" 
+                alt="JeeRaf AI Copilot" 
+                className="w-24 h-24 sm:w-20 sm:h-20 object-contain rounded-2xl drop-shadow-xl group-hover:scale-110 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-indigo-950 via-indigo-950/40 to-transparent" />
-              <div className="absolute bottom-2 left-2 px-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-indigo-300 bg-indigo-500/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-indigo-400/30">
+              <div className="absolute bottom-2 left-2 px-1 z-10">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-amber-400/30">
                   AI Copilot
                 </span>
               </div>
@@ -194,7 +194,7 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
 
             <div className="space-y-1">
               <h3 className="text-lg font-black text-theme-text tracking-tight">JeeRaf AI</h3>
-              <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 bg-indigo-500/10 px-2.5 py-0.5 rounded-full">
+              <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2.5 py-0.5 rounded-full">
                 Interactive Assistant
               </span>
             </div>

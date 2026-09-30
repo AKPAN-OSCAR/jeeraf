@@ -32,7 +32,7 @@ import {
 import { SidebarMenu } from './SidebarMenu';
 import { db } from '../firebase';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { AIAvatar } from './AIAvatar';
+import { AIAvatar, JeeRafHeadIcon } from './AIAvatar';
 import { GoogleGenAI } from '@google/genai';
 import { 
   buildJeeRafSystemPrompt, 
@@ -1196,7 +1196,10 @@ FORMATTING INSTRUCTIONS:
           </button>
           <div>
             <h1 className="text-xl font-black flex items-center gap-2 text-theme-text tracking-tight">
-              <Sparkles className="text-amber-400 animate-pulse" size={22} /> {aiName} AI Studio
+              <div className="w-6 h-6 rounded-lg overflow-hidden shrink-0 border border-amber-500/30">
+                <JeeRafHeadIcon className="w-full h-full object-cover" />
+              </div>
+              {aiName} AI Studio
             </h1>
             <p className="text-[11px] text-theme-muted font-bold">
               Account: <span className="text-amber-400">{userName}</span> ({subPlan})
@@ -1230,8 +1233,8 @@ FORMATTING INSTRUCTIONS:
         {/* AI Name Customization Bar */}
         <div className="bg-theme-card border border-theme-border p-3 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center border border-amber-500/20 shrink-0">
-              <Bot size={20} />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden bg-slate-950 border border-amber-500/30 shrink-0">
+              <JeeRafHeadIcon className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="font-extrabold text-theme-text">Assistant: <span className="text-amber-400">{aiName}</span></span>
