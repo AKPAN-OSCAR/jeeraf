@@ -1,5 +1,5 @@
 // ============================================================================
-// ZEERAF LIBRARY & TEXTBOOKS ARCHITECTURE
+// JEERAF LIBRARY & TEXTBOOKS ARCHITECTURE
 // ============================================================================
 // This module provides modular categorization and data models for all 
 // textbooks, digital files, and electronic reading materials across three sections:

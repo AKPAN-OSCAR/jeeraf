@@ -1,6 +1,6 @@
-# ZeeRaf CBT - Developer Guide: Replacing Card SVGs with Custom Feature Images
+# JeeRaf CBT - Developer Guide: Replacing Card SVGs with Custom Feature Images
 
-This guide explains how to replace SVG icons on dashboard cards with high-quality, responsive feature images across the ZeeRaf CBT application.
+This guide explains how to replace SVG icons on dashboard cards with high-quality, responsive feature images across the JeeRaf CBT application.
 
 ---
 
@@ -77,7 +77,7 @@ Each feature card on the main directory page or sub-dashboards follows a consist
 The Main Directory Dashboard card sequence is strictly configured as:
 
 1. **Enter CBT** (`https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop`)
-2. **ZeeRaf AI** (`https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop`)
+2. **JeeRaf AI** (`https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop`)
 3. **Library** (`https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=800&auto=format&fit=crop`)
 4. **Web Browser** (`https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop`)
 5. **Blogs & Updates** (`https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=800&auto=format&fit=crop`)

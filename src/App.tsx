@@ -23,9 +23,6 @@ import { SidebarMenu } from './components/SidebarMenu';
 import { TextbookSelection } from './components/TextbookSelection';
 import { AdminConsole } from './components/AdminConsole';
 import { SubscriptionPortal } from './components/SubscriptionPortal';
-import { FunPage } from './components/FunPage';
-import { BlogPage } from './components/BlogPage';
-import { AwardsPage } from './components/AwardsPage';
 import { IbomAIPage } from './components/IbomAIPage';
 import { WebBrowserPage } from './components/WebBrowserPage';
 import { MainDirectoryDashboard } from './components/MainDirectoryDashboard';
@@ -41,7 +38,7 @@ enum OperationType {
   WRITE = 'write',
 }
 
-type AppState = 
+export type AppState = 
   | 'welcome' 
   | 'auth' 
   | 'exam_select' 
@@ -54,11 +51,43 @@ type AppState =
   | 'textbooks' 
   | 'admin_console' 
   | 'subscription_portal'
-  | 'fun'
-  | 'blog'
-  | 'awards'
   | 'system_ai'
   | 'browser';
+
+export const getPathFromState = (s: AppState): string => {
+  switch (s) {
+    case 'dashboard': return '/';
+    case 'exam_select':
+    case 'cbt_subjects': return '/cbt';
+    case 'personal_ready': return '/cbt/ready';
+    case 'cbt': return '/cbt/exam';
+    case 'result': return '/cbt/results';
+    case 'system_ai': return '/ai';
+    case 'browser': return '/browser';
+    case 'textbooks': return '/library';
+    case 'progress': return '/progress';
+    case 'subscription_portal': return '/subscription';
+    case 'admin_console': return '/admin';
+    default: return '/';
+  }
+};
+
+export const getStateFromPath = (path: string): AppState | null => {
+  const clean = path.replace(/\/+$/, '') || '/';
+  if (clean === '' || clean === '/') return 'dashboard';
+  if (clean === '/cbt' || clean === '/cbt/select') return 'exam_select';
+  if (clean === '/cbt/practice' || clean === '/cbt/subjects') return 'cbt_subjects';
+  if (clean === '/cbt/ready') return 'personal_ready';
+  if (clean === '/cbt/exam') return 'cbt';
+  if (clean === '/cbt/results' || clean === '/results') return 'result';
+  if (clean === '/ai' || clean === '/chat') return 'system_ai';
+  if (clean === '/browser') return 'browser';
+  if (clean === '/library' || clean === '/books' || clean === '/textbooks') return 'textbooks';
+  if (clean === '/progress' || clean === '/stats') return 'progress';
+  if (clean === '/subscription' || clean === '/plans') return 'subscription_portal';
+  if (clean === '/admin') return 'admin_console';
+  return null;
+};
 
 export default function App() {
   const [splashStage, setSplashStage] = useState<'image3' | 'done'>('image3');
@@ -100,12 +129,30 @@ export default function App() {
         setIsLocked(false);
         setProfileLoading(false);
       } else {
-        setState(prevState => prevState === 'auth' ? 'dashboard' : prevState);
+        const pathTarget = getStateFromPath(window.location.pathname);
+        setState(prevState => {
+          if (prevState === 'auth' || prevState === 'welcome') {
+            return pathTarget || 'dashboard';
+          }
+          return prevState;
+        });
       }
       setIsAuthReady(true);
     });
 
     return () => unsubscribe();
+  }, []);
+
+  // Listen to browser Back/Forward (and Android Capacitor Back Button) to sync state
+  useEffect(() => {
+    const handlePopState = () => {
+      const target = getStateFromPath(window.location.pathname);
+      if (target) {
+        setState(target);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   // Safety Timeout for Profile Syncing
@@ -398,7 +445,7 @@ export default function App() {
     setCurrentSubject(subject);
     setCurrentDuration(duration);
     setCurrentQuestions(selected);
-    setState('cbt');
+    navigateToState('cbt');
   };
 
   const handleFinishExam = (answers: Record<string, number | null>, timeTaken: number) => {
@@ -438,11 +485,11 @@ export default function App() {
     }
 
     setLastResult(result);
-    setState('result');
+    navigateToState('result');
   };
 
   const handleConfirmPayment = async () => {
-    setState('subscription_portal');
+    navigateToState('subscription_portal');
   };
 
   const handleLogout = async () => {
@@ -457,20 +504,30 @@ export default function App() {
     setSelectedExamType(null);
     setCustomQuestions([]);
     setState('auth');
+    if (window.location.pathname !== '/') {
+      window.history.pushState(null, '', '/');
+    }
+  };
+
+  const navigateToState = (target: AppState) => {
+    setState(target);
+    const targetPath = getPathFromState(target);
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState(null, '', targetPath);
+    }
   };
 
   const handleNavigateTo = (target: any) => {
-    if (target === 'dashboard') setState('dashboard');
-    if (target === 'textbooks') setState('textbooks');
-    if (target === 'exam_select') setState('exam_select');
-    if (target === 'progress') setState('progress');
-    if (target === 'admin_console') setState('admin_console');
-    if (target === 'subscription_portal') setState('subscription_portal');
-    if (target === 'fun') setState('fun');
-    if (target === 'blog') setState('blog');
-    if (target === 'awards') setState('awards');
-    if (target === 'system_ai') setState('system_ai');
-    if (target === 'browser') setState('browser');
+    if (target === 'dashboard') navigateToState('dashboard');
+    else if (target === 'textbooks') navigateToState('textbooks');
+    else if (target === 'exam_select') navigateToState('exam_select');
+    else if (target === 'cbt_subjects') navigateToState('cbt_subjects');
+    else if (target === 'progress') navigateToState('progress');
+    else if (target === 'admin_console') navigateToState('admin_console');
+    else if (target === 'subscription_portal') navigateToState('subscription_portal');
+    else if (target === 'system_ai') navigateToState('system_ai');
+    else if (target === 'browser') navigateToState('browser');
+    else navigateToState('dashboard');
   };
 
   if (splashStage !== 'done') {
@@ -533,7 +590,7 @@ export default function App() {
           onLogout={handleLogout}
           onNavigateTo={handleNavigateTo}
           onStart={() => handleStartExam('General', currentDuration)}
-          onBack={() => setState('exam_select')}
+          onBack={() => navigateToState('exam_select')}
         />
       )}
       
@@ -544,36 +601,36 @@ export default function App() {
           examType={selectedExamType}
           adminQuestions={adminQuestions}
           onStartSubject={(subject) => handleStartExam(subject, currentDuration)}
-          onOpenExamTypeSelect={() => setState('exam_select')}
+          onOpenExamTypeSelect={() => navigateToState('exam_select')}
           onNavigateTo={handleNavigateTo}
           onLogout={handleLogout}
-          onViewProgress={() => setState('progress')}
+          onViewProgress={() => navigateToState('progress')}
           onOpenCBTDirectory={(customCategory, customPrompt) => {
             const category = customCategory || profile?.cbtCategory || 'national_exams';
             const prompt = customPrompt || profile?.customExamName || '';
 
             if (category === 'university') {
               setSelectedExamType('Personal CBT');
-              setState('exam_select');
+              navigateToState('exam_select');
             } else if (category === 'explore_ai') {
               const pLower = prompt.toLowerCase();
               const isPersonal = pLower.includes('personal') || pLower.includes('upcoming') || pLower.includes('lecture') || pLower.includes('material') || pLower.includes('audio') || pLower.includes('note') || pLower.includes('course') || pLower.includes('test') || pLower.includes('prepare') || prompt.trim().length === 0;
 
               if (isPersonal) {
                 setSelectedExamType('Personal CBT');
-                setState('exam_select');
+                navigateToState('exam_select');
               } else {
                 if (selectedExamType && selectedExamType !== 'Personal CBT') {
-                  setState('cbt_subjects');
+                  navigateToState('cbt_subjects');
                 } else {
                   setSelectedExamType('JAMB');
-                  setState('cbt_subjects');
+                  navigateToState('cbt_subjects');
                 }
               }
             } else if (category === 'national_exams') {
-              setState('exam_select');
+              navigateToState('exam_select');
             } else {
-              setState('exam_select');
+              navigateToState('exam_select');
             }
           }}
         />
@@ -589,35 +646,9 @@ export default function App() {
           adminQuestions={adminQuestions}
           onStart={handleStartExam} 
           onLogout={handleLogout} 
-          onViewProgress={() => setState('progress')}
+          onViewProgress={() => navigateToState('progress')}
           onNavigateTo={handleNavigateTo}
-          onChangeExamType={() => setState('exam_select')}
-        />
-      )}
-
-      {state === 'fun' && user && (
-        <FunPage
-          user={user}
-          profile={profile}
-          onBack={() => setState('dashboard')}
-          onNavigateToAwards={() => setState('awards')}
-        />
-      )}
-
-      {state === 'blog' && user && (
-        <BlogPage
-          user={user}
-          profile={profile}
-          onBack={() => setState('dashboard')}
-          onNavigateTo={handleNavigateTo}
-        />
-      )}
-
-      {state === 'awards' && user && (
-        <AwardsPage
-          user={user}
-          profile={profile}
-          onBack={() => setState('dashboard')}
+          onChangeExamType={() => navigateToState('exam_select')}
         />
       )}
 
@@ -625,12 +656,12 @@ export default function App() {
         <IbomAIPage
           user={user}
           profile={profile}
-          onBack={() => setState('dashboard')}
-          onNavigateToSubscription={() => setState('subscription_portal')}
-          onNavigate={(targetState) => setState(targetState as any)}
+          onBack={() => navigateToState('dashboard')}
+          onNavigateToSubscription={() => navigateToState('subscription_portal')}
+          onNavigate={(targetState) => handleNavigateTo(targetState)}
           onOpenBrowserUrl={(url) => {
             setBrowserUrl(url);
-            setState('browser');
+            navigateToState('browser');
           }}
         />
       )}
@@ -640,7 +671,7 @@ export default function App() {
           initialUrl={browserUrl}
           user={user}
           profile={profile}
-          onBack={() => setState('dashboard')}
+          onBack={() => navigateToState('dashboard')}
           onLogout={handleLogout}
           onNavigateTo={handleNavigateTo}
         />
@@ -650,14 +681,14 @@ export default function App() {
         <ProgressTracker 
           user={user} 
           profile={profile}
-          onBack={() => setState('dashboard')} 
+          onBack={() => navigateToState('dashboard')} 
           onLogout={handleLogout}
         />
       )}
 
       {state === 'textbooks' && user && (
         <TextbookSelection 
-          onBack={() => setState('dashboard')}
+          onBack={() => navigateToState('dashboard')}
           onLogout={handleLogout}
           user={user}
           profile={profile}
@@ -665,14 +696,14 @@ export default function App() {
       )}
 
       {state === 'admin_console' && user && (
-        <AdminConsole user={user} profile={profile} onBack={() => setState('dashboard')} />
+        <AdminConsole user={user} profile={profile} onBack={() => navigateToState('dashboard')} />
       )}
 
       {state === 'subscription_portal' && user && (
         <SubscriptionPortal 
           user={user} 
           profile={profile}
-          onBack={() => setState('dashboard')} 
+          onBack={() => navigateToState('dashboard')} 
           onStatusChange={() => {}}
         />
       )}
@@ -699,7 +730,7 @@ export default function App() {
           profile={profile}
           onLogout={handleLogout}
           onRestart={() => handleStartExam(currentSubject!, currentDuration)}
-          onHome={() => setState('dashboard')}
+          onHome={() => navigateToState('dashboard')}
           onNavigateTo={handleNavigateTo}
         />
       )}

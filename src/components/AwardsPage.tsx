@@ -28,7 +28,7 @@ export const ALL_MILESTONE_AWARDS: AwardItem[] = [
   {
     id: 'cbt-pioneer',
     title: 'CBT Pioneer',
-    description: 'Completed your first ZeeRaf CBT Mock Examination.',
+    description: 'Completed your first JeeRaf CBT Mock Examination.',
     icon: '🚀',
     category: 'CBT Milestone',
     unlocked: true,

@@ -320,7 +320,7 @@ export const AIAvatar: React.FC<AIAvatarProps> = ({ isLoading = false, size = 'm
         className={`relative overflow-hidden border border-white/10 shadow-lg bg-slate-950 flex items-center justify-center ${sizeClasses[size]}`}
       >
         {/* Render our custom Gold Icon vector directly - no connection or upload error! */}
-        <ZeeRafGoldIcon className="w-full h-full object-contain" />
+        <JeeRafGoldIcon className="w-full h-full object-contain" />
       </motion.div>
 
       {/* Active Dot / loading state badge */}

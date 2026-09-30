@@ -1,9 +1,9 @@
 /**
  * @file tech_and_trends.ts
- * @description Technology, Science, and Innovation Knowledge Base for SilverIBOM AI.
+ * @description Technology, Science, and Innovation Knowledge Base for JeeRaf AI.
  *
  * DEVELOPER NOTE:
- * Provides SilverIBOM AI with rich context on technology trends, computer science,
+ * Provides JeeRaf AI with rich context on technology trends, computer science,
  * digital skills, software engineering, artificial intelligence, and STEM concepts.
  */
 

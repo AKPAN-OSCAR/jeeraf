@@ -132,9 +132,6 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ user, profile, onLogou
     { id: 'exam_select', label: 'Select Exam Category', keywords: 'exam type category jamb waec neco personal cbt', icon: <LayoutDashboard className="text-emerald-500" size={20} />, action: 'exam_select' },
     { id: 'progress', label: 'Stats & Progress Tracker', keywords: 'progress stats score accuracy history performance charts', icon: <BarChart2 className="text-emerald-500" size={20} />, action: 'progress' },
     { id: 'cbt_settings', label: 'General CBT Settings', keywords: 'settings audio timer questions limit cbt configuration', icon: <Settings2 className="text-emerald-500" size={20} />, state: 'cbt_settings' as MenuState },
-    { id: 'fun', label: 'Fun & CBT Games', keywords: 'fun games duel 1v1 trivia match challenge', icon: <Gamepad2 className="text-amber-500" size={20} />, action: 'fun' },
-    { id: 'blog', label: 'Blog & App News', keywords: 'blog news updates announcements exam tips', icon: <Newspaper className="text-blue-500" size={20} />, action: 'blog' },
-    { id: 'awards', label: 'Awards & Trophies', keywords: 'awards trophies achievements badges leaderboard streak', icon: <Trophy className="text-amber-400" size={20} />, action: 'awards' },
     { id: 'textbooks', label: 'Library & Textbooks', keywords: 'textbooks library books summary syllabus pdf reading', icon: <Book size={20} />, action: 'textbooks' },
     { id: 'theme', label: 'Theme Color Customization', keywords: 'theme color dark light gold silver black white red green yellow cyan violet pink', icon: <Palette size={20} />, state: 'theme' as MenuState },
     { id: 'account', label: 'Account Change & Info', keywords: 'account change login email user logout', icon: <UserCircle size={20} />, state: 'account' as MenuState },
@@ -357,7 +354,7 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ user, profile, onLogou
                   <span className="text-xs font-black text-theme-accent">₦5,000 / 6 Months</span>
                 </div>
                 <p className="text-xs text-theme-muted">
-                  Full CBT access, 2 ZeeRaf AI name edits, and 1v1 duel matches for 6 months.
+                  Full CBT access, 2 JeeRaf AI name edits, and 1v1 duel matches for 6 months.
                 </p>
               </div>
 
@@ -368,7 +365,7 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ user, profile, onLogou
                   <span className="text-xs font-black bg-white/20 px-2 py-1 rounded-full">₦8,000 / 6 Months</span>
                 </div>
                 <p className="text-xs text-white/80">
-                  Priority AI lecture transcription, 8 ZeeRaf AI name edits, unlimited CBT exams & trophies.
+                  Priority AI lecture transcription, 8 JeeRaf AI name edits, unlimited CBT exams & trophies.
                 </p>
               </div>
 

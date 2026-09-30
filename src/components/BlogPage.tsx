@@ -36,7 +36,7 @@ export const INITIAL_BLOG_POSTS: BlogPost[] = [
     title: 'Discover 1v1 CBT Duels & Multiplayer Games in the Dash Menu!',
     category: 'New Features',
     date: '2026-07-25',
-    author: 'ZeeRaf Gaming Team',
+    author: 'JeeRaf Gaming Team',
     readTime: '3 min read',
     summary: 'Challenge friends to 1v1 live CBT room duels, speed math battles, and memory flip quizzes. Located right in your sidebar dash menu!',
     content: `Study doesn't have to be solitary! We have launched a dedicated multiplayer Fun & Games Hub in the sidebar menu.
@@ -58,7 +58,7 @@ export const INITIAL_BLOG_POSTS: BlogPost[] = [
     title: 'Unlock Trophy Badges & Rewards in Your Awards Cabinet',
     category: 'App News',
     date: '2026-07-24',
-    author: 'ZeeRaf Gamification',
+    author: 'JeeRaf Gamification',
     readTime: '2 min read',
     summary: 'Earn gold, silver, and bronze badges for scoring 80%+ on mock CBTs, completing daily streaks, and winning room duels.',
     content: `Celebrate your academic milestones! Every high score, 1v1 duel victory, and AI lecture transcription awards you points and badges.
@@ -71,17 +71,17 @@ export const INITIAL_BLOG_POSTS: BlogPost[] = [
   },
   {
     id: 'post-3',
-    title: 'The History of ZeeRaf: Building Africa\'s Premier CBT Engine',
+    title: 'The History of JeeRaf: Building Africa\'s Premier CBT Engine',
     category: 'Historic',
     date: '2026-05-10',
     author: 'EmmPaTech Empire',
     readTime: '5 min read',
-    summary: 'How ZeeRaf transformed from a simple study script into a full offline and online AI-driven exam engine.',
-    content: `ZeeRaf was conceived to tackle a critical challenge faced by thousands of JAMB, WAEC, and NECO candidates: lack of realistic, high-speed practice tools.
+    summary: 'How JeeRaf transformed from a simple study script into a full offline and online AI-driven exam engine.',
+    content: `JeeRaf was conceived to tackle a critical challenge faced by thousands of JAMB, WAEC, and NECO candidates: lack of realistic, high-speed practice tools.
     
     From our initial release with basic offline question sets, we expanded into custom AI textbook question extractors, audio lecture transcription, and real-time candidate analytics.
     
-    Today, thousands of candidates rely on ZeeRaf daily to build speed, accuracy, and confidence.`,
+    Today, thousands of candidates rely on JeeRaf daily to build speed, accuracy, and confidence.`,
     imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80',
     tags: ['History', 'Mission', 'Education']
   },
@@ -95,7 +95,7 @@ export const INITIAL_BLOG_POSTS: BlogPost[] = [
     summary: 'Master time management, subject prioritization, and error reduction with our proven CBT practice routine.',
     content: `Scoring above 300 in JAMB requires strategy as much as studying.
     
-    1. **Master the Timer**: Practice 40 questions in under 30 minutes using ZeeRaf mock mode.
+    1. **Master the Timer**: Practice 40 questions in under 30 minutes using JeeRaf mock mode.
     2. **Target Weak Topics**: Use our performance breakdown charts to pinpoint areas requiring revision.
     3. **Solve Past Questions Continuously**: Familiarity with question styles reduces test anxiety.`,
     imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&q=80',
@@ -129,7 +129,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({ user, profile, onBack, onNav
           </button>
           <div>
             <h1 className="text-2xl font-black flex items-center gap-2">
-              <Newspaper className="text-theme-accent" size={28} /> ZeeRaf Official Blog & News
+              <Newspaper className="text-theme-accent" size={28} /> JeeRaf Official Blog & News
             </h1>
             <p className="text-xs text-theme-muted font-medium">Discover app updates, feature spotlights, and exam preparation guides</p>
           </div>

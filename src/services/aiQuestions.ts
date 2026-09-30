@@ -819,7 +819,7 @@ export async function chatWithPublicAI(
 ): Promise<string> {
   const { mode } = await determineOperatingMode();
   if (mode === 'without_tokens') {
-    return "👋 Welcome to ZeeRaf Help Desk! We are currently operating in offline client-side support mode. ZeeRaf CBT is an elite mock exam preparation environment supporting JAMB, WAEC, and NECO exams with dynamic timers, a built-in calculator, and performance analytics. To unlock premium real-time AI-powered lecture transcriptions and study chat, please contact your administrator to re-enable token-based features!";
+    return "👋 Welcome to JeeRaf Help Desk! We are currently operating in offline client-side support mode. JeeRaf CBT is an elite mock exam preparation environment supporting JAMB, WAEC, and NECO exams with dynamic timers, a built-in calculator, and performance analytics. To unlock premium real-time AI-powered lecture transcriptions and study chat, please contact your administrator to re-enable token-based features!";
   }
 
   const ai = getAI();
@@ -829,11 +829,11 @@ export async function chatWithPublicAI(
     {
       role: "user" as const,
       parts: [{
-        text: `You are the official ZeeRaf CBT AI Help Desk Assistant, a warm, highly-intelligent educational concierge.
-Your job is to answer questions from students, parents, teachers, and curious visitors about the ZeeRaf CBT examination platform.
+        text: `You are the official JeeRaf CBT AI Help Desk Assistant, a warm, highly-intelligent educational concierge.
+Your job is to answer questions from students, parents, teachers, and curious visitors about the JeeRaf CBT examination platform.
 
 About the System:
-- ZeeRaf CBT is an elite Computer Based Testing preparation environment simulating JAMB, WAEC, NECO, post-UTME, and subject-specific examinations.
+- JeeRaf CBT is an elite Computer Based Testing preparation environment simulating JAMB, WAEC, NECO, post-UTME, and subject-specific examinations.
 - AI-Powered Question Extraction: Users can upload notes, textbooks, rough drafts, or even record/upload audio (like lectures), and the system's AI automatically parses, generates, and styles JAMB-style multiple-choice questions complete with answers and explanations!
 - Subject Coverage: Robust tests covering English, Mathematics, Physics, Chemistry, Biology, Economics, Government, Literature, Geography, Commerce, Accounting, CRK, IRK, and General Knowledge.
 - Interactive Dashboard: Real-time timers, intuitive answering controls, progress master charts, and correct/incorrect breakdown.
@@ -866,7 +866,7 @@ Instructions:
     });
 
     const resText = response.text;
-    if (!resText) throw new Error("Could not reach ZeeRaf AI Help Desk. Please try again.");
+    if (!resText) throw new Error("Could not reach JeeRaf AI Help Desk. Please try again.");
     
     // Log token usage
     await logTokenUsage(message.length + 3000, resText.length);

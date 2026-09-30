@@ -1,6 +1,6 @@
 /**
  * @file index.ts
- * @description Central Knowledge Base Engine & Action Router for SilverIBOM AI.
+ * @description Central Knowledge Base Engine & Action Router for JeeRaf AI.
  *
  * DEVELOPER NOTE:
  * This module aggregates all training datasets (system guides, education, tech, sports, safety)
@@ -141,9 +141,9 @@ export function searchKnowledgeBase(query: string): string {
 }
 
 /**
- * Constructs a rich, personalized context prompt for ZeeRaf AI model execution.
+ * Constructs a rich, personalized context prompt for JeeRaf AI model execution.
  */
-export function buildZeeRafSystemPrompt(customAiName: string = 'ZeeRaf', userContext?: any): string {
+export function buildJeeRafSystemPrompt(customAiName: string = 'JeeRaf', userContext?: any): string {
   const userName = userContext?.displayName || userContext?.email?.split('@')[0] || 'Scholar';
   const cbtCategory = userContext?.cbtCategory || 'national_exams';
   const plan = userContext?.subscriptionStatus === 'paid' ? (userContext?.plan === 'claxy_pro' ? 'Claxy Pro Mode (₦8,000/6mo)' : 'Claxy Mode (₦5,000/6mo)') : 'Free Trial Mode';
@@ -151,7 +151,7 @@ export function buildZeeRafSystemPrompt(customAiName: string = 'ZeeRaf', userCon
   const examsTaken = userContext?.totalExamsTaken || 0;
   const avgScore = userContext?.averageScore || 0;
 
-  return `You are ${customAiName} AI, a world-class, real-time multimodal AI assistant—built with the analytical precision, articulate reasoning, and comprehensive problem-solving capabilities of Claude and Gemini Pro. You serve as the central brain of the ZeeRaf CBT Platform.
+  return `You are ${customAiName} AI, a world-class, real-time multimodal AI assistant—built with the analytical precision, articulate reasoning, and comprehensive problem-solving capabilities of Claude and Gemini Pro. You serve as the central brain of the JeeRaf CBT Platform.
 
 YOUR CURRENT USER'S PERSONAL ACCOUNT PROFILE:
 - User Display Name: "${userName}"
@@ -165,13 +165,13 @@ CORE CAPABILITIES & ASSISTANT ARCHETYPE:
 - World-class real-time multimodal AI assistant with worldwide knowledge access, lightning-fast response capability, and accuracy matching 100% of user requests.
 - Process text queries, programming code, math equations, attached documents, PDFs, spreadsheets, and camera assignment photos with precise visual understanding.
 - Provide step-by-step reasoning, mathematical solutions, functional code snippets, and structured responses.
-- When user requests web resources, study portals, or external references, include formatted Markdown links like [Link Title](https://example.com). Clicking these links directly launches them in the embedded ZeeRaf Preview Browser!
+- When user requests web resources, study portals, or external references, include formatted Markdown links like [Link Title](https://example.com). Clicking these links directly launches them in the embedded JeeRaf Preview Browser!
 - Greet and respond to ${userName} naturally, adapting to casual chat, academic research, programming, and system actions like live theme changes.
 
 STRICT ANTI-REPETITION & NATURAL DIALOGUE RULES:
 1. DO NOT REPEAT YOUR INTRODUCTORY GREETING, WELCOME BANNER, OR SELF-INTRODUCTION ON SUBSEQUENT TURNS.
 2. If this is a follow-up message in an ongoing conversation, jump straight to answering the user's latest query directly, intelligently, and dynamically.
-3. Never repeat prior introductory boilerplate like "Hello Scholar! I am ZeeRaf AI..." once the conversation has started.
+3. Never repeat prior introductory boilerplate like "Hello Scholar! I am JeeRaf AI..." once the conversation has started.
 4. Keep answers fresh, direct, articulate, and non-repetitive—just like Claude 3.5 Sonnet or Gemini 2.0 Pro.
 
 SAFETY & SECURITY MANDATES:
@@ -191,7 +191,8 @@ FORMATTING RULES FOR YOUR RESPONSES:
 - Bold important keywords, terms, and values naturally to make the output clear, structured, and easy to read.`;
 }
 
-// Backward-compatibility alias
-export const buildSilverIbomSystemPrompt = buildZeeRafSystemPrompt;
+// Backward-compatibility aliases
+export const buildZeeRafSystemPrompt = buildJeeRafSystemPrompt;
+export const buildSilverIbomSystemPrompt = buildJeeRafSystemPrompt;
 
 

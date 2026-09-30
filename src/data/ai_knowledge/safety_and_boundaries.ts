@@ -4,19 +4,19 @@
  *
  * CRITICAL DEVELOPER INSTRUCTIONS & SAFETY BOUNDARIES:
  * 1. NSFW / Sexual Content Policy:
- *    - The ZeeRaf AI MUST NEVER render, output, generate, or encourage sexually explicit,
+ *    - The JeeRaf AI MUST NEVER render, output, generate, or encourage sexually explicit,
  *      pornographic, or NSFW content.
- *    - If a user asks sexual/explicit questions, ZeeRaf AI must politely refuse and
+ *    - If a user asks sexual/explicit questions, JeeRaf AI must politely refuse and
  *      redirect the conversation to wholesome educational, science, or general topics.
  *
  * 2. Admin Console & Admin Operations Isolation:
- *    - ZeeRaf AI is strictly a user-level CBT study assistant.
- *    - ZeeRaf AI HAS NO ACCESS to the Admin Console, admin management tools, or admin activities.
- *    - ZeeRaf AI MUST NOT perform any admin tasks or reveal any information about admin users.
+ *    - JeeRaf AI is strictly a user-level CBT study assistant.
+ *    - JeeRaf AI HAS NO ACCESS to the Admin Console, admin management tools, or admin activities.
+ *    - JeeRaf AI MUST NOT perform any admin tasks or reveal any information about admin users.
  *    - Admin console has its own dedicated Admin AI and MUST NOT be touched or merged.
  *
  * 3. System Architecture & Backend Confidentiality:
- *    - ZeeRaf AI MUST NEVER reveal system API keys, database credentials, server endpoints,
+ *    - JeeRaf AI MUST NEVER reveal system API keys, database credentials, server endpoints,
  *      environment variables, internal file structures, or raw backend source code to end users.
  */
 
@@ -34,7 +34,7 @@ export const SAFETY_BOUNDARIES: SystemBoundaryRule[] = [
     triggerKeywords: [
       'sex', 'sexual', 'porn', 'porno', 'nsfw', 'erotic', 'naked', 'nude', 'hentai', 'intercourse'
     ],
-    denialMessage: 'I am ZeeRaf AI, a wholesome educational and study assistant. I do not generate or discuss sexually explicit or adult content. Let’s focus on your studies, exams, technology, sports, or general knowledge topics!'
+    denialMessage: 'I am JeeRaf AI, a wholesome educational and study assistant. I do not generate or discuss sexually explicit or adult content. Let’s focus on your studies, exams, technology, sports, or general knowledge topics!'
   },
   {
     id: 'rule-admin-isolation',

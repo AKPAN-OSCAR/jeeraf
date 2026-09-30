@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   Settings2, Globe, TrendingUp, ArrowRight, ChevronRight,
-  BookOpen, Sparkles, Newspaper, ArrowUpRight, Bot, Library
+  BookOpen, Sparkles, Bot, Library
 } from 'lucide-react';
 import { SidebarMenu } from './SidebarMenu';
 import { GeneralCBTSettingsModal } from './GeneralCBTSettingsModal';
@@ -21,31 +21,6 @@ interface MainDirectoryDashboardProps {
   onOpenCBTDirectory: (customCategory?: string, customPrompt?: string) => void;
 }
 
-// Daily rotating articles for the main dashboard blog preview
-const DAILY_BLOG_PREVIEWS = [
-  {
-    day: 'Today\'s Featured Article',
-    title: 'JAMB & WAEC CBT Speed Strategy: How to Solve 40 Questions in 25 Minutes',
-    snippet: 'Mastering time allocation, elimination techniques, and handling high-yield calculation shortcuts for secondary & tertiary exams across Africa.',
-    readTime: '3 min read',
-    tag: 'CBT Mastery'
-  },
-  {
-    day: 'Today\'s Featured Article',
-    title: 'Challenge Friends in 1v1 Live CBT Duels & Speed Quizzes!',
-    snippet: 'Check out our multiplayer Fun & Games room in the Dash Menu to play live CBT duels, gain ranking points, and earn awards.',
-    readTime: '2 min read',
-    tag: 'Fun & Games'
-  },
-  {
-    day: 'Today\'s Featured Article',
-    title: 'How to Convert Course Audio Lectures into Smart CBT Notes with JeeRaf AI',
-    snippet: 'Learn how university students use JeeRaf personal CBT to transcribe long recordings into searchable practice questions.',
-    readTime: '4 min read',
-    tag: 'University & AI'
-  }
-];
-
 export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
   user,
   profile,
@@ -56,10 +31,6 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentProfile, setCurrentProfile] = useState(profile);
-
-  // Choose daily preview based on day of month
-  const dayIndex = new Date().getDate() % DAILY_BLOG_PREVIEWS.length;
-  const todaysArticle = DAILY_BLOG_PREVIEWS[dayIndex];
 
   const cbtCategory = currentProfile?.cbtCategory || profile?.cbtCategory || 'national_exams';
   const cbtCountry = currentProfile?.cbtCountry || profile?.cbtCountry || 'Nigeria';
@@ -157,20 +128,20 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
           </div>
         </div>
 
-        {/* 5 CORE BACKGROUND FEATURE CARDS */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
-          {/* Card 1: ENTER CBT */}
+        {/* 4 CORE APPLICATION PILLARS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Pillar 1: ENTER CBT */}
           <motion.div
             whileHover={{ y: -6, scale: 1.02 }}
             onClick={handleEnterCBTClick}
-            className="bg-theme-card border-2 border-theme-accent/40 rounded-3xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-3 sm:space-y-4 relative overflow-hidden group"
+            className="bg-theme-card border-2 border-theme-accent/40 rounded-3xl p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-4 relative overflow-hidden group"
           >
             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity z-10">
               <Sparkles className="text-theme-accent" size={50} />
             </div>
 
             {/* Custom Designed Card Cover Image */}
-            <div className="w-full h-28 sm:h-28 lg:h-24 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-theme-accent/30 bg-slate-900">
+            <div className="w-full h-32 sm:h-28 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-theme-accent/30 bg-slate-900">
               <img 
                 src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop" 
                 alt="Enter CBT Practice" 
@@ -187,7 +158,7 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-base sm:text-lg font-black text-theme-text tracking-tight">Enter CBT</h3>
+              <h3 className="text-lg font-black text-theme-text tracking-tight">Enter CBT</h3>
               <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-theme-accent bg-theme-accent/10 px-2.5 py-0.5 rounded-full">
                 {cbtCategory === 'university' ? 'Universal CBT' : cbtCategory === 'explore_ai' ? 'AI Router' : 'Exam Simulator'}
               </span>
@@ -199,14 +170,14 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
             </button>
           </motion.div>
 
-          {/* Card 2: INTERACT WITH JEERAF AI */}
+          {/* Pillar 2: INTERACT WITH JEERAF AI */}
           <motion.div
             whileHover={{ y: -6, scale: 1.02 }}
             onClick={() => onNavigateTo('system_ai')}
-            className="bg-theme-card border border-theme-border hover:border-indigo-500/50 rounded-3xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-3 sm:space-y-4 relative overflow-hidden group"
+            className="bg-theme-card border border-theme-border hover:border-indigo-500/50 rounded-3xl p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-4 relative overflow-hidden group"
           >
             {/* Custom Designed Card Cover Image */}
-            <div className="w-full h-28 sm:h-28 lg:h-24 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-indigo-500/30 bg-slate-900">
+            <div className="w-full h-32 sm:h-28 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-indigo-500/30 bg-slate-900">
               <img 
                 src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop" 
                 alt="JeeRaf AI Tutor" 
@@ -216,15 +187,15 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
               <div className="absolute inset-0 bg-gradient-to-t from-indigo-950 via-indigo-950/40 to-transparent" />
               <div className="absolute bottom-2 left-2 px-1">
                 <span className="text-[10px] font-black uppercase tracking-wider text-indigo-300 bg-indigo-500/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-indigo-400/30">
-                  AI Tutor
+                  AI Copilot
                 </span>
               </div>
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-base sm:text-lg font-black text-theme-text tracking-tight">JeeRaf AI</h3>
+              <h3 className="text-lg font-black text-theme-text tracking-tight">JeeRaf AI</h3>
               <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 bg-indigo-500/10 px-2.5 py-0.5 rounded-full">
-                Interactive Tutor
+                Interactive Assistant
               </span>
             </div>
 
@@ -234,49 +205,14 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
             </button>
           </motion.div>
 
-          {/* Card 3: LIBRARY & TEXTBOOKS */}
-          <motion.div
-            whileHover={{ y: -6, scale: 1.02 }}
-            onClick={() => onNavigateTo('textbooks')}
-            className="bg-theme-card border border-theme-border hover:border-theme-accent/50 rounded-3xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-3 sm:space-y-4 relative overflow-hidden group"
-          >
-            {/* Custom Designed Card Cover Image */}
-            <div className="w-full h-28 sm:h-28 lg:h-24 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-blue-500/30 bg-slate-900">
-              <img 
-                src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=800&auto=format&fit=crop" 
-                alt="E-Textbook Library" 
-                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500 opacity-90"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
-              <div className="absolute bottom-2 left-2 px-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-blue-300 bg-blue-500/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-blue-400/30">
-                  E-Books & PDFs
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-base sm:text-lg font-black text-theme-text tracking-tight">Library</h3>
-              <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-blue-500 bg-blue-500/10 px-2.5 py-0.5 rounded-full">
-                E-Textbooks
-              </span>
-            </div>
-
-            <button className="w-full bg-theme-accent text-white font-extrabold py-3 rounded-xl flex items-center justify-center gap-1.5 text-xs shadow-md shadow-theme-accent/20 hover:opacity-95 transition-all">
-              <span>Open Library</span>
-              <ChevronRight size={14} />
-            </button>
-          </motion.div>
-
-          {/* Card 4: WEB BROWSER */}
+          {/* Pillar 3: WEB BROWSER (CHROME ENGINE) */}
           <motion.div
             whileHover={{ y: -6, scale: 1.02 }}
             onClick={() => onNavigateTo('browser')}
-            className="bg-theme-card border border-theme-border hover:border-theme-accent/50 rounded-3xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-3 sm:space-y-4 relative overflow-hidden group"
+            className="bg-theme-card border border-theme-border hover:border-amber-500/50 rounded-3xl p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-4 relative overflow-hidden group"
           >
             {/* Custom Designed Card Cover Image */}
-            <div className="w-full h-28 sm:h-28 lg:h-24 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-amber-500/30 bg-slate-900">
+            <div className="w-full h-32 sm:h-28 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-amber-500/30 bg-slate-900">
               <img 
                 src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop" 
                 alt="Web Search & Browser" 
@@ -286,15 +222,15 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
               <div className="absolute bottom-2 left-2 px-1">
                 <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-amber-400/30">
-                  Web Engine
+                  Chrome Edition
                 </span>
               </div>
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-base sm:text-lg font-black text-theme-text tracking-tight">Web Browser</h3>
+              <h3 className="text-lg font-black text-theme-text tracking-tight">Web Browser</h3>
               <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2.5 py-0.5 rounded-full">
-                Full Display & Search
+                Live Web Search
               </span>
             </div>
 
@@ -304,80 +240,40 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
             </button>
           </motion.div>
 
-          {/* Card 5: BLOGS & APP UPDATES */}
+          {/* Pillar 4: LIBRARY & TEXTBOOKS */}
           <motion.div
             whileHover={{ y: -6, scale: 1.02 }}
-            onClick={() => onNavigateTo('blog')}
-            className="col-span-2 sm:col-span-1 bg-theme-card border border-theme-border hover:border-theme-accent/50 rounded-3xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-3 sm:space-y-4 relative overflow-hidden group"
+            onClick={() => onNavigateTo('textbooks')}
+            className="bg-theme-card border border-theme-border hover:border-blue-500/50 rounded-3xl p-5 shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col items-center justify-between text-center space-y-4 relative overflow-hidden group"
           >
             {/* Custom Designed Card Cover Image */}
-            <div className="w-full h-28 sm:h-28 lg:h-24 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-emerald-500/30 bg-slate-900">
+            <div className="w-full h-32 sm:h-28 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-blue-500/30 bg-slate-900">
               <img 
-                src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=800&auto=format&fit=crop" 
-                alt="Blogs & Exam News" 
+                src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=800&auto=format&fit=crop" 
+                alt="E-Textbook Library" 
                 className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500 opacity-90"
                 referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
               <div className="absolute bottom-2 left-2 px-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-emerald-400/30">
-                  News & Guides
+                <span className="text-[10px] font-black uppercase tracking-wider text-blue-300 bg-blue-500/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-blue-400/30">
+                  E-Books & Syllabus
                 </span>
               </div>
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-base sm:text-lg font-black text-theme-text tracking-tight">Blogs & Updates</h3>
-              <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
-                Guides & News
+              <h3 className="text-lg font-black text-theme-text tracking-tight">Library</h3>
+              <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-blue-500 bg-blue-500/10 px-2.5 py-0.5 rounded-full">
+                Textbooks & Guides
               </span>
             </div>
 
             <button className="w-full bg-theme-accent text-white font-extrabold py-3 rounded-xl flex items-center justify-center gap-1.5 text-xs shadow-md shadow-theme-accent/20 hover:opacity-95 transition-all">
-              <span>Read Blogs</span>
+              <span>Open Library</span>
               <ChevronRight size={14} />
             </button>
           </motion.div>
-        </div>
-
-        {/* DAILY FEATURED BLOG & EXAM NEWS BANNER */}
-        <div className="bg-theme-card border border-theme-border rounded-3xl p-6 shadow-md relative overflow-hidden">
-          <div className="flex items-center justify-between mb-3 border-b border-theme-border pb-3">
-            <div className="flex items-center gap-2">
-              <Newspaper className="text-emerald-500" size={18} />
-              <span className="text-xs font-black uppercase tracking-wider text-theme-text">
-                {todaysArticle.day}
-              </span>
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-bold">
-                {todaysArticle.tag}
-              </span>
-            </div>
-            <span className="text-[11px] text-theme-muted font-medium">
-              {todaysArticle.readTime}
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-lg font-black text-theme-text leading-snug">
-              {todaysArticle.title}
-            </h3>
-            <p className="text-xs text-theme-muted leading-relaxed max-w-3xl">
-              {todaysArticle.snippet}
-            </p>
-          </div>
-
-          <div className="mt-4 pt-3 flex items-center justify-between border-t border-theme-border">
-            <span className="text-[11px] text-theme-muted italic">
-              Explore daily exam updates & system features
-            </span>
-            <button
-              onClick={() => onNavigateTo('blog')}
-              className="px-4 py-2 bg-theme-accent text-white font-bold text-xs rounded-xl hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm"
-            >
-              <span>Explore Official Blog</span>
-              <ArrowUpRight size={14} />
-            </button>
-          </div>
         </div>
       </main>
 

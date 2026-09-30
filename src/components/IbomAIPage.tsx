@@ -1,6 +1,6 @@
 /**
  * @file IbomAIPage.tsx
- * @description Highly Interactive, Multimodal & Personalized SilverIBOM AI Page.
+ * @description Highly Interactive, Multimodal & Personalized JeeRaf AI Page.
  *
  * DEVELOPER FRIENDLY DOCUMENTATION:
  * 1. Visual Styling Rules:
@@ -35,7 +35,7 @@ import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { AIAvatar } from './AIAvatar';
 import { GoogleGenAI } from '@google/genai';
 import { 
-  buildZeeRafSystemPrompt, 
+  buildJeeRafSystemPrompt, 
   checkSafetyViolation, 
   detectThemeIntent, 
   detectNavigationIntent,
@@ -210,7 +210,7 @@ const FormattedMessageText: React.FC<FormattedMessageTextProps> = ({
                 if (onOpenBrowserUrl) onOpenBrowserUrl(rawUrl);
               }}
               className="inline-flex items-center gap-1.5 text-amber-300 hover:text-slate-950 bg-amber-500/15 hover:bg-amber-400 px-2.5 py-1 font-black text-xs transition-all cursor-pointer"
-              title={`View link in ZeeRaf Web Browser: ${rawUrl}`}
+              title={`View link in JeeRaf Web Browser: ${rawUrl}`}
             >
               <Globe size={13} className="text-amber-400 group-hover:text-slate-950 shrink-0" />
               <span className="underline decoration-amber-400/60 underline-offset-2">{title}</span>
@@ -245,7 +245,7 @@ const FormattedMessageText: React.FC<FormattedMessageTextProps> = ({
                 if (onOpenBrowserUrl) onOpenBrowserUrl(targetUrl);
               }}
               className="inline-flex items-center gap-1.5 text-amber-300 hover:text-slate-950 bg-amber-500/15 hover:bg-amber-400 px-2.5 py-1 font-black text-xs transition-all cursor-pointer"
-              title={`View link in ZeeRaf Web Browser: ${targetUrl}`}
+              title={`View link in JeeRaf Web Browser: ${targetUrl}`}
             >
               <Globe size={13} className="text-amber-400 group-hover:text-slate-950 shrink-0" />
               <span className="underline decoration-amber-400/60 underline-offset-2">{displayUrl}</span>
@@ -437,7 +437,7 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
   onNavigate,
   onOpenBrowserUrl
 }) => {
-  const [aiName, setAiName] = useState('ZeeRaf');
+  const [aiName, setAiName] = useState('JeeRaf');
   const [nameChangesRemaining, setNameChangesRemaining] = useState(0);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newNameInput, setNewNameInput] = useState('');
@@ -728,14 +728,14 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
 
   // Export / Download Chat as Text File (.txt)
   const handleDownloadChatText = () => {
-    const header = `===========================================\n${aiName} AI - ZeeRaf Conversation Export\nUser: ${userName} (${user?.email || 'Scholar'})\nDate: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n===========================================\n\n`;
+    const header = `===========================================\n${aiName} AI - JeeRaf Conversation Export\nUser: ${userName} (${user?.email || 'Scholar'})\nDate: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n===========================================\n\n`;
     const transcript = messages.map(m => `[${m.time}] ${m.sender === 'user' ? userName : aiName + ' AI'}:\n${m.text}\n`).join('\n-------------------------------------------\n\n');
     
     const blob = new Blob([header + transcript], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `ZeeRaf_AI_Chat_Export_${new Date().toISOString().slice(0,10)}.txt`;
+    link.download = `JeeRaf_AI_Chat_Export_${new Date().toISOString().slice(0,10)}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -750,7 +750,7 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
     let textToShare = customText;
     if (!textToShare) {
       const lastAiMsg = [...messages].reverse().find(m => m.sender === 'ai');
-      textToShare = lastAiMsg ? `*Answer from ${aiName} AI on ZeeRaf:*\n\n${lastAiMsg.text}` : `Studying on ZeeRaf CBT with ${aiName} AI!`;
+      textToShare = lastAiMsg ? `*Answer from ${aiName} AI on JeeRaf:*\n\n${lastAiMsg.text}` : `Studying on JeeRaf CBT with ${aiName} AI!`;
     }
     const cleanText = textToShare.replace(/[*#]/g, ' ').slice(0, 1500);
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(cleanText)}`;
@@ -762,7 +762,7 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
     const lastAiMsg = [...messages].reverse().find(m => m.sender === 'ai');
     const shareData = {
       title: `${aiName} AI Study Insights`,
-      text: lastAiMsg ? lastAiMsg.text.slice(0, 1000) : `ZeeRaf CBT Study Session`,
+      text: lastAiMsg ? lastAiMsg.text.slice(0, 1000) : `JeeRaf CBT Study Session`,
       url: window.location.href
     };
 
@@ -806,7 +806,7 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
     {
       id: 'welcome-1',
       sender: 'ai',
-      text: `Hello **${userName}**! Welcome to **${profile?.ibomCustomName || 'ZeeRaf'} AI**, your intelligent assistant for the ZeeRaf CBT platform.\n\nI am here to assist you with everything on the system — from answering general assignment & academic questions, explaining formulas, and helping you solve study problems, to guiding you through system tools, showing your progress, recommending textbooks, launching educational games, and changing theme colors.`,
+      text: `Hello **${userName}**! Welcome to **${profile?.ibomCustomName || 'JeeRaf'} AI**, your intelligent assistant for the JeeRaf CBT platform.\n\nI am here to assist you with everything on the system — from answering general assignment & academic questions, explaining formulas, and helping you solve study problems, to guiding you through system tools, showing your progress, recommending textbooks, launching educational games, and changing theme colors.`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -856,8 +856,10 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
   const handleApplyTheme = async (themeId: string, themeName: string) => {
     try {
       setCurrentTheme(themeId);
+      localStorage.setItem('jeeraf_theme', themeId);
       localStorage.setItem('zeeraf_theme', themeId);
       document.documentElement.className = themeId === 'white' ? '' : `theme-${themeId}`;
+      window.dispatchEvent(new CustomEvent('jeeraf-theme-change', { detail: themeId }));
       window.dispatchEvent(new CustomEvent('zeeraf-theme-change', { detail: themeId }));
 
       if (user && db) {
@@ -876,7 +878,7 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
           text: `🎉 System theme color changed to **${themeName}**! Your account preference is updated.`,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           activeThemeId: themeId,
-          knowMoreSource: 'ZeeRaf Theme Engine'
+          knowMoreSource: 'JeeRaf Theme Engine'
         }
       ]);
     } catch (err) {
@@ -977,8 +979,10 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
     if (themeIntent) {
       const { themeId, themeName } = themeIntent;
       
+      localStorage.setItem('jeeraf_theme', themeId);
       localStorage.setItem('zeeraf_theme', themeId);
       document.documentElement.className = themeId === 'white' ? '' : `theme-${themeId}`;
+      window.dispatchEvent(new CustomEvent('jeeraf-theme-change', { detail: themeId }));
       window.dispatchEvent(new CustomEvent('zeeraf-theme-change', { detail: themeId }));
       setCurrentTheme(themeId);
 
@@ -1001,7 +1005,7 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             showThemeSelector: true,
             activeThemeId: themeId,
-            knowMoreSource: 'ZeeRaf Theme Engine'
+            knowMoreSource: 'JeeRaf Theme Engine'
           }
         ]);
         setIsTyping(false);
@@ -1043,7 +1047,7 @@ export const IbomAIPage: React.FC<IbomAIPageProps> = ({
     let aiReplyText = '';
 
     try {
-      const systemPrompt = buildZeeRafSystemPrompt(aiName, {
+      const systemPrompt = buildJeeRafSystemPrompt(aiName, {
         displayName: userName,
         email: user?.email,
         cbtCategory: profile?.cbtCategory,
@@ -1155,7 +1159,7 @@ FORMATTING INSTRUCTIONS:
       } else if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
         aiReplyText = `Greetings, **${userName}**! I am **${aiName} AI**, your general-purpose smart model and search engine. I am ready to answer any questions on education, assignments, mathematics, science, literature, programming, or general knowledge. How can I assist you today?`;
       } else {
-        aiReplyText = `Regarding **${textToSend}**:\n\nAs your AI assistant and search engine on the ZeeRaf CBT Platform, I can help answer homework questions, break down complex concepts step-by-step, explain formulas, or search for information across any domain! Let me know if you would like a detailed explanation on this topic.`;
+        aiReplyText = `Regarding **${textToSend}**:\n\nAs your AI assistant and search engine on the JeeRaf CBT Platform, I can help answer homework questions, break down complex concepts step-by-step, explain formulas, or search for information across any domain! Let me know if you would like a detailed explanation on this topic.`;
       }
     }
 
@@ -2092,7 +2096,7 @@ FORMATTING INSTRUCTIONS:
                             </span>
                           </div>
                           <span className="text-[10px] font-bold text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full">
-                            Student Edition • ZeeRaf CBT
+                            Student Edition • JeeRaf CBT
                           </span>
                         </div>
 

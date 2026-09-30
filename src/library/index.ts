@@ -2,7 +2,7 @@
  * ============================================================================
  * LIBRARY INDEX MODULE: /src/library/index.ts
  * ============================================================================
- * Central exporter and search engine indexer for the SilverIBOM Library.
+ * Central exporter and search engine indexer for the JeeRaf Library.
  * Combines built-in section books with persistent custom uploaded books from Firestore.
  * ============================================================================
  */
@@ -29,13 +29,13 @@ export const GUIDE_BOOKS: LibraryBook[] = Object.entries(subjectGuides).map(([su
     content: `${top.content}${top.diagram ? `\n\n[Illustration / Note]: ${top.diagram.caption}` : ''}`
   }));
 
-  const fullTextContent = `SUBJECT GUIDE: ${guide.subject}\nAUTHOR: ZeeRaf Academic Board\nOVERVIEW:\n${guide.overview}\n\n` +
+  const fullTextContent = `SUBJECT GUIDE: ${guide.subject}\nAUTHOR: JeeRaf Academic Board\nOVERVIEW:\n${guide.overview}\n\n` +
     chapters.map(ch => `=== ${ch.title} ===\n${ch.content}\n`).join('\n');
 
   return {
     id: `guide_${subKey.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
     title: `${guide.subject} Master Revision & Syllabus Guide`,
-    author: 'ZeeRaf Academic Board',
+    author: 'JeeRaf Academic Board',
     section: ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Computer Science'].includes(subKey) ? 'universal' : 'national',
     subject: guide.subject,
     description: guide.overview,

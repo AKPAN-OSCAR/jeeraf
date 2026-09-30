@@ -1,4 +1,4 @@
-# ZEERAF DIGITAL LIBRARY DEVELOPER & ADMIN GUIDE
+# JEERAF DIGITAL LIBRARY DEVELOPER & ADMIN GUIDE
 ## Writing & Structuring Full Textbooks & 100MB+ Books in Code
 
 This document outlines how developers and administrators can write full books, textbooks, literature novels, and study guides directly into the codebase (`/src/library/`).

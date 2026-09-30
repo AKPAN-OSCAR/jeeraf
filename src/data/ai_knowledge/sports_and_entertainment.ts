@@ -1,9 +1,9 @@
 /**
  * @file sports_and_entertainment.ts
- * @description Sports, Entertainment, and Culture Knowledge Base for SilverIBOM AI.
+ * @description Sports, Entertainment, and Culture Knowledge Base for JeeRaf AI.
  *
  * DEVELOPER NOTE:
- * Enables SilverIBOM AI to engage in lively conversations regarding sports, athletics,
+ * Enables JeeRaf AI to engage in lively conversations regarding sports, athletics,
  * football, music, creative writing, cinema, and cultural hobbies.
  */
 

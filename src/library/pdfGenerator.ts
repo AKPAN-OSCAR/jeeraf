@@ -69,7 +69,7 @@ export function generateBookPdfBlob(book: LibraryBook): Blob {
   doc.setTextColor(245, 158, 11);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('ZEERAF DIGITAL ACADEMIC REPOSITORY', margin, 50);
+  doc.text('JEERAF DIGITAL ACADEMIC REPOSITORY', margin, 50);
 
   // Category / Exam target pill text
   doc.setTextColor(148, 163, 184); // Slate-400
@@ -93,7 +93,7 @@ export function generateBookPdfBlob(book: LibraryBook): Blob {
   doc.setFontSize(12);
   doc.setTextColor(203, 213, 225); // Slate-300
   doc.setFont('helvetica', 'normal');
-  doc.text(`Author: ${book.author || 'ZeeRaf Faculty & Contributors'}`, margin, 165);
+  doc.text(`Author: ${book.author || 'JeeRaf Faculty & Contributors'}`, margin, 165);
   doc.setFontSize(10);
   doc.setTextColor(148, 163, 184);
   doc.text(`Document Reference: ${book.fileName || `${book.title}.pdf`} | Standard Grade: ${book.examTarget || 'University & General'}`, margin, 185);
@@ -131,12 +131,12 @@ export function generateBookPdfBlob(book: LibraryBook): Blob {
   doc.text(`• Subject Category: ${book.subject || 'General Education'}`, margin + 15, currentY + 42);
   doc.text(`• Examination Target: ${book.examTarget || 'Higher Education / CBT Practice'}`, margin + 15, currentY + 58);
   doc.text(`• Total Study Sections: ${book.chapters?.length || 1} Chapter Modules`, margin + 15, currentY + 74);
-  doc.text(`• Publication Engine: ZeeRaf Digital Reader v2.6 (LaTeX Enabled)`, margin + 15, currentY + 90);
+  doc.text(`• Publication Engine: JeeRaf Digital Reader v2.6 (LaTeX Enabled)`, margin + 15, currentY + 90);
 
   // Cover Footer
   doc.setTextColor(148, 163, 184);
   doc.setFontSize(8);
-  doc.text('Official Study Material • Approved for Academic Use • ZeeRaf Educational System', margin, pageHeight - 30);
+  doc.text('Official Study Material • Approved for Academic Use • JeeRaf Educational System', margin, pageHeight - 30);
 
   // ----------------------------------------------------
   // Subsequent Pages: Table of Contents & Chapter Content
@@ -168,7 +168,7 @@ export function generateBookPdfBlob(book: LibraryBook): Blob {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184);
-    doc.text('ZeeRaf Academic E-Library', margin, pageHeight - 12);
+    doc.text('JeeRaf Academic E-Library', margin, pageHeight - 12);
     doc.text(`Page ${pageNo}`, pageWidth - margin, pageHeight - 12, { align: 'right' });
   };
 

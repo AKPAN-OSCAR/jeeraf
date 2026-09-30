@@ -1,6 +1,6 @@
 /**
  * @file educational_topics.ts
- * @description Educational Knowledge Base for SilverIBOM AI.
+ * @description Educational Knowledge Base for JeeRaf AI.
  *
  * DEVELOPER NOTE:
  * Contains high-yield study advice, exam tactics (JAMB/WAEC/NECO), subject strategies,
@@ -32,7 +32,7 @@ export const EDUCATIONAL_KNOWLEDGE: StudyStrategy[] = [
     summary: 'Passive reading gives a false sense of mastery. Testing yourself actively builds neural connections.',
     actionableSteps: [
       'After reading a chapter, close your notes and write down everything you remember (Feynman technique).',
-      'Use ZeeRaf Universal Personal CBT to upload notes and generate practice quizzes.',
+      'Use JeeRaf Universal Personal CBT to upload notes and generate practice quizzes.',
       'Review missed questions 24 hours later, then 3 days later, then 1 week later.'
     ]
   },

@@ -1,9 +1,9 @@
 /**
  * @file system_guide.ts
- * @description Comprehensive Knowledge Base & User Guide for SilverIBOM CBT Platform.
+ * @description Comprehensive Knowledge Base & User Guide for JeeRaf CBT Platform.
  *
  * DEVELOPER NOTE:
- * This file contains structured system documentation fed directly into the SilverIBOM AI
+ * This file contains structured system documentation fed directly into the JeeRaf AI
  * LLM context and search engine. Developers can update or add new feature guides here.
  *
  * Topic Scope:
@@ -33,19 +33,19 @@ export interface SystemGuideArticle {
 export const SYSTEM_GUIDE_ARTICLES: SystemGuideArticle[] = [
   {
     id: 'guide-getting-started',
-    title: 'How to Navigate ZeeRaf CBT Platform',
+    title: 'How to Navigate JeeRaf CBT Platform',
     category: 'navigation',
     keywords: ['guide', 'navigate', 'how to use', 'start', 'directory', 'main hub', 'features'],
-    summary: 'ZeeRaf CBT provides four core modes: Universal Personal CBT, National Exams, General CBT, and ZeeRaf AI Assistant.',
+    summary: 'JeeRaf CBT provides four core modes: Universal Personal CBT, National Exams, General CBT, and JeeRaf AI Assistant.',
     details: `
-### ZeeRaf CBT Platform User Guide
+### JeeRaf CBT Platform User Guide
 
 1. **Main Directory Hub**: Central navigation panel where you can switch between CBT Modes, access Trophies, check Subscription status, or open the Sidebar Menu.
 2. **Universal Personal CBT**: Upload your personal course notes, lecture PDFs, DOCX files, or textbooks. The AI automatically parses your materials and constructs custom practice tests.
 3. **Audio AI Lecture Studio**: Record live classroom lectures or upload recorded voice notes. AI transcribes speech into comprehensive study summaries and interactive CBT quizzes.
 4. **National Exams**: Choose standard examination bodies including **JAMB UTME**, **WAEC SSCE**, **NECO**, and **Post-UTME** past question banks with instant explanations.
 5. **General CBT & Skill Center**: Explore all exam categories, speed drills, and mixed subject practices in one unified dashboard.
-6. **ZeeRaf Real-time AI**: Your 24/7 personal study companion that explains formulas, suggests study tactics, answers general questions, and can even change system themes directly inside chat!
+6. **JeeRaf Real-time AI**: Your 24/7 personal study companion that explains formulas, suggests study tactics, answers general questions, and can even change system themes directly inside chat!
     `
   },
   {
@@ -53,11 +53,11 @@ export const SYSTEM_GUIDE_ARTICLES: SystemGuideArticle[] = [
     title: 'Customizing System Theme Colors',
     category: 'themes',
     keywords: ['theme', 'color', 'dark mode', 'gold', 'violet', 'emerald', 'black', 'pink', 'cyan', 'red', 'change theme'],
-    summary: 'ZeeRaf CBT supports 10 distinct high-contrast aesthetic themes.',
+    summary: 'JeeRaf CBT supports 10 distinct high-contrast aesthetic themes.',
     details: `
-### Available System Themes in ZeeRaf CBT
+### Available System Themes in JeeRaf CBT
 
-You can switch system themes at any time by asking ZeeRaf AI in chat (e.g. "Change theme to Gold") or visiting the Sidebar Menu > Theme Color.
+You can switch system themes at any time by asking JeeRaf AI in chat (e.g. "Change theme to Gold") or visiting the Sidebar Menu > Theme Color.
 
 **Supported Theme Palette:**
 - **White (Default)**: Clean, high-contrast light layout with slate text and blue accents.
@@ -125,9 +125,9 @@ You can switch system themes at any time by asking ZeeRaf AI in chat (e.g. "Chan
     title: 'Subscription Plans & Tier Benefits',
     category: 'subscription',
     keywords: ['subscription', 'plan', 'claxy', 'claxy pro', 'price', 'cost', 'upgrade', 'payment'],
-    summary: 'ZeeRaf CBT offers 6-month access plans tailored for high school and tertiary students.',
+    summary: 'JeeRaf CBT offers 6-month access plans tailored for high school and tertiary students.',
     details: `
-### ZeeRaf CBT Subscription Plans
+### JeeRaf CBT Subscription Plans
 
 1. **Free Trial Mode**:
    - Access to standard subject past questions and basic AI queries.

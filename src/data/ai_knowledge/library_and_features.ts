@@ -1,9 +1,9 @@
 /**
  * @file library_and_features.ts
- * @description Library Books, Fun Games, System Navigation & User Account Integration Knowledge Base for SilverIBOM AI.
+ * @description Library Books, Fun Games, System Navigation & User Account Integration Knowledge Base for JeeRaf AI.
  *
  * DEVELOPER NOTE:
- * Connects SilverIBOM AI to:
+ * Connects JeeRaf AI to:
  * 1. Textbook Library Catalog (Physics, Chemistry, Math, Biology, English, Literature, Government, Economics, Commerce, Computer Studies)
  * 2. Fun Games & CBT Duels Arena
  * 3. System Action Shortcuts & Navigation Registry
@@ -162,7 +162,7 @@ export const SYSTEM_FEATURE_LINKS: SystemFeatureLink[] = [
   },
   {
     id: 'feat-blog',
-    name: 'ZeeRaf Blog & Exam News Updates',
+    name: 'JeeRaf Blog & Exam News Updates',
     keywords: ['blog', 'news', 'update', 'jamb news', 'waec timetable', 'announcement'],
     targetState: 'blog',
     description: 'Stay updated with official exam timetables, registration dates, and study tips.'
