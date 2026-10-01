@@ -4,19 +4,20 @@ import { motion } from 'motion/react';
 export interface JeeRafHeadIconProps {
   className?: string;
   size?: number | string;
-  variant?: 'natural' | 'white' | 'black' | 'glow';
+  variant?: 'natural' | 'white' | 'black' | 'gold' | 'glow';
   style?: React.CSSProperties;
 }
 
 /**
- * AUTHENTIC JEERAF HEAD EMBLEM (NO NAME)
- * Derived directly from the uploaded file (silver-ibom1.jpeg / jeeraf-head).
- * Used across all AI components, dashboard cards, navigation headers, and avatar icons.
+ * OFFICIAL JEERAF EMBLEM (NO NAME)
+ * Automatically links to /jeeraf-no-name.svg.
+ * Upload your jeeraf_noname_clean_master.svg directly into /public/jeeraf-no-name.svg in VS Code.
+ * Resizing is controlled by the parent component using width/height and object-contain.
  */
 export const JeeRafHeadIcon: React.FC<JeeRafHeadIconProps> = ({ 
   className = "w-full h-full", 
   size, 
-  variant = 'natural',
+  variant = 'gold',
   style 
 }) => {
   const inlineStyle: React.CSSProperties = {
@@ -24,34 +25,11 @@ export const JeeRafHeadIcon: React.FC<JeeRafHeadIconProps> = ({
     ...style
   };
 
-  if (variant === 'white') {
-    return (
-      <img 
-        src="/jeeraf-head-white.svg" 
-        alt="JeeRaf Emblem"
-        className={`object-contain select-none pointer-events-none ${className}`}
-        style={inlineStyle}
-      />
-    );
-  }
-
-  if (variant === 'black') {
-    return (
-      <img 
-        src="/jeeraf-head-black.svg" 
-        alt="JeeRaf Emblem"
-        className={`object-contain select-none pointer-events-none ${className}`}
-        style={inlineStyle}
-      />
-    );
-  }
-
-  // Default natural variant uses the authentic high-resolution artwork directly
   return (
     <img 
-      src="/jeeraf-head.jpeg" 
-      alt="JeeRaf Head Emblem"
-      className={`object-cover rounded-xl select-none pointer-events-none ${className}`}
+      src="/jeeraf-no-name.svg" 
+      alt="JeeRaf Giraffe Emblem"
+      className={`w-full h-full object-contain select-none pointer-events-none ${className}`}
       style={inlineStyle}
     />
   );
@@ -60,14 +38,15 @@ export const JeeRafHeadIcon: React.FC<JeeRafHeadIconProps> = ({
 export interface JeeRafLogoWithNameProps {
   className?: string;
   size?: number | string;
-  variant?: 'natural' | 'white' | 'black';
+  variant?: 'natural' | 'white' | 'black' | 'gold';
   style?: React.CSSProperties;
 }
 
 /**
- * AUTHENTIC JEERAF LOGO WITH NAME
- * Derived directly from the uploaded file (silver-ibom3.jpeg / jeeraf-with-name).
- * Displayed on first screen loading (splash) and welcome screens.
+ * OFFICIAL JEERAF LOGO WITH NAME
+ * Automatically links to /jeeraf-with-name.svg.
+ * Upload your jeeraf_withname_clean_master.svg directly into /public/jeeraf-with-name.svg in VS Code.
+ * Resizing is controlled by the parent component using width/height and object-contain.
  */
 export const JeeRafLogoWithName: React.FC<JeeRafLogoWithNameProps> = ({
   className = "w-full h-full",
@@ -83,9 +62,9 @@ export const JeeRafLogoWithName: React.FC<JeeRafLogoWithNameProps> = ({
   if (variant === 'white') {
     return (
       <img 
-        src="/jeeraf-logo-white.svg" 
-        alt="JeeRaf"
-        className={`object-contain select-none pointer-events-none ${className}`}
+        src="/jeeraf-with-name-white.svg" 
+        alt="JeeRaf CBT System"
+        className={`w-full h-full object-contain select-none pointer-events-none ${className}`}
         style={inlineStyle}
       />
     );
@@ -94,9 +73,9 @@ export const JeeRafLogoWithName: React.FC<JeeRafLogoWithNameProps> = ({
   if (variant === 'black') {
     return (
       <img 
-        src="/jeeraf-logo-black.svg" 
-        alt="JeeRaf"
-        className={`object-contain select-none pointer-events-none ${className}`}
+        src="/jeeraf-with-name-black.svg" 
+        alt="JeeRaf CBT System"
+        className={`w-full h-full object-contain select-none pointer-events-none ${className}`}
         style={inlineStyle}
       />
     );
@@ -104,9 +83,9 @@ export const JeeRafLogoWithName: React.FC<JeeRafLogoWithNameProps> = ({
 
   return (
     <img 
-      src="/jeeraf-with-name.jpeg" 
+      src="/jeeraf-with-name.svg" 
       alt="JeeRaf CBT System"
-      className={`object-contain select-none rounded-2xl shadow-2xl ${className}`}
+      className={`w-full h-full object-contain select-none pointer-events-none ${className}`}
       style={inlineStyle}
     />
   );
@@ -114,7 +93,6 @@ export const JeeRafLogoWithName: React.FC<JeeRafLogoWithNameProps> = ({
 
 // Aliases for seamless drop-in compatibility across codebase
 export const JeeRafGoldIcon = JeeRafHeadIcon;
-export const JeeRafSilverLogo = JeeRafLogoWithName;
 export const JeeRafHeadEmblem = JeeRafHeadIcon;
 
 interface AIAvatarProps {
@@ -160,9 +138,9 @@ export const AIAvatar: React.FC<AIAvatarProps> = ({ isLoading = false, size = 'm
           repeat: Infinity,
           ease: "easeInOut"
         } : {}}
-        className={`relative overflow-hidden border border-amber-500/30 shadow-lg bg-slate-950 flex items-center justify-center ${sizeClasses[size]}`}
+        className={`relative overflow-hidden border border-amber-500/30 shadow-lg bg-slate-950 flex items-center justify-center p-1 ${sizeClasses[size]}`}
       >
-        <JeeRafHeadIcon className="w-full h-full object-cover" />
+        <JeeRafHeadIcon className="w-full h-full object-contain" />
       </motion.div>
 
       {/* Status Active Badge */}
@@ -198,7 +176,7 @@ export const GoldSpinner: React.FC<GoldSpinnerProps> = ({ size = 64, text, class
           className="absolute -inset-1.5 rounded-full border-t border-b border-amber-500/60 border-l-transparent border-r-transparent"
         />
 
-        {/* Central Spinning JeeRaf Head Emblem Vector */}
+        {/* Central Spinning JeeRaf Giraffe Emblem Vector */}
         <motion.div
           animate={{ 
             rotate: 360,
@@ -208,9 +186,9 @@ export const GoldSpinner: React.FC<GoldSpinnerProps> = ({ size = 64, text, class
             rotate: { duration: 12, repeat: Infinity, ease: "linear" },
             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
           }}
-          className="absolute inset-1 rounded-full overflow-hidden border border-amber-500/30 shadow-xl shadow-amber-500/10 bg-slate-950 flex items-center justify-center"
+          className="absolute inset-1 rounded-full overflow-hidden border border-amber-500/30 shadow-xl shadow-amber-500/10 bg-slate-950 flex items-center justify-center p-2"
         >
-          <JeeRafHeadIcon className="w-[85%] h-[85%] object-cover rounded-full" />
+          <JeeRafHeadIcon className="w-[85%] h-[85%] object-contain" />
         </motion.div>
       </div>
       {text && (
@@ -219,9 +197,3 @@ export const GoldSpinner: React.FC<GoldSpinnerProps> = ({ size = 64, text, class
     </div>
   );
 };
-
-// Backward compatibility exports
-export const ZeeRafGoldIcon = JeeRafHeadIcon;
-export const ZeeRafSilverLogo = JeeRafLogoWithName;
-export const SilverIbomGoldIcon = JeeRafHeadIcon;
-export const SilverIbomSilverLogo = JeeRafLogoWithName;

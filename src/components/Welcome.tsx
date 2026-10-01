@@ -19,11 +19,11 @@ export const Welcome: React.FC<WelcomeProps> = ({ onProceed }) => {
           transition={{ duration: 0.8 }}
           className="mb-8 flex flex-col items-center"
         >
-          <div className="w-36 h-36 md:w-44 md:h-44 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-2xl backdrop-blur-md overflow-hidden bg-slate-950 p-2">
+          <div className="w-36 h-36 md:w-44 md:h-44 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-amber-500/20 shadow-2xl backdrop-blur-md overflow-hidden bg-slate-950 p-2">
             <img 
-              src="/jeeraf-with-name.jpeg" 
+              src="/jeeraf-with-name.svg" 
               alt="JeeRaf CBT" 
-              className="w-full h-full object-contain rounded-2xl"
+              className="w-full h-full object-contain"
             />
           </div>
           <h1 className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tight">

@@ -181,7 +181,7 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
             <div className="w-full h-32 sm:h-28 rounded-2xl overflow-hidden relative group-hover:scale-[1.03] transition-transform shadow-inner border border-amber-500/30 bg-slate-950 flex items-center justify-center p-2">
               <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/20 via-transparent to-indigo-500/20 pointer-events-none" />
               <img 
-                src="/jeeraf-head.jpeg" 
+                src="/jeeraf_noname_black_2000x2000.png" 
                 alt="JeeRaf AI Copilot" 
                 className="w-24 h-24 sm:w-20 sm:h-20 object-contain rounded-2xl drop-shadow-xl group-hover:scale-110 transition-transform duration-500"
               />

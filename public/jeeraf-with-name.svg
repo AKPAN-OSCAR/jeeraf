@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="100%" height="100%" fill="none">
+  <!-- 
+    REPLACE THIS CONTENT WITH YOUR ORIGINAL jeeraf_withname_clean_master.svg CODE IN VS CODE
+    All components (Full-screen splash, headers, and 24h favicon) automatically link to this file.
+  -->
+  <g id="jeeraf-with-name-master">
+    <!-- Placeholder until you paste your SVG in VS Code -->
+    <text x="500" y="480" text-anchor="middle" font-family="system-ui, sans-serif" font-size="28" font-weight="900" fill="#f59e0b" letter-spacing="8">JEERAF</text>
+    <text x="500" y="520" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#94a3b8" letter-spacing="2">LOGO WITH NAME (REPLACE IN VS CODE)</text>
+  </g>
+</svg>

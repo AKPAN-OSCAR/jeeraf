@@ -23,11 +23,11 @@ import { SidebarMenu } from './components/SidebarMenu';
 import { TextbookSelection } from './components/TextbookSelection';
 import { AdminConsole } from './components/AdminConsole';
 import { SubscriptionPortal } from './components/SubscriptionPortal';
-import { IbomAIPage } from './components/IbomAIPage';
+import { JeeRafAIPage } from './components/JeeRafAIPage';
 import { WebBrowserPage } from './components/WebBrowserPage';
 import { MainDirectoryDashboard } from './components/MainDirectoryDashboard';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoldSpinner, JeeRafSilverLogo } from './components/AIAvatar';
+import { GoldSpinner, JeeRafLogoWithName } from './components/AIAvatar';
 
 enum OperationType {
   CREATE = 'create',
@@ -108,7 +108,7 @@ export default function App() {
   const [adminQuestions, setAdminQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
-    // Show splash (JeeRaf Silver Logo) for 3.5 seconds
+    // Show splash (JeeRaf Logo With Name) for 3.5 seconds
     const timer = setTimeout(() => {
       setSplashStage('done');
     }, 3500);
@@ -118,9 +118,14 @@ export default function App() {
 
   useEffect(() => {
     // Preserve initial intended URL if user arrives at a deep link while unauthenticated
+    // Strict Shield: If anyone visits /admin while unauthenticated, wipe immediately and never store
     const currentPath = window.location.pathname;
     if (currentPath && currentPath !== '/' && currentPath !== '') {
-      sessionStorage.setItem('intended_path', currentPath);
+      if (currentPath.toLowerCase() === '/admin') {
+        window.history.replaceState(null, '', '/');
+      } else {
+        sessionStorage.setItem('intended_path', currentPath);
+      }
     }
   }, []);
 
@@ -136,9 +141,24 @@ export default function App() {
         setProfile(null);
         setIsLocked(false);
         setProfileLoading(false);
+        // Automatically sanitize /admin from URL if logged out
+        if (window.location.pathname.toLowerCase() === '/admin') {
+          window.history.replaceState(null, '', '/');
+        }
       } else {
+        const emailClean = firebaseUser.email?.toLowerCase().trim();
+        const isAdmin = emailClean === 'eemmpatech@gmail.com' || emailClean === 'eemmpatec@gmail.com';
+
         const intended = sessionStorage.getItem('intended_path') || window.location.pathname;
-        const pathTarget = getStateFromPath(intended);
+        let pathTarget = getStateFromPath(intended);
+
+        // Strict shield: non-admin users attempting /admin are deflected immediately to dashboard
+        if (pathTarget === 'admin_console' && !isAdmin) {
+          sessionStorage.removeItem('intended_path');
+          window.history.replaceState(null, '', '/');
+          pathTarget = 'dashboard';
+        }
+
         setState(prevState => {
           if (prevState === 'auth' || prevState === 'welcome') {
             if (pathTarget && pathTarget !== 'auth' && pathTarget !== 'welcome') {
@@ -163,6 +183,16 @@ export default function App() {
   // Listen to browser Back/Forward (and Android Capacitor Back Button) to sync state
   useEffect(() => {
     const handlePopState = () => {
+      const cleanPath = window.location.pathname.toLowerCase();
+      if (cleanPath === '/admin') {
+        const emailClean = user?.email?.toLowerCase().trim();
+        const isAdmin = emailClean === 'eemmpatech@gmail.com' || emailClean === 'eemmpatec@gmail.com' || profile?.role === 'admin';
+        if (!isAdmin) {
+          window.history.replaceState(null, '', '/');
+          setState('dashboard');
+          return;
+        }
+      }
       const target = getStateFromPath(window.location.pathname);
       if (target) {
         setState(target);
@@ -170,7 +200,7 @@ export default function App() {
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [user, profile]);
 
   // Safety Timeout for Profile Syncing
   useEffect(() => {
@@ -547,7 +577,15 @@ export default function App() {
     else if (target === 'exam_select') navigateToState('exam_select');
     else if (target === 'cbt_subjects') navigateToState('cbt_subjects');
     else if (target === 'progress') navigateToState('progress');
-    else if (target === 'admin_console') navigateToState('admin_console');
+    else if (target === 'admin_console') {
+      const emailClean = user?.email?.toLowerCase().trim();
+      const isAdmin = emailClean === 'eemmpatech@gmail.com' || emailClean === 'eemmpatec@gmail.com' || profile?.role === 'admin';
+      if (isAdmin) {
+        navigateToState('admin_console');
+      } else {
+        navigateToState('dashboard');
+      }
+    }
     else if (target === 'subscription_portal') navigateToState('subscription_portal');
     else if (target === 'system_ai') navigateToState('system_ai');
     else if (target === 'browser') navigateToState('browser');
@@ -556,31 +594,33 @@ export default function App() {
 
   if (splashStage !== 'done') {
     return (
-      <div className="fixed inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden select-none z-50 p-4">
+      <div className="fixed inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden select-none z-50 p-6 md:p-12">
         <motion.div
-          initial={{ opacity: 0, scale: 0.92 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.05 }}
-          transition={{ duration: 1.0, ease: "easeInOut" }}
-          className="relative flex flex-col items-center justify-center max-w-[440px] w-full"
+          transition={{ duration: 0.8, ease: "easeInOut" }}
+          className="relative flex flex-col items-center justify-center w-full h-full max-w-4xl"
         >
           {/* Ambient luminous glow */}
-          <div className="absolute inset-0 bg-amber-500/15 blur-3xl rounded-full scale-110 pointer-events-none" />
+          <div className="absolute inset-0 bg-amber-500/10 blur-[120px] rounded-full scale-125 pointer-events-none" />
           
-          <img 
-            src="/jeeraf-with-name.jpeg" 
-            alt="JeeRaf CBT System" 
-            className="w-full max-w-[320px] md:max-w-[360px] h-auto object-contain rounded-3xl shadow-2xl drop-shadow-[0_15px_40px_rgba(0,0,0,0.9)] border border-white/10"
-          />
+          <div className="flex-1 w-full flex items-center justify-center p-4">
+            <img 
+              src="/jeeraf-with-name.svg" 
+              alt="JeeRaf CBT System" 
+              className="max-w-full max-h-[75vh] w-auto h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.9)]"
+            />
+          </div>
 
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="mt-6 flex items-center gap-2"
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="flex items-center gap-3 pb-8 shrink-0"
           >
-            <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-            <p className="text-amber-200/80 text-xs font-black uppercase tracking-[0.25em]">
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+            <p className="text-amber-200/90 text-sm md:text-base font-black uppercase tracking-[0.3em]">
               Initializing JeeRaf System...
             </p>
           </motion.div>
@@ -696,7 +736,7 @@ export default function App() {
       )}
 
       {state === 'system_ai' && user && (
-        <IbomAIPage
+        <JeeRafAIPage
           user={user}
           profile={profile}
           onBack={() => navigateToState('dashboard')}
@@ -738,7 +778,7 @@ export default function App() {
         />
       )}
 
-      {state === 'admin_console' && user && (
+      {state === 'admin_console' && user && (user.email?.toLowerCase().trim() === 'eemmpatech@gmail.com' || user.email?.toLowerCase().trim() === 'eemmpatec@gmail.com' || profile?.role === 'admin') && (
         <AdminConsole user={user} profile={profile} onBack={() => navigateToState('dashboard')} />
       )}
 

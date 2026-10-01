@@ -27,7 +27,7 @@ export function getFavicon24HourVariant(): FaviconVariant {
  */
 export function getFaviconUrl(variant?: FaviconVariant): string {
   const activeVariant = variant || getFavicon24HourVariant();
-  return activeVariant === 'white' ? '/jeeraf-logo-white.svg' : '/jeeraf-logo-black.svg';
+  return activeVariant === 'white' ? '/jeeraf-with-name-white.svg' : '/jeeraf-with-name-black.svg';
 }
 
 /**

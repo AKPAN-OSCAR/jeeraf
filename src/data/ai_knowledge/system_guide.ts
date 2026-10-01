@@ -71,7 +71,7 @@ You can switch system themes at any time by asking JeeRaf AI in chat (e.g. "Chan
 - **Violet**: Vibrant royal purple theme with indigo accents.
 - **Pink**: Warm magenta-pink palette with soft rose highlights.
 
-*Tip: Simply tell Ibom AI "Set theme to violet" or "Switch to dark theme" and the AI will apply it instantly for you!*
+*Tip: Simply tell JeeRaf AI "Set theme to violet" or "Switch to dark theme" and the AI will apply it instantly for you!*
     `,
     actionTrigger: {
       type: 'navigate',
@@ -135,13 +135,13 @@ You can switch system themes at any time by asking JeeRaf AI in chat (e.g. "Chan
 
 2. **Claxy Mode (₦5,000 / 6 Months)**:
    - Full access to all National Exams (JAMB, WAEC, NECO, Post-UTME).
-   - 2 Ibom AI custom assistant name changes.
+   - 2 JeeRaf AI custom assistant name changes.
    - 1v1 online CBT duel matches and leaderboard rankings.
 
 3. **Claxy Pro Mode (₦8,000 / 6 Months)**:
    - Everything in Claxy Mode.
    - Priority Audio AI lecture transcription and document parsing.
-   - 8 Ibom AI custom assistant name changes.
+   - 8 JeeRaf AI custom assistant name changes.
    - Unlimited AI formula derivations & personal CBT generation.
     `,
     actionTrigger: {

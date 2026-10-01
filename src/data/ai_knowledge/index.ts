@@ -193,6 +193,5 @@ FORMATTING RULES FOR YOUR RESPONSES:
 
 // Backward-compatibility aliases
 export const buildZeeRafSystemPrompt = buildJeeRafSystemPrompt;
-export const buildSilverIbomSystemPrompt = buildJeeRafSystemPrompt;
 
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="100%" height="100%" fill="none">
+  <!-- 
+    REPLACE THIS CONTENT WITH YOUR BLACK VARIANT OF jeeraf_withname.svg IN VS CODE
+    Used automatically during the 24-hour Black Favicon cycle in the URL link.
+  -->
+  <circle cx="500" cy="500" r="480" fill="#f8fafc" stroke="#0f172a" stroke-width="12" />
+  <text x="500" y="515" text-anchor="middle" font-family="system-ui, sans-serif" font-size="36" font-weight="900" fill="#0f172a" letter-spacing="6">JEERAF</text>
+</svg>

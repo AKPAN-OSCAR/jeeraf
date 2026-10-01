@@ -23,7 +23,7 @@ import {
   onSnapshot 
 } from 'firebase/firestore';
 
-const DB_NAME = 'SilverLibraryDB';
+const DB_NAME = 'JeeRafLibraryDB';
 const DB_VERSION = 2;
 const STORE_NAME = 'library_files';
 const CHUNK_SIZE = 450 * 1024; // 450 KB chunks for ultra-safe Firestore 1MB doc limits

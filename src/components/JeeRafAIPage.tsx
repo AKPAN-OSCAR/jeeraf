@@ -1,5 +1,5 @@
 /**
- * @file IbomAIPage.tsx
+ * @file JeeRafAIPage.tsx
  * @description Highly Interactive, Multimodal & Personalized JeeRaf AI Page.
  *
  * DEVELOPER FRIENDLY DOCUMENTATION:
@@ -47,7 +47,7 @@ import {
 } from '../data/ai_knowledge';
 import { getActiveApiKey, logSystemAlert } from '../services/aiQuestions';
 
-interface IbomAIPageProps {
+interface JeeRafAIPageProps {
   user: any;
   profile?: any;
   onBack: () => void;
@@ -55,6 +55,8 @@ interface IbomAIPageProps {
   onNavigate?: (state: string) => void;
   onOpenBrowserUrl?: (url: string) => void;
 }
+
+export type IbomAIPageProps = JeeRafAIPageProps;
 
 interface Message {
   id: string;
@@ -429,7 +431,7 @@ const FormattedMessageText: React.FC<FormattedMessageTextProps> = ({
   );
 };
 
-export const IbomAIPage: React.FC<IbomAIPageProps> = ({ 
+export const JeeRafAIPage: React.FC<JeeRafAIPageProps> = ({ 
   user, 
   profile, 
   onBack, 
@@ -1927,7 +1929,7 @@ FORMATTING INSTRUCTIONS:
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-base sm:text-lg font-black text-amber-400">Ibom AI Solution & Rich Preview Workspace</h3>
+                      <h3 className="text-base sm:text-lg font-black text-amber-400">JeeRaf AI Solution & Rich Preview Workspace</h3>
                       <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full">
                         {selectedPreviewMessage ? 'Single Answer' : 'Full Session'}
                       </span>
@@ -2037,7 +2039,7 @@ FORMATTING INSTRUCTIONS:
                           <BarChart2 size={40} className="mx-auto text-amber-500/50" />
                           <p className="font-extrabold text-amber-300 text-base">No Structured Tables Detected in Response</p>
                           <p className="text-xs max-w-md mx-auto text-slate-400">
-                            When Ibom AI generates comparative lists, data matrices, or financial schedules, they will be formatted automatically into styled tables here.
+                            When JeeRaf AI generates comparative lists, data matrices, or financial schedules, they will be formatted automatically into styled tables here.
                           </p>
                         </div>
                       );
@@ -2053,7 +2055,7 @@ FORMATTING INSTRUCTIONS:
                           <Zap size={40} className="mx-auto text-amber-500/50" />
                           <p className="font-extrabold text-amber-300 text-base">No Programming Code Blocks Detected</p>
                           <p className="text-xs max-w-md mx-auto text-slate-400">
-                            Ask Ibom AI to write code in Python, C++, JavaScript, SQL, or HTML to view clean syntax highlighted previews here.
+                            Ask JeeRaf AI to write code in Python, C++, JavaScript, SQL, or HTML to view clean syntax highlighted previews here.
                           </p>
                         </div>
                       );
@@ -2126,7 +2128,7 @@ FORMATTING INSTRUCTIONS:
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement('a');
                       a.href = url;
-                      a.download = `Ibom_AI_Workspace_${Date.now()}.txt`;
+                      a.download = `JeeRaf_AI_Workspace_${Date.now()}.txt`;
                       a.click();
                       URL.revokeObjectURL(url);
                     }}
@@ -2143,3 +2145,6 @@ FORMATTING INSTRUCTIONS:
     </div>
   );
 };
+
+// Compatibility export
+export const IbomAIPage = JeeRafAIPage;

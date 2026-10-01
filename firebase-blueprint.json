@@ -60,7 +60,7 @@
     },
     "Question": {
       "title": "Question",
-      "description": "Standard exam question for SilverIBOM CBT.",
+      "description": "Standard exam question for JeeRaf CBT.",
       "type": "object",
       "properties": {
         "subject": { "type": "string", "description": "Subject name." },
@@ -181,15 +181,15 @@
   "firestore": {
     "/sib_profiles/{userId}": {
       "schema": "UserProfile",
-      "description": "Collection of unified user profiles for SilverIBOM CBT."
+      "description": "Collection of unified user profiles for JeeRaf CBT."
     },
     "/sib_results/{resultId}": {
       "schema": "QuizResult",
-      "description": "Collection of examination results for SilverIBOM CBT."
+      "description": "Collection of examination results for JeeRaf CBT."
     },
     "/sib_payments/{paymentId}": {
       "schema": "PaymentRequest",
-      "description": "Collection of payment verification requests for SilverIBOM CBT."
+      "description": "Collection of payment verification requests for JeeRaf CBT."
     },
     "/sib_questions/{questionId}": {
       "schema": "Question",
@@ -213,7 +213,7 @@
     },
     "/library_books/{bookId}": {
       "schema": "LibraryBook",
-      "description": "Textbooks and digital learning materials in the SilverIBOM library."
+      "description": "Textbooks and digital learning materials in the JeeRaf library."
     },
     "/sib_library_files/{fileId}": {
       "description": "Chunked file storage for library books and uploaded textbook documents."

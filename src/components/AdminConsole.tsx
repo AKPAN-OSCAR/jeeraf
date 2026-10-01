@@ -9,8 +9,9 @@ import {
   MessageSquare, Send, HelpCircle, FileSpreadsheet,
   BookOpen, Library, ChevronRight, Edit3, Settings, AlertTriangle,
   Code, Image, Lock, Shield, Key, Mail, Bot, Zap,
-  Building2, Download
+  Building2, Download, CreditCard, Camera
 } from 'lucide-react';
+import { HardcopyVisionManager } from './HardcopyVisionManager';
 import { GoogleGenAI } from '@google/genai';
 import { db, auth, OperationType, handleFirestoreError } from '../firebase';
 import { 
@@ -59,7 +60,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
   }, [user, profile]);
   const [adminPassword, setAdminPassword] = useState('');
   const [payments, setPayments] = useState<PaymentRequest[]>([]);
-  const [tab, setTab] = useState<'payments' | 'users' | 'questions' | 'alerts' | 'tokens' | 'user_overrides' | 'api_keys' | 'security' | 'library'>('payments');
+  const [tab, setTab] = useState<'hub' | 'payments' | 'users' | 'questions' | 'alerts' | 'tokens' | 'user_overrides' | 'api_keys' | 'security' | 'library'>('hub');
 
   // Institutional CBT & Dispatcher Hub State
   const [instRequests, setInstRequests] = useState<any[]>([]);
@@ -2046,73 +2047,331 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
       <header className="bg-theme-card border-b border-theme-border px-6 py-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-4">
           <SidebarMenu user={user} profile={profile} onLogout={onBack} />
-          <button onClick={onBack} className="p-2 hover:bg-theme-bg rounded-xl transition-all">
-            <ArrowLeft size={24} className="text-theme-muted" />
-          </button>
+          {tab !== 'hub' ? (
+            <button 
+              onClick={() => setTab('hub')} 
+              className="px-3.5 py-2 bg-theme-bg border border-theme-border hover:border-theme-accent text-theme-text rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Admin Hub</span>
+            </button>
+          ) : (
+            <button onClick={onBack} className="p-2 hover:bg-theme-bg rounded-xl transition-all" title="Return to Dashboard">
+              <ArrowLeft size={22} className="text-theme-muted" />
+            </button>
+          )}
           <div>
-            <h1 className="text-xl font-black text-theme-text leading-none mb-1">Admin Console</h1>
-            <div className="flex gap-4 mt-2 overflow-x-auto max-w-full pb-1 scrollbar-none">
-              <button 
-                onClick={() => setTab('payments')}
-                className={cn("text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all whitespace-nowrap", tab === 'payments' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent")}
-              >
-                Payments
-              </button>
-              <button 
-                onClick={() => setTab('users')}
-                className={cn("text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all whitespace-nowrap", tab === 'users' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent")}
-              >
-                Users List
-              </button>
-              <button 
-                onClick={() => setTab('questions')}
-                className={cn("text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all whitespace-nowrap", tab === 'questions' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent")}
-              >
-                Questions Manager
-              </button>
-              <button 
-                onClick={() => setTab('alerts')}
-                className={cn("text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all whitespace-nowrap", tab === 'alerts' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent")}
-              >
-                System Alerts {alerts.length > 0 && <span className="ml-1 bg-rose-500 text-white rounded-full px-1.5 py-0.5 text-[8px] font-black">{alerts.length}</span>}
-              </button>
-              <button 
-                onClick={() => setTab('tokens')}
-                className={cn("text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all whitespace-nowrap", tab === 'tokens' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent")}
-              >
-                AI Operations & Tokens
-              </button>
-              <button 
-                onClick={() => setTab('user_overrides')}
-                className={cn("text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all whitespace-nowrap", tab === 'user_overrides' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent")}
-              >
-                Real-time User Override
-              </button>
-              <button 
-                onClick={() => setTab('api_keys')}
-                className={cn("text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all whitespace-nowrap", tab === 'api_keys' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent")}
-              >
-                AI Models & API Keys
-              </button>
-              <button 
-                onClick={() => setTab('security')}
-                className={cn("text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all whitespace-nowrap", tab === 'security' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent")}
-              >
-                Security Settings
-              </button>
-              <button 
-                onClick={() => setTab('library')}
-                className={cn("text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all whitespace-nowrap flex items-center gap-1.5", tab === 'library' ? "text-amber-400 border-amber-400 font-black" : "text-theme-muted border-transparent")}
-              >
-                <BookOpen size={13} className="text-amber-500" />
-                <span>Library & E-Books</span>
-              </button>
-            </div>
+            <h1 className="text-lg sm:text-xl font-black text-theme-text leading-none flex items-center gap-2">
+              <span>Admin Console</span>
+              {tab !== 'hub' && (
+                <>
+                  <span className="text-theme-muted text-sm font-normal">/</span>
+                  <span className="text-theme-accent text-sm font-black uppercase">
+                    {tab === 'questions' && 'Questions Manager & Vision'}
+                    {tab === 'payments' && 'Payments & Subscriptions'}
+                    {tab === 'users' && 'Users Directory'}
+                    {tab === 'tokens' && 'AI Operations & Tokens'}
+                    {tab === 'user_overrides' && 'User Mode Overrides'}
+                    {tab === 'api_keys' && 'AI Models & API Keys'}
+                    {tab === 'security' && 'Security Settings'}
+                    {tab === 'library' && 'E-Library & Books'}
+                    {tab === 'alerts' && 'System Alerts'}
+                  </span>
+                </>
+              )}
+            </h1>
+            <p className="text-[10px] text-theme-muted mt-1">
+              {tab === 'hub' ? 'Master Administration Hub & Content Pipeline' : 'Click "Back to Admin Hub" to return to the function dashboard'}
+            </p>
           </div>
         </div>
+
+        {tab !== 'hub' && (
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase text-theme-muted">Jump to:</span>
+            <select
+              value={tab}
+              onChange={(e) => setTab(e.target.value as any)}
+              className="px-3 py-1.5 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold text-theme-text focus:outline-none"
+            >
+              <option value="hub">Dashboard Hub</option>
+              <option value="questions">Questions & Vision Scanner</option>
+              <option value="payments">Payments & Receipts</option>
+              <option value="users">Users Management</option>
+              <option value="tokens">AI Operations & Tokens</option>
+              <option value="api_keys">AI Models & API Keys</option>
+              <option value="library">Library & E-Books</option>
+              <option value="alerts">System Alerts</option>
+              <option value="security">Security Settings</option>
+            </select>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
+        {tab === 'hub' && (
+          <div className="space-y-8">
+            {/* Hub Welcome Banner & System Status */}
+            <div className="bg-gradient-to-br from-theme-card via-theme-card to-theme-bg p-6 sm:p-8 rounded-3xl border border-theme-border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-theme-accent/10 border border-theme-accent/30 text-theme-accent text-[10px] font-black uppercase tracking-wider">
+                  <ShieldCheck size={12} />
+                  <span>Authenticated Master Console</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-theme-text tracking-tight">
+                  Admin Command Hub
+                </h2>
+                <p className="text-xs text-theme-muted max-w-xl">
+                  Select any administrative function below to manage question banks, review student subscription transfers, configure Gemini models, or inspect system alerts.
+                </p>
+              </div>
+
+              {/* Quick Health Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-theme-bg/60 p-4 rounded-2xl border border-theme-border/60">
+                <div className="text-center px-2">
+                  <p className="text-[10px] uppercase font-bold text-theme-muted">Questions</p>
+                  <p className="text-lg font-black text-theme-text">{adminQuestionsList.length}</p>
+                </div>
+                <div className="text-center px-2 border-l border-theme-border/40">
+                  <p className="text-[10px] uppercase font-bold text-theme-muted">Users</p>
+                  <p className="text-lg font-black text-theme-text">{profiles.length}</p>
+                </div>
+                <div className="text-center px-2 border-l border-theme-border/40">
+                  <p className="text-[10px] uppercase font-bold text-theme-muted">Pending</p>
+                  <p className="text-lg font-black text-amber-400">
+                    {payments.filter(p => p.status === 'pending').length}
+                  </p>
+                </div>
+                <div className="text-center px-2 border-l border-theme-border/40">
+                  <p className="text-[10px] uppercase font-bold text-theme-muted">Alerts</p>
+                  <p className="text-lg font-black text-rose-400">{alerts.length}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Orderly Function Button Cards Grid */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-wider text-theme-muted px-1">
+                Administrative Function Modules
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 1. Questions Manager & Hardcopy Vision */}
+                <button
+                  type="button"
+                  onClick={() => setTab('questions')}
+                  className="group p-6 rounded-3xl bg-theme-card border-2 border-theme-accent/40 hover:border-theme-accent transition-all text-left flex items-start gap-5 shadow-sm hover:shadow-md relative overflow-hidden"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
+                    <Camera size={26} />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        Renovated Pipeline
+                      </span>
+                      <ChevronRight size={18} className="text-theme-muted group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <h4 className="text-base font-black text-theme-text group-hover:text-theme-accent transition-colors">
+                      Questions Manager & Hardcopy Vision Scanner
+                    </h4>
+                    <p className="text-xs text-theme-muted line-clamp-2">
+                      Scan physical past exam booklets (1990–2025). Multimodal Vision extracts math formulas into KaTeX, options A–D, and step-by-step solutions with split-screen verification.
+                    </p>
+                    <div className="pt-1 flex items-center gap-2 text-[10px] font-bold text-theme-muted">
+                      <span>{adminQuestionsList.length} dynamic questions stored</span>
+                    </div>
+                  </div>
+                </button>
+
+                {/* 2. Payments & Receipts */}
+                <button
+                  type="button"
+                  onClick={() => setTab('payments')}
+                  className="group p-6 rounded-3xl bg-theme-card border border-theme-border hover:border-theme-accent transition-all text-left flex items-start gap-5 shadow-sm hover:shadow-md"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <CreditCard size={26} />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className={cn(
+                        "text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border",
+                        payments.filter(p => p.status === 'pending').length > 0
+                          ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                          : "bg-theme-bg text-theme-muted border-theme-border"
+                      )}>
+                        {payments.filter(p => p.status === 'pending').length} Pending Approval
+                      </span>
+                      <ChevronRight size={18} className="text-theme-muted group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <h4 className="text-base font-black text-theme-text group-hover:text-theme-accent transition-colors">
+                      Payments & Receipts Verification
+                    </h4>
+                    <p className="text-xs text-theme-muted line-clamp-2">
+                      Inspect uploaded bank payment receipts, verify transactions, activate Claxy & Claxy Pro plans, and manage rejected proofs.
+                    </p>
+                  </div>
+                </button>
+
+                {/* 3. Users Directory */}
+                <button
+                  type="button"
+                  onClick={() => setTab('users')}
+                  className="group p-6 rounded-3xl bg-theme-card border border-theme-border hover:border-theme-accent transition-all text-left flex items-start gap-5 shadow-sm hover:shadow-md"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Users size={26} />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-theme-bg text-theme-muted border border-theme-border">
+                        {profiles.length} Total Registered
+                      </span>
+                      <ChevronRight size={18} className="text-theme-muted group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <h4 className="text-base font-black text-theme-text group-hover:text-theme-accent transition-colors">
+                      Users Management & Directory
+                    </h4>
+                    <p className="text-xs text-theme-muted line-clamp-2">
+                      Browse all user accounts, check subscription statuses, promote/demote administrators, and manage student security.
+                    </p>
+                  </div>
+                </button>
+
+                {/* 4. AI Operations & Tokens */}
+                <button
+                  type="button"
+                  onClick={() => setTab('tokens')}
+                  className="group p-6 rounded-3xl bg-theme-card border border-theme-border hover:border-theme-accent transition-all text-left flex items-start gap-5 shadow-sm hover:shadow-md"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Bot size={26} />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-theme-bg text-theme-muted border border-theme-border">
+                        Mode: {systemSettings?.subscriberMode || 'tokens'}
+                      </span>
+                      <ChevronRight size={18} className="text-theme-muted group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <h4 className="text-base font-black text-theme-text group-hover:text-theme-accent transition-colors">
+                      AI Operations & Token Budget
+                    </h4>
+                    <p className="text-xs text-theme-muted line-clamp-2">
+                      Track Gemini token consumption, configure token quotas for subscribers and non-subscribers, and customize the fallback offline JS engine.
+                    </p>
+                  </div>
+                </button>
+
+                {/* 5. AI Models & API Keys */}
+                <button
+                  type="button"
+                  onClick={() => setTab('api_keys')}
+                  className="group p-6 rounded-3xl bg-theme-card border border-theme-border hover:border-theme-accent transition-all text-left flex items-start gap-5 shadow-sm hover:shadow-md"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Key size={26} />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-theme-bg text-theme-muted border border-theme-border">
+                        {systemSettings?.apiKeysList?.length || 0} Registered Keys
+                      </span>
+                      <ChevronRight size={18} className="text-theme-muted group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <h4 className="text-base font-black text-theme-text group-hover:text-theme-accent transition-colors">
+                      AI Models & API Keys Management
+                    </h4>
+                    <p className="text-xs text-theme-muted line-clamp-2">
+                      Manage Gemini API keys, test connection latency, set target models (gemini-3.8-flash), and assign role-specific keys.
+                    </p>
+                  </div>
+                </button>
+
+                {/* 6. E-Library & Textbooks */}
+                <button
+                  type="button"
+                  onClick={() => setTab('library')}
+                  className="group p-6 rounded-3xl bg-theme-card border border-theme-border hover:border-theme-accent transition-all text-left flex items-start gap-5 shadow-sm hover:shadow-md"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <BookOpen size={26} />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-theme-bg text-theme-muted border border-theme-border">
+                        {adminLibraryBooks.length} Books
+                      </span>
+                      <ChevronRight size={18} className="text-theme-muted group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <h4 className="text-base font-black text-theme-text group-hover:text-theme-accent transition-colors">
+                      E-Library & National Textbooks
+                    </h4>
+                    <p className="text-xs text-theme-muted line-clamp-2">
+                      Publish educational textbooks, syllabus materials, and revision guides across National, Universal, and General categories.
+                    </p>
+                  </div>
+                </button>
+
+                {/* 7. System Alerts & Logs */}
+                <button
+                  type="button"
+                  onClick={() => setTab('alerts')}
+                  className="group p-6 rounded-3xl bg-theme-card border border-theme-border hover:border-theme-accent transition-all text-left flex items-start gap-5 shadow-sm hover:shadow-md"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <AlertTriangle size={26} />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className={cn(
+                        "text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border",
+                        alerts.length > 0 
+                          ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
+                          : "bg-theme-bg text-theme-muted border-theme-border"
+                      )}>
+                        {alerts.length} Logged Alerts
+                      </span>
+                      <ChevronRight size={18} className="text-theme-muted group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <h4 className="text-base font-black text-theme-text group-hover:text-theme-accent transition-colors">
+                      System Alerts & Live Error Logs
+                    </h4>
+                    <p className="text-xs text-theme-muted line-clamp-2">
+                      Review automated error notifications, Gemini quota spikes, network issues, and database read/write diagnostic events.
+                    </p>
+                  </div>
+                </button>
+
+                {/* 8. Security Settings */}
+                <button
+                  type="button"
+                  onClick={() => setTab('security')}
+                  className="group p-6 rounded-3xl bg-theme-card border border-theme-border hover:border-theme-accent transition-all text-left flex items-start gap-5 shadow-sm hover:shadow-md"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-slate-500/10 text-slate-300 border border-slate-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Shield size={26} />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Shielded Endpoint
+                      </span>
+                      <ChevronRight size={18} className="text-theme-muted group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <h4 className="text-base font-black text-theme-text group-hover:text-theme-accent transition-colors">
+                      Admin Security & Master Credentials
+                    </h4>
+                    <p className="text-xs text-theme-muted line-clamp-2">
+                      Change master administrator password, configure recovery notification email, and protect access to the /admin route.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {tab === 'users' && (
           <div className="space-y-6">
             <div className="grid md:grid-cols-3 gap-6">
@@ -2531,715 +2790,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
         )}
 
         {tab === 'questions' && (
-          <div className="space-y-6">
-            {/* Top Selection Tabs */}
-            <div className="flex border-b border-theme-border">
-              <button
-                onClick={() => setQuestionsTab('list')}
-                className={cn(
-                  "px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2",
-                  questionsTab === 'list' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent"
-                )}
-              >
-                <BookOpen size={16} /> Existing Dynamic Questions ({adminQuestionsList.length})
-              </button>
-              <button
-                onClick={() => setQuestionsTab('add')}
-                className={cn(
-                  "px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2",
-                  questionsTab === 'add' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent"
-                )}
-              >
-                <Sparkles size={16} className="text-amber-500" /> AI Question Wizard & Parser
-              </button>
-              <button
-                onClick={() => setQuestionsTab('json')}
-                className={cn(
-                  "px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2",
-                  questionsTab === 'json' ? "text-theme-accent border-theme-accent" : "text-theme-muted border-transparent"
-                )}
-              >
-                <Code size={16} className="text-blue-500" /> Database JSON Codes
-              </button>
-            </div>
-
-            {questionsTab === 'list' && (
-              <div className="space-y-6">
-                {/* Search & Filter Bar */}
-                <div className="bg-theme-card p-6 rounded-3xl border border-theme-border shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-                  <div className="relative flex-1 w-full">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-theme-muted" size={18} />
-                    <input 
-                      type="text"
-                      placeholder="Search custom questions..."
-                      value={qSearchQuery}
-                      onChange={(e) => setQSearchQuery(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 bg-theme-bg/50 border border-theme-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-theme-accent/20 text-theme-text"
-                    />
-                  </div>
-
-                  <div className="flex gap-3 w-full md:w-auto items-center">
-                    <select
-                      value={subjectFilter}
-                      onChange={(e) => setSubjectFilter(e.target.value)}
-                      className="px-4 py-3 bg-theme-card border border-theme-border rounded-xl text-xs font-bold focus:outline-none text-theme-text"
-                    >
-                      <option value="all">All Subjects</option>
-                      {['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'Geography', 'Commerce', 'Accounting', 'Agricultural Science', 'Civic Education', 'Further Mathematics', 'History', 'CRK', 'IRK', 'Yoruba', 'Hausa', 'Igbo', 'French', 'General'].map(s => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-
-                    <select
-                      value={examTypeFilter}
-                      onChange={(e) => setExamTypeFilter(e.target.value)}
-                      className="px-4 py-3 bg-theme-card border border-theme-border rounded-xl text-xs font-bold focus:outline-none text-theme-text"
-                    >
-                      <option value="all">All Exams</option>
-                      {['JAMB', 'WAEC', 'NECO', 'WAEC GCE', 'NECO GCE', 'Personal CBT'].map(et => (
-                        <option key={et} value={et}>{et}</option>
-                      ))}
-                    </select>
-
-                    <button
-                      onClick={handleOpenCreateModal}
-                      className="px-5 py-3 bg-theme-accent text-white font-bold rounded-xl text-xs flex items-center gap-1.5 hover:bg-theme-accent/90 transition-all shadow-md shrink-0 whitespace-nowrap"
-                    >
-                      <Plus size={14} /> Create Question
-                    </button>
-                  </div>
-                </div>
-
-                {/* Questions Listing */}
-                {adminQuestionsList.length === 0 ? (
-                  <div className="bg-theme-card rounded-3xl border border-dashed border-theme-border p-20 text-center">
-                    <HelpCircle size={40} className="mx-auto text-theme-muted mb-4" />
-                    <h3 className="text-lg font-bold text-theme-text">No custom questions found</h3>
-                    <p className="text-theme-muted mb-6">No dynamically loaded questions have been created or extracted yet.</p>
-                    <button
-                      onClick={() => setQuestionsTab('add')}
-                      className="px-6 py-3 bg-theme-accent text-white font-bold rounded-2xl hover:bg-theme-accent/90 transition-all flex items-center gap-2 mx-auto"
-                    >
-                      <Sparkles size={16} /> Open AI Extraction Wizard
-                    </button>
-                  </div>
-                ) : (
-                  <div className="grid gap-4">
-                    {adminQuestionsList
-                      .filter(q => {
-                        const matchesSearch = qSearchQuery ? (q.question?.toLowerCase().includes(qSearchQuery.toLowerCase()) || q.topic?.toLowerCase().includes(qSearchQuery.toLowerCase())) : true;
-                        const matchesSubject = subjectFilter === 'all' ? true : q.subject === subjectFilter;
-                        const matchesExam = examTypeFilter === 'all' ? true : q.examType === examTypeFilter;
-                        return matchesSearch && matchesSubject && matchesExam;
-                      })
-                      .map((q) => (
-                        <div key={q.id} className="bg-theme-card p-6 rounded-3xl border border-theme-border shadow-sm flex flex-col md:flex-row justify-between gap-4">
-                          <div className="space-y-3 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold uppercase tracking-wider">{q.examType}</span>
-                              <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-md text-[10px] font-bold uppercase tracking-wider">{q.subject}</span>
-                              {q.topic && <span className="px-2.5 py-0.5 bg-purple-50 text-purple-600 rounded-md text-[10px] font-bold">{q.topic}</span>}
-                              {q.year && <span className="text-[10px] text-theme-muted">Year: {q.year}</span>}
-                            </div>
-                            {q.passage && (
-                              <div className="bg-theme-bg/40 p-3 rounded-xl text-xs text-theme-muted border border-theme-border max-h-32 overflow-y-auto font-serif">
-                                <strong>Comprehension Passage:</strong><br/>{q.passage}
-                              </div>
-                            )}
-                            <h4 className="font-bold text-theme-text text-sm md:text-base leading-relaxed">{q.question}</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                              {q.options?.map((opt: string, idx: number) => (
-                                <div key={idx} className={cn(
-                                  "p-2.5 rounded-xl border flex items-center gap-2",
-                                  q.correctAnswer === idx 
-                                    ? "bg-emerald-50/50 border-emerald-500/30 text-emerald-700 font-medium" 
-                                    : "border-theme-border bg-theme-bg/10 text-theme-muted"
-                                )}>
-                                  <span className={cn("w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black", q.correctAnswer === idx ? "bg-emerald-500 text-white" : "bg-theme-border")}>
-                                    {String.fromCharCode(65 + idx)}
-                                  </span>
-                                  <span>{opt}</span>
-                                </div>
-                              ))}
-                            </div>
-                            {q.explanation && (
-                              <p className="text-[11px] text-theme-muted bg-theme-bg/25 p-2 rounded-lg italic">
-                                <strong>Explanation:</strong> {q.explanation}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex md:flex-col justify-end gap-2 items-end">
-                            <button
-                              onClick={() => handleOpenEditModal(q)}
-                              className="p-3 bg-amber-50 text-amber-600 rounded-2xl hover:bg-amber-100 transition-all border border-amber-100 flex items-center justify-center"
-                              title="Edit Question"
-                            >
-                              <Edit3 size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteQuestion(q.id)}
-                              className="p-3 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-100 transition-all border border-rose-100 flex items-center justify-center"
-                              title="Delete Question"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {questionsTab === 'add' && (
-              <div className="grid lg:grid-cols-12 gap-8">
-                {/* Configuration Panel */}
-                <div className="lg:col-span-5 space-y-6">
-                  <div className="bg-theme-card p-6 rounded-3xl border border-theme-border shadow-sm space-y-4">
-                    <h3 className="text-sm font-black text-theme-text uppercase tracking-wider">Exam Configuration</h3>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1.5">Exam Type</label>
-                        <select
-                          value={selectedExamType}
-                          onChange={(e) => setSelectedExamType(e.target.value)}
-                          className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold focus:outline-none text-theme-text"
-                        >
-                          {['JAMB', 'WAEC', 'NECO', 'WAEC GCE', 'NECO GCE', 'Personal CBT'].map(et => (
-                            <option key={et} value={et}>{et}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1.5">Subject</label>
-                        <select
-                          value={selectedSubject}
-                          onChange={(e) => setSelectedSubject(e.target.value)}
-                          className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold focus:outline-none text-theme-text"
-                        >
-                          {['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'Geography', 'Commerce', 'Accounting', 'Agricultural Science', 'Civic Education', 'Further Mathematics', 'History', 'CRK', 'IRK', 'Yoruba', 'Hausa', 'Igbo', 'French', 'General'].map(s => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-theme-border pt-4">
-                      <label className="block text-[10px] font-black text-theme-muted uppercase tracking-widest mb-2">Input Mode Selector</label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { id: 'manual', label: '✍️ Manual Entry' },
-                          { id: 'image', label: '📷 Snapshot Image' },
-                          { id: 'file', label: '📄 PDF/Docx File' }
-                        ].map(mode => (
-                          <button
-                            key={mode.id}
-                            type="button"
-                            onClick={() => setInputType(mode.id as any)}
-                            className={cn(
-                              "px-2 py-3 rounded-xl border text-[10px] font-bold text-center transition-all",
-                              inputType === mode.id 
-                                ? "bg-theme-accent/10 border-theme-accent text-theme-accent" 
-                                : "border-theme-border bg-theme-card text-theme-muted hover:bg-theme-bg/30"
-                            )}
-                          >
-                            {mode.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {inputType === 'manual' ? (
-                      <form onSubmit={handleSaveManualQuestion} className="space-y-4 border-t border-theme-border pt-4">
-                        <h4 className="text-xs font-bold text-theme-text uppercase">Manual Question Details</h4>
-                        
-                        <div>
-                          <label className="block text-[9px] font-bold text-theme-muted uppercase tracking-wider mb-1">Comprehension Passage (Optional)</label>
-                          <textarea
-                            value={manualQuestion.passage}
-                            onChange={(e) => setManualQuestion({ ...manualQuestion, passage: e.target.value })}
-                            placeholder="If this question belongs to a comprehension passage, paste the passage here..."
-                            rows={3}
-                            className="w-full px-4 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs focus:outline-none text-theme-text"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[9px] font-bold text-theme-muted uppercase tracking-wider mb-1">Question Text</label>
-                          <textarea
-                            required
-                            value={manualQuestion.question}
-                            onChange={(e) => setManualQuestion({ ...manualQuestion, question: e.target.value })}
-                            placeholder="Type the question..."
-                            rows={3}
-                            className="w-full px-4 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs focus:outline-none text-theme-text"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="block text-[9px] font-bold text-theme-muted uppercase tracking-wider">Options (Provide all 4)</label>
-                          {manualQuestion.options.map((opt, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <span className="text-xs font-bold w-6">{String.fromCharCode(65 + idx)}.</span>
-                              <input
-                                required
-                                type="text"
-                                value={opt}
-                                onChange={(e) => {
-                                  const opts = [...manualQuestion.options];
-                                  opts[idx] = e.target.value;
-                                  setManualQuestion({ ...manualQuestion, options: opts as any });
-                                }}
-                                placeholder={`Option ${String.fromCharCode(65 + idx)} text`}
-                                className="flex-1 px-3 py-2 bg-theme-bg border border-theme-border rounded-lg text-xs focus:outline-none text-theme-text"
-                              />
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[9px] font-bold text-theme-muted uppercase tracking-wider mb-1">Correct Option</label>
-                            <select
-                              value={manualQuestion.correctAnswer}
-                              onChange={(e) => setManualQuestion({ ...manualQuestion, correctAnswer: parseInt(e.target.value) })}
-                              className="w-full px-3 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs focus:outline-none text-theme-text font-bold"
-                            >
-                              <option value={0}>A is Correct</option>
-                              <option value={1}>B is Correct</option>
-                              <option value={2}>C is Correct</option>
-                              <option value={3}>D is Correct</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-[9px] font-bold text-theme-muted uppercase tracking-wider mb-1">Topic Name</label>
-                            <input
-                              type="text"
-                              value={manualQuestion.topic}
-                              onChange={(e) => setManualQuestion({ ...manualQuestion, topic: e.target.value })}
-                              placeholder="e.g. Algebra"
-                              className="w-full px-3 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs focus:outline-none text-theme-text"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[9px] font-bold text-theme-muted uppercase tracking-wider mb-1">Detailed Explanation</label>
-                          <textarea
-                            value={manualQuestion.explanation}
-                            onChange={(e) => setManualQuestion({ ...manualQuestion, explanation: e.target.value })}
-                            placeholder="Explain why the chosen option is correct..."
-                            rows={2}
-                            className="w-full px-3 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs focus:outline-none text-theme-text"
-                          />
-                        </div>
-
-                        <button
-                          type="submit"
-                          disabled={savingQuestions}
-                          className="w-full py-3 bg-theme-accent text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-theme-accent/90 transition-all flex items-center justify-center gap-2 shadow-lg"
-                        >
-                          {savingQuestions ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                          Save Question to CBT
-                        </button>
-                      </form>
-                    ) : (
-                      <div className="space-y-4 border-t border-theme-border pt-4">
-                        <h4 className="text-xs font-bold text-theme-text uppercase">AI Extraction File Processor</h4>
-                        
-                        {inputType === 'image' || inputType === 'file' ? (
-                          <div className="border-2 border-dashed border-theme-border rounded-2xl p-6 text-center hover:bg-theme-bg/10 transition-all relative">
-                            <input
-                              type="file"
-                              accept={inputType === 'image' ? "image/*" : ".pdf,.docx,.txt"}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0] || null;
-                                setSelectedFile(file);
-                                if (file && file.type.startsWith('image/')) {
-                                  const reader = new FileReader();
-                                  reader.onload = () => {
-                                    setImagePreviewUrl(reader.result as string);
-                                  };
-                                  reader.readAsDataURL(file);
-                                } else {
-                                  setImagePreviewUrl(null);
-                                }
-                              }}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                            <div className="space-y-2 pointer-events-none">
-                              {inputType === 'image' ? (
-                                <Upload className="mx-auto text-theme-muted" size={32} />
-                              ) : (
-                                <FileText className="mx-auto text-theme-muted" size={32} />
-                              )}
-                              <p className="text-xs font-bold text-theme-text">
-                                {selectedFile ? selectedFile.name : `Drag & Drop or Click to Upload ${inputType === 'image' ? 'Image' : 'Document'}`}
-                              </p>
-                              <p className="text-[10px] text-theme-muted">
-                                {inputType === 'image' ? 'PNG, JPEG, WEBP snapshots of exam sheets' : 'PDF, DOCX, TXT exam materials'}
-                              </p>
-                            </div>
-                          </div>
-                        ) : null}
-
-                        {inputType === 'image' && imagePreviewUrl && (
-                          <div className="mt-3 relative rounded-2xl overflow-hidden border border-theme-border bg-theme-bg p-2.5 flex flex-col items-center">
-                            <span className="text-[10px] font-black uppercase text-theme-muted tracking-wider mb-2 flex items-center gap-1">📷 Selected Question Sheet Preview</span>
-                            <img src={imagePreviewUrl} alt="Upload preview" className="max-h-64 rounded-xl object-contain shadow-sm border border-theme-border/50" />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedFile(null);
-                                setImagePreviewUrl(null);
-                              }}
-                              className="absolute top-4 right-4 bg-rose-500/80 hover:bg-rose-600 text-white p-1 rounded-full shadow-md transition-all"
-                            >
-                              <XCircle size={14} />
-                            </button>
-                          </div>
-                        )}
-
-                        <div>
-                          <label className="block text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1.5">Write/Paste Raw Unformatted Text (Fallback)</label>
-                          <textarea
-                            value={rawTextContent}
-                            onChange={(e) => setRawTextContent(e.target.value)}
-                            placeholder="If you don't have a file, paste any rough, unformatted exam questions text draft here and the AI will fix, arrange, and format them perfectly."
-                            rows={5}
-                            className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl text-xs focus:outline-none text-theme-text"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1.5">Custom Parsing Commands for AI (Optional)</label>
-                          <input
-                            type="text"
-                            value={parsingPrompt}
-                            onChange={(e) => setParsingPrompt(e.target.value)}
-                            placeholder="e.g. Extract only the algebra questions, ignore page numbers"
-                            className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl text-xs focus:outline-none text-theme-text"
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          disabled={isProcessingFile}
-                          onClick={handleAIExtract}
-                          className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:opacity-95 transition-all flex items-center justify-center gap-2 shadow-lg"
-                        >
-                          {isProcessingFile ? (
-                            <>
-                              <Loader2 size={16} className="animate-spin" />
-                              Parsing Questions...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles size={16} className="animate-pulse" />
-                              🚀 Extract & Organize with AI
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Agentic AI Companion & Review Column */}
-                <div className="lg:col-span-7 flex flex-col gap-6">
-                  {/* AI Companion Conversation */}
-                  <div className="bg-theme-card p-6 rounded-3xl border border-theme-border shadow-sm flex flex-col h-[350px]">
-                    <div className="flex items-center gap-3 border-b border-theme-border pb-3 mb-3">
-                      <AIAvatar size="md" isLoading={isChattingWithAI} />
-                      <div>
-                        <h4 className="text-xs font-black text-theme-text uppercase tracking-widest flex items-center gap-1.5">
-                          Exam Organizer AI Agent <span className="text-[8px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded-full font-bold">Active</span>
-                        </h4>
-                        <p className="text-[10px] text-theme-muted">Here to parse, arrange, and edit your dynamic questions</p>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
-                      {chats.map((chat, idx) => (
-                        <div key={idx} className={cn("flex gap-2.5 items-start", chat.sender === 'user' ? "justify-end" : "justify-start")}>
-                          {chat.sender !== 'user' && <AIAvatar size="xs" />}
-                          <div className={cn(
-                            "max-w-[80%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed",
-                            chat.sender === 'user' 
-                              ? "bg-theme-accent text-white rounded-tr-none shadow-md" 
-                              : "bg-theme-bg/80 border border-theme-border text-theme-text rounded-tl-none"
-                          )}>
-                            <p className="whitespace-pre-line">{chat.text}</p>
-                            <span className="block text-[8px] opacity-60 mt-1 text-right">
-                              {chat.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                      {isChattingWithAI && (
-                        <div className="flex justify-start gap-2.5 items-start">
-                          <AIAvatar size="xs" isLoading={true} />
-                          <div className="bg-theme-bg/80 border border-theme-border px-4 py-3 rounded-2xl rounded-tl-none text-xs flex items-center gap-2">
-                            <Loader2 size={12} className="animate-spin text-theme-accent" />
-                            <span>AI Agent is editing questions database...</span>
-                          </div>
-                        </div>
-                      )}
-                      <div ref={chatEndRef} />
-                    </div>
-
-                    <form onSubmit={handleSendMessageToAI} className="mt-3 flex gap-2 pt-3 border-t border-theme-border">
-                      <input
-                        type="text"
-                        value={aiMessageText}
-                        onChange={(e) => setAiMessageText(e.target.value)}
-                        placeholder="e.g. Change question 1 option B to 'No change'"
-                        className="flex-1 px-4 py-2.5 bg-theme-bg border border-theme-border rounded-xl text-xs focus:outline-none text-theme-text focus:ring-1 focus:ring-theme-accent"
-                      />
-                      <button
-                        type="submit"
-                        className="px-4 bg-theme-accent text-white rounded-xl hover:bg-theme-accent/90 transition-all flex items-center justify-center shadow-md"
-                      >
-                        <Send size={14} />
-                      </button>
-                    </form>
-                  </div>
-
-                  {/* Review / Extracted Questions Panel */}
-                  <AnimatePresence>
-                    {extractedQuestions.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 15 }}
-                        className="space-y-4"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="text-sm font-black text-theme-text uppercase tracking-wider">Extracted Questions Review ({extractedQuestions.length})</h3>
-                            <p className="text-[10px] text-theme-muted">Directly edit questions below before uploading to CBT database</p>
-                          </div>
-                          
-                          <button
-                            disabled={savingQuestions}
-                            onClick={handleSaveExtractedQuestions}
-                            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-black text-xs uppercase tracking-wider rounded-xl hover:opacity-95 transition-all flex items-center gap-1.5 shadow-md"
-                          >
-                            {savingQuestions ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                            Approve & Save All to CBT
-                          </button>
-                        </div>
-
-                        <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                          {extractedQuestions.map((q, qIdx) => (
-                            <div key={q.id || qIdx} className="bg-theme-card p-5 rounded-2xl border border-theme-border shadow-sm space-y-4 relative">
-                              <span className="absolute top-4 right-4 text-[10px] text-theme-muted font-bold">#{qIdx + 1}</span>
-                              
-                              <div className="space-y-2">
-                                <label className="block text-[9px] font-bold text-theme-muted uppercase">Question Text</label>
-                                <textarea
-                                  value={q.question}
-                                  onChange={(e) => {
-                                    const updated = [...extractedQuestions];
-                                    updated[qIdx].question = e.target.value;
-                                    setExtractedQuestions(updated);
-                                  }}
-                                  rows={2}
-                                  className="w-full px-3 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs focus:outline-none text-theme-text"
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {q.options?.map((opt: string, optIdx: number) => (
-                                  <div key={optIdx} className="space-y-1">
-                                    <div className="flex items-center justify-between">
-                                      <label className="text-[9px] font-bold text-theme-muted uppercase">Option {String.fromCharCode(65 + optIdx)}</label>
-                                      <input
-                                        type="radio"
-                                        name={`correct-${qIdx}`}
-                                        checked={q.correctAnswer === optIdx}
-                                        onChange={() => {
-                                          const updated = [...extractedQuestions];
-                                          updated[qIdx].correctAnswer = optIdx;
-                                          setExtractedQuestions(updated);
-                                        }}
-                                        className="h-3 w-3 text-emerald-600"
-                                      />
-                                    </div>
-                                    <input
-                                      type="text"
-                                      value={opt}
-                                      onChange={(e) => {
-                                        const updated = [...extractedQuestions];
-                                        updated[qIdx].options[optIdx] = e.target.value;
-                                        setExtractedQuestions(updated);
-                                      }}
-                                      className="w-full px-3 py-1.5 bg-theme-bg border border-theme-border rounded-lg text-xs focus:outline-none text-theme-text"
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <label className="block text-[9px] font-bold text-theme-muted uppercase mb-1">Topic</label>
-                                  <input
-                                    type="text"
-                                    value={q.topic || ''}
-                                    onChange={(e) => {
-                                      const updated = [...extractedQuestions];
-                                      updated[qIdx].topic = e.target.value;
-                                      setExtractedQuestions(updated);
-                                    }}
-                                    className="w-full px-3 py-1.5 bg-theme-bg border border-theme-border rounded-lg text-xs focus:outline-none text-theme-text"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-[9px] font-bold text-theme-muted uppercase mb-1">Explanation</label>
-                                  <input
-                                    type="text"
-                                    value={q.explanation || ''}
-                                    onChange={(e) => {
-                                      const updated = [...extractedQuestions];
-                                      updated[qIdx].explanation = e.target.value;
-                                      setExtractedQuestions(updated);
-                                    }}
-                                    className="w-full px-3 py-1.5 bg-theme-bg border border-theme-border rounded-lg text-xs focus:outline-none text-theme-text"
-                                  />
-                                </div>
-                              </div>
-
-                              <button
-                                onClick={() => {
-                                  const updated = extractedQuestions.filter((_, idx) => idx !== qIdx);
-                                  setExtractedQuestions(updated);
-                                }}
-                                className="text-[10px] font-bold text-rose-500 hover:text-rose-600 transition-all flex items-center gap-1"
-                              >
-                                <Trash2 size={12} /> Remove Question
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            )}
-
-            {questionsTab === 'json' && (
-              <div className="space-y-6">
-                <div className="bg-theme-card p-6 rounded-3xl border border-theme-border shadow-sm space-y-4">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-sm font-black text-theme-text uppercase tracking-wider flex items-center gap-2">
-                        <Code size={18} className="text-blue-500" /> Database Raw Code Editor
-                      </h3>
-                      <p className="text-[10px] text-theme-muted mt-1">
-                        View, edit, or upload question database codes directly. All edits are synced and validated securely.
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-3 items-center">
-                      <div>
-                        <label className="block text-[8px] font-black text-theme-muted uppercase tracking-widest mb-1">CBT Type</label>
-                        <select
-                          value={jsonCbtType}
-                          onChange={(e) => setJsonCbtType(e.target.value)}
-                          className="px-3 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold focus:outline-none text-theme-text"
-                        >
-                          {['JAMB', 'WAEC', 'NECO', 'WAEC GCE', 'NECO GCE', 'Personal CBT'].map(et => (
-                            <option key={et} value={et}>{et}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-[8px] font-black text-theme-muted uppercase tracking-widest mb-1">Subject</label>
-                        <select
-                          value={jsonSubject}
-                          onChange={(e) => setJsonSubject(e.target.value)}
-                          className="px-3 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold focus:outline-none text-theme-text"
-                        >
-                          {['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'Geography', 'Commerce', 'Accounting', 'Agricultural Science', 'Civic Education', 'Further Mathematics', 'History', 'CRK', 'IRK', 'Yoruba', 'Hausa', 'Igbo', 'French', 'General'].map(s => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="relative">
-                        <label className="block text-[8px] font-black text-theme-muted uppercase tracking-widest mb-1">Upload Codes File</label>
-                        <div className="flex items-center">
-                          <input
-                            type="file"
-                            accept=".json,.txt"
-                            onChange={handleUploadJsonFile}
-                            className="hidden"
-                            id="json-file-upload"
-                          />
-                          <label
-                            htmlFor="json-file-upload"
-                            className="px-4 py-2 bg-theme-bg border border-theme-border hover:bg-theme-bg/80 text-theme-text rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
-                          >
-                            <Upload size={14} /> Upload JSON
-                          </label>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-[8px] font-black text-theme-muted uppercase tracking-widest mb-1">Action</label>
-                        <button
-                          onClick={handleSaveJsonCodes}
-                          disabled={savingQuestions}
-                          className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md transition-all disabled:opacity-50"
-                        >
-                          {savingQuestions ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                          Save Codes
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-theme-bg p-4 rounded-2xl border border-theme-border flex items-start gap-3">
-                    <AlertCircle size={18} className="text-blue-500 shrink-0 mt-0.5" />
-                    <div className="text-[11px] text-theme-muted leading-relaxed">
-                      <strong>How to use code editor:</strong> Pasting/editing raw JSON is an advanced way to modify questions in bulk.
-                      <ul className="list-disc list-inside mt-1 space-y-0.5">
-                        <li>Each object must have <strong>question</strong> (string), <strong>options</strong> (array of 4 strings), and <strong>correctAnswer</strong> (index 0-3).</li>
-                        <li>Include an <strong>id</strong> field to update an existing question, or omit <strong>id</strong> to create a new question automatically.</li>
-                        <li>Subject and CBT Type chosen in the dropdowns above will be automatically bound unless defined within the objects.</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  {jsonError && (
-                    <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 p-4 rounded-2xl flex items-start gap-3">
-                      <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                      <div className="text-xs font-mono whitespace-pre-wrap">{jsonError}</div>
-                    </div>
-                  )}
-
-                  <div className="relative">
-                    <textarea
-                      value={jsonContent}
-                      onChange={(e) => setJsonContent(e.target.value)}
-                      rows={24}
-                      className="w-full p-6 bg-slate-950 text-slate-100 font-mono text-xs rounded-3xl border border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/30 leading-relaxed shadow-inner"
-                      placeholder="[\n  {\n    'question': '...', \n    'options': [...],\n    'correctAnswer': 0\n  }\n]"
-                    />
-                    <div className="absolute top-4 right-4 bg-slate-900/80 px-3 py-1 rounded-full text-[10px] text-slate-400 font-mono border border-slate-800">
-                      {jsonContent ? (jsonContent.match(/"question"/g) || []).length : 0} Questions Loaded
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <HardcopyVisionManager
+            existingQuestions={adminQuestionsList}
+            onQuestionDeleted={handleDeleteQuestion}
+          />
         )}
 
         {tab === 'tokens' && (
@@ -3683,7 +3237,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
 
               {/* Active Model Selector Cards */}
               <div className="grid md:grid-cols-2 gap-6">
-                {/* Ibom AI Config Card */}
+                {/* JeeRaf AI Config Card */}
                 <div className="bg-theme-bg p-6 rounded-3xl border border-theme-border space-y-4 shadow-sm">
                   <div className="flex items-center justify-between border-b border-theme-border pb-3">
                     <div className="flex items-center gap-2">
@@ -3876,7 +3430,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
                       className="w-full bg-theme-card border border-theme-border rounded-xl px-3 py-2.5 text-xs font-bold text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-accent/20"
                     >
                       <option value="all">🌟 All AI Services (Global)</option>
-                      <option value="ibom_ai">🤖 Ibom AI Assistant Only</option>
+                      <option value="ibom_ai">🤖 JeeRaf AI Assistant Only</option>
                       <option value="admin_ai">🛡️ Admin Exam Generator Only</option>
                     </select>
                   </div>
@@ -3956,7 +3510,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
                                   className="px-2 py-1 bg-theme-card border border-theme-border rounded-lg text-[10px] font-bold text-theme-text focus:outline-none"
                                 >
                                   <option value="" disabled>Switch to...</option>
-                                  <option value="ibom_ai">Activate for Ibom AI</option>
+                                  <option value="ibom_ai">Activate for JeeRaf AI</option>
                                   <option value="admin_ai">Activate for Admin AI</option>
                                   <option value="all">Activate Globally (All)</option>
                                   <option value="disable">{item.active ? 'Set Inactive' : 'Toggle Active'}</option>
