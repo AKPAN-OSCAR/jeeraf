@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { X, Delete } from 'lucide-react';
+import { X, GripHorizontal, Move, ArrowUpRight, ArrowUpLeft, ArrowDownLeft, ArrowDownRight } from 'lucide-react';
 import { cn } from '../data/lib/utils';
 
 interface CalculatorProps {
@@ -11,6 +11,20 @@ export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
   const [display, setDisplay] = useState('0');
   const [equation, setEquation] = useState<string[]>([]);
   const [shouldReset, setShouldReset] = useState(false);
+  
+  // Track active corner snap: 'tl' | 'tr' | 'bl' | 'br'
+  const [activeCorner, setActiveCorner] = useState<'tl' | 'tr' | 'bl' | 'br'>('tr');
+  const [position, setPosition] = useState<{ x: number; y: number }>(() => {
+    // Default to top-right
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
+    const w = typeof window !== 'undefined' ? window.innerWidth : 360;
+    const h = typeof window !== 'undefined' ? window.innerHeight : 640;
+    const offset = isMobile ? 12 : 24;
+    return {
+      x: (w / 2 - 145) - offset,
+      y: -(h / 2 - 190) + offset
+    };
+  });
 
   const handleDigit = (digit: string) => {
     if (display === 'Error') {
@@ -81,6 +95,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
 
   const handleClearEntry = () => {
     setDisplay('0');
+    setEquation([]);
     setShouldReset(false);
   };
 
@@ -126,62 +141,178 @@ export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
     }
   };
 
+  // Quick corner snap: Top-Left, Top-Right, Bottom-Left, Bottom-Right
+  const snapToCorner = (corner: 'tl' | 'tr' | 'bl' | 'br') => {
+    setActiveCorner(corner);
+    const isMobile = window.innerWidth < 640;
+    const offset = isMobile ? 12 : 24;
+    const halfW = window.innerWidth / 2;
+    const halfH = window.innerHeight / 2;
+    const calcHalfW = isMobile ? 140 : 155;
+    const calcHalfH = isMobile ? 180 : 195;
+
+    switch (corner) {
+      case 'tl':
+        setPosition({ x: -(halfW - calcHalfW) + offset, y: -(halfH - calcHalfH) + offset });
+        break;
+      case 'tr':
+        setPosition({ x: (halfW - calcHalfW) - offset, y: -(halfH - calcHalfH) + offset });
+        break;
+      case 'bl':
+        setPosition({ x: -(halfW - calcHalfW) + offset, y: (halfH - calcHalfH) - offset });
+        break;
+      case 'br':
+        setPosition({ x: (halfW - calcHalfW) - offset, y: (halfH - calcHalfH) - offset });
+        break;
+    }
+  };
+
+  // When user drags and releases, detect which corner was closest and snap smoothly
+  const handleDragEnd = (_: any, info: any) => {
+    const newX = position.x + info.offset.x;
+    const newY = position.y + info.offset.y;
+    const isRight = newX > 0;
+    const isBottom = newY > 0;
+    const closestCorner: 'tl' | 'tr' | 'bl' | 'br' = isRight 
+      ? (isBottom ? 'br' : 'tr') 
+      : (isBottom ? 'bl' : 'tl');
+    snapToCorner(closestCorner);
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9, y: 20 }}
-      className="bg-theme-card rounded-3xl overflow-hidden shadow-2xl w-80 border-4 border-theme-border select-none"
-      onClick={(e) => e.stopPropagation()}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
-      <div className="flex items-center justify-between px-6 py-4 bg-theme-card text-theme-text border-b border-theme-border">
-        <span className="font-bold tracking-tight">CBT Calculator</span>
-        <button 
-          onClick={(e) => { e.stopPropagation(); onClose(); }} 
-          className="p-1.5 hover:bg-theme-accent/10 text-theme-muted hover:text-theme-accent rounded-full transition-colors"
-        >
-          <X size={20} />
-        </button>
-      </div>
+    <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-2">
+      <motion.div
+        drag
+        dragMomentum={false}
+        dragElastic={0.06}
+        animate={position}
+        onDragEnd={handleDragEnd}
+        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+        className="pointer-events-auto bg-theme-card rounded-3xl overflow-hidden shadow-2xl w-72 sm:w-80 border-4 border-amber-500/40 select-none shadow-amber-500/10"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {/* Thumb Draggable Header */}
+        <div className="px-3.5 py-2.5 bg-gradient-to-r from-theme-card via-theme-bg to-theme-card text-theme-text border-b border-theme-border cursor-grab active:cursor-grabbing touch-none select-none">
+          <div className="flex items-center justify-between gap-1 mb-2">
+            <div className="flex items-center gap-1.5 text-xs font-black text-amber-500">
+              <GripHorizontal size={18} className="text-amber-500 animate-pulse" />
+              <span>CBT Calc</span>
+              <span className="text-[10px] text-theme-muted font-normal">(Push to corner)</span>
+            </div>
 
-      <div className="p-6 bg-theme-bg">
-        {/* Display */}
-        <div className="bg-theme-card border-2 border-theme-border rounded-2xl p-5 mb-6 min-h-[96px] flex flex-col items-end justify-center shadow-inner">
-          <div className="text-xs font-mono text-theme-muted mb-1 h-5 overflow-hidden text-right w-full">
-            {equation.join(' ')}
-          </div>
-          <div className="text-4xl font-mono font-bold text-theme-text tracking-tighter text-right w-full overflow-hidden">
-            {display}
-          </div>
-        </div>
-
-        {/* Keypad */}
-        <div className="grid grid-cols-4 gap-3">
-          {buttons.map((btn, idx) => (
-            <button
-              key={idx}
+            <button 
               type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleClick(btn);
-              }}
-              className={cn(
-                "h-14 rounded-2xl font-bold text-lg transition-all active:scale-90 shadow-sm flex items-center justify-center",
-                btn.type === 'digit' && "bg-theme-card text-theme-text hover:opacity-80 border-b-4 border-theme-border",
-                btn.type === 'op' && "bg-emerald-600 text-white hover:bg-emerald-700 border-b-4 border-emerald-800",
-                btn.type === 'equal' && "bg-theme-accent text-white hover:opacity-90 border-b-4 border-theme-accent/70",
-                btn.type === 'clear' && "bg-rose-500 text-white hover:bg-rose-600 border-b-4 border-rose-700",
-                btn.type === 'ce' && "bg-orange-500 text-white hover:bg-orange-600 border-b-4 border-orange-700",
-                btn.type === 'special' && "bg-theme-muted/20 text-theme-text hover:bg-theme-muted/30 border-b-4 border-theme-muted/40"
-              )}
+              onClick={(e) => { e.stopPropagation(); onClose(); }} 
+              className="p-1 hover:bg-rose-500/10 text-theme-muted hover:text-rose-500 rounded-lg transition-colors"
+              title="Close Calculator"
             >
-              {btn.label}
+              <X size={18} />
             </button>
-          ))}
+          </div>
+
+          {/* Quick Thumb Corner Snaps (TR, TL, BR, BL) */}
+          <div className="flex items-center justify-between gap-1 pt-1 border-t border-theme-border/50 text-[10px] font-bold">
+            <span className="text-theme-muted text-[9px] uppercase tracking-wider">Snap:</span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => snapToCorner('tl')}
+                className={cn(
+                  "px-2 py-0.5 rounded-md font-mono font-black border transition-all flex items-center gap-0.5",
+                  activeCorner === 'tl' 
+                    ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm" 
+                    : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
+                )}
+                title="Push to Top-Left"
+              >
+                <ArrowUpLeft size={10} />
+                <span>TL</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => snapToCorner('tr')}
+                className={cn(
+                  "px-2 py-0.5 rounded-md font-mono font-black border transition-all flex items-center gap-0.5",
+                  activeCorner === 'tr' 
+                    ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm" 
+                    : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
+                )}
+                title="Push to Top-Right"
+              >
+                <ArrowUpRight size={10} />
+                <span>TR</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => snapToCorner('bl')}
+                className={cn(
+                  "px-2 py-0.5 rounded-md font-mono font-black border transition-all flex items-center gap-0.5",
+                  activeCorner === 'bl' 
+                    ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm" 
+                    : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
+                )}
+                title="Push to Bottom-Left"
+              >
+                <ArrowDownLeft size={10} />
+                <span>BL</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => snapToCorner('br')}
+                className={cn(
+                  "px-2 py-0.5 rounded-md font-mono font-black border transition-all flex items-center gap-0.5",
+                  activeCorner === 'br' 
+                    ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm" 
+                    : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
+                )}
+                title="Push to Bottom-Right"
+              >
+                <ArrowDownRight size={10} />
+                <span>BR</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </motion.div>
+
+        <div className="p-3.5 sm:p-4 bg-theme-bg">
+          {/* Display */}
+          <div className="bg-theme-card border-2 border-theme-border rounded-2xl p-3 mb-3 min-h-[68px] flex flex-col items-end justify-center shadow-inner">
+            <div className="text-[11px] font-mono text-theme-muted mb-0.5 h-4 overflow-hidden text-right w-full">
+              {equation.join(' ')}
+            </div>
+            <div className="text-2xl sm:text-3xl font-mono font-black text-theme-text tracking-tight text-right w-full overflow-hidden">
+              {display}
+            </div>
+          </div>
+
+          {/* Keypad */}
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+            {buttons.map((btn, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleClick(btn);
+                }}
+                className={cn(
+                  "h-10 sm:h-11 rounded-xl font-black text-sm sm:text-base transition-all active:scale-95 shadow-sm flex items-center justify-center",
+                  btn.type === 'digit' && "bg-theme-card text-theme-text hover:bg-theme-bg border border-theme-border",
+                  btn.type === 'op' && "bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-700",
+                  btn.type === 'equal' && "bg-amber-500 text-slate-950 hover:bg-amber-400 border border-amber-600 font-black",
+                  btn.type === 'clear' && "bg-rose-600 text-white hover:bg-rose-500 border border-rose-700",
+                  btn.type === 'ce' && "bg-orange-600 text-white hover:bg-orange-500 border border-orange-700",
+                  btn.type === 'special' && "bg-theme-card text-theme-text hover:bg-theme-bg border border-theme-border"
+                )}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 };

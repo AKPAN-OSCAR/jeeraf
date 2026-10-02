@@ -703,10 +703,10 @@ export default function App() {
     });
 
     const result: QuizResult = {
-      userId: user.uid,
-      userName: user.email,
-      subject: currentSubject!,
-      examType: selectedExamType!,
+      userId: user?.uid || 'guest_candidate',
+      userName: user?.displayName || user?.email || 'Candidate',
+      subject: currentSubject || (allSessionQuestions[0]?.subject) || 'General',
+      examType: selectedExamType || (allSessionQuestions[0]?.examType) || 'JAMB',
       score,
       totalQuestions: allSessionQuestions.length,
       timeTaken: totalTimeTaken,
