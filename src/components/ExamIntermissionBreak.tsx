@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
-  Clock, Play, Pause, RotateCcw, Plus, ArrowRight, 
-  Coffee, Sparkles, CheckCircle2, Volume2, VolumeX, Eye, HeartHandshake
+  Play, Pause, Plus, ArrowRight, 
+  Coffee, Volume2, VolumeX, HeartHandshake
 } from 'lucide-react';
 import { cn } from '../data/lib/utils';
 import { Subject, ExamType } from '../types';
@@ -12,7 +12,7 @@ interface ExamIntermissionBreakProps {
   subjects: Subject[];
   nextPaperTitle: string; // e.g. "Paper 2: Theory & Essay Questions" or "Paper 1: Objective Questions"
   nextQuestionsCount: number;
-  initialMinutes?: number; // Minimum 15 as requested
+  initialMinutes?: number; // Minimum 5 minutes as requested
   onCompleteBreak: () => void;
 }
 
@@ -21,11 +21,11 @@ export const ExamIntermissionBreak: React.FC<ExamIntermissionBreakProps> = ({
   subjects,
   nextPaperTitle,
   nextQuestionsCount,
-  initialMinutes = 15,
+  initialMinutes = 5,
   onCompleteBreak
 }) => {
-  // Enforce minimum 15 minutes as per user requirement
-  const sanitizedInitial = Math.max(15, initialMinutes);
+  // Enforce minimum 5 minutes as per user requirement
+  const sanitizedInitial = Math.max(5, initialMinutes);
   const [totalSeconds, setTotalSeconds] = useState(sanitizedInitial * 60);
   const [secondsLeft, setSecondsLeft] = useState(sanitizedInitial * 60);
   const [isRunning, setIsRunning] = useState(true);
@@ -39,15 +39,15 @@ export const ExamIntermissionBreak: React.FC<ExamIntermissionBreakProps> = ({
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          // Play subtle completion tone if audio context supported
+          // Play completion tone if audio context supported
           if (soundEnabled && typeof window !== 'undefined' && window.AudioContext) {
             try {
               const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
               const osc = ctx.createOscillator();
               const gain = ctx.createGain();
               osc.type = 'sine';
-              osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-              osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.6); // A5
+              osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+              osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.6);
               gain.gain.setValueAtTime(0.2, ctx.currentTime);
               gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
               osc.connect(gain);
@@ -79,7 +79,7 @@ export const ExamIntermissionBreak: React.FC<ExamIntermissionBreakProps> = ({
   };
 
   const handleResetTo = (mins: number) => {
-    const validMins = Math.max(15, mins);
+    const validMins = Math.max(5, mins);
     setTotalSeconds(validMins * 60);
     setSecondsLeft(validMins * 60);
     setIsRunning(true);
@@ -87,7 +87,7 @@ export const ExamIntermissionBreak: React.FC<ExamIntermissionBreakProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-8 select-none relative overflow-hidden">
-      {/* Ambient background glow inspired by Pomofocus & JeeRaf dark theme */}
+      {/* Ambient background glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 blur-[130px] rounded-full pointer-events-none" />
       <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none" />
 
@@ -108,12 +108,12 @@ export const ExamIntermissionBreak: React.FC<ExamIntermissionBreakProps> = ({
             Take a Rest & Recharge
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-            You completed Part 1! Use this Pomofocus countdown break to relax before starting{' '}
+            You completed Part 1! Use this countdown break to relax before starting{' '}
             <strong className="text-amber-400">{nextPaperTitle}</strong> ({nextQuestionsCount} questions).
           </p>
         </div>
 
-        {/* Circular Pomofocus Countdown Timer */}
+        {/* Circular Countdown Timer */}
         <div className="relative w-72 h-72 sm:w-80 sm:h-80 flex items-center justify-center">
           <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 160 160">
             {/* Background ring */}
@@ -158,7 +158,7 @@ export const ExamIntermissionBreak: React.FC<ExamIntermissionBreakProps> = ({
             type="button"
             onClick={() => setIsRunning(!isRunning)}
             className={cn(
-              "px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg transition-all active:scale-95",
+              "px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg transition-all active:scale-95 cursor-pointer",
               isRunning
                 ? "bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
                 : "bg-amber-500 hover:bg-amber-400 text-slate-950 font-black"
@@ -171,7 +171,7 @@ export const ExamIntermissionBreak: React.FC<ExamIntermissionBreakProps> = ({
           <button
             type="button"
             onClick={handleAddFiveMinutes}
-            className="px-4 py-3 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+            className="px-4 py-3 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
             title="Add 5 minutes to break"
           >
             <Plus size={14} />
@@ -181,26 +181,26 @@ export const ExamIntermissionBreak: React.FC<ExamIntermissionBreakProps> = ({
           <button
             type="button"
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-3 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 rounded-2xl transition-all"
+            className="p-3 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 rounded-2xl transition-all cursor-pointer"
             title={soundEnabled ? "Mute completion chime" : "Enable completion chime"}
           >
             {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </button>
         </div>
 
-        {/* Quick Break Presets (Enforcing >= 15 Minutes) */}
+        {/* Quick Break Presets (At least 5 minutes) */}
         <div className="space-y-2">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-            Select Break Duration (Minimum 15 mins)
+            Adjust Break Duration (At least 5 mins)
           </span>
           <div className="flex items-center justify-center gap-2">
-            {[15, 20, 25, 30].map(mins => (
+            {[5, 10, 15, 20, 30].map(mins => (
               <button
                 key={mins}
                 type="button"
                 onClick={() => handleResetTo(mins)}
                 className={cn(
-                  "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border",
+                  "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer",
                   Math.round(totalSeconds / 60) === mins
                     ? "bg-amber-500/20 border-amber-500 text-amber-400 shadow-sm"
                     : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
@@ -230,7 +230,7 @@ export const ExamIntermissionBreak: React.FC<ExamIntermissionBreakProps> = ({
           <button
             type="button"
             onClick={onCompleteBreak}
-            className="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-black text-sm uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-xl hover:shadow-emerald-500/20 transition-all active:scale-98"
+            className="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-black text-sm uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-xl hover:shadow-emerald-500/20 transition-all active:scale-98 cursor-pointer"
           >
             <span>Skip Remaining Break & Begin {nextPaperTitle} Now</span>
             <ArrowRight size={18} />

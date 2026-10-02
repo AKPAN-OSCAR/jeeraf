@@ -1,6 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { X, GripHorizontal, Move, ArrowUpRight, ArrowUpLeft, ArrowDownLeft, ArrowDownRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, useDragControls } from 'motion/react';
+import { 
+  X, GripHorizontal, Minus, Maximize2,
+  ArrowUpRight, ArrowUpLeft, ArrowDownLeft, ArrowDownRight,
+  Calculator as CalcIcon, Delete
+} from 'lucide-react';
 import { cn } from '../data/lib/utils';
 
 interface CalculatorProps {
@@ -12,19 +16,16 @@ export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
   const [equation, setEquation] = useState<string[]>([]);
   const [shouldReset, setShouldReset] = useState(false);
   
-  // Track active corner snap: 'tl' | 'tr' | 'bl' | 'br'
-  const [activeCorner, setActiveCorner] = useState<'tl' | 'tr' | 'bl' | 'br'>('tr');
-  const [position, setPosition] = useState<{ x: number; y: number }>(() => {
-    // Default to top-right
-    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
-    const w = typeof window !== 'undefined' ? window.innerWidth : 360;
-    const h = typeof window !== 'undefined' ? window.innerHeight : 640;
-    const offset = isMobile ? 12 : 24;
-    return {
-      x: (w / 2 - 145) - offset,
-      y: -(h / 2 - 190) + offset
-    };
-  });
+  // Minimize / Enlarge state (Requirement 2)
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isEnlarged, setIsEnlarged] = useState(false);
+
+  // Drag controls so only the header bar / drag handle initiates dragging
+  // This completely eliminates button click glitching (Requirement 3)
+  const dragControls = useDragControls();
+
+  // Corner positioning state: 'free' or snapped to one of the 4 corners
+  const [cornerPosition, setCornerPosition] = useState<'tr' | 'tl' | 'br' | 'bl' | 'free'>('tr');
 
   const handleDigit = (digit: string) => {
     if (display === 'Error') {
@@ -35,7 +36,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
     }
     
     if (digit === '.' && display.includes('.')) return;
-    if (display.length > 12 && !shouldReset) return;
+    if (display.length > 14 && !shouldReset) return;
 
     if (shouldReset || display === '0') {
       setDisplay(digit === '.' ? '0.' : digit);
@@ -93,10 +94,16 @@ export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
     setShouldReset(false);
   };
 
-  const handleClearEntry = () => {
-    setDisplay('0');
-    setEquation([]);
-    setShouldReset(false);
+  const handleBackspace = () => {
+    if (display === 'Error' || shouldReset) {
+      handleClear();
+      return;
+    }
+    if (display.length <= 1) {
+      setDisplay('0');
+    } else {
+      setDisplay(display.slice(0, -1));
+    }
   };
 
   const handleSqrt = () => {
@@ -119,12 +126,42 @@ export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
     setShouldReset(true);
   };
 
+  const handlePlusMinus = () => {
+    if (display === '0' || display === 'Error') return;
+    if (display.startsWith('-')) {
+      setDisplay(display.slice(1));
+    } else {
+      setDisplay('-' + display);
+    }
+  };
+
   const buttons = [
-    { label: '7', type: 'digit' }, { label: '8', type: 'digit' }, { label: '9', type: 'digit' }, { label: '÷', type: 'op' },
-    { label: '4', type: 'digit' }, { label: '5', type: 'digit' }, { label: '6', type: 'digit' }, { label: '×', type: 'op' },
-    { label: '1', type: 'digit' }, { label: '2', type: 'digit' }, { label: '3', type: 'digit' }, { label: '-', type: 'op' },
-    { label: '0', type: 'digit' }, { label: '.', type: 'digit' }, { label: '=', type: 'equal' }, { label: '+', type: 'op' },
-    { label: 'CE', type: 'ce' }, { label: 'C', type: 'clear' }, { label: '%', type: 'special' }, { label: '√', type: 'special' },
+    { label: 'C', type: 'clear' },
+    { label: '⌫', type: 'backspace' },
+    { label: '%', type: 'special' },
+    { label: '÷', type: 'op' },
+
+    { label: '7', type: 'digit' },
+    { label: '8', type: 'digit' },
+    { label: '9', type: 'digit' },
+    { label: '×', type: 'op' },
+
+    { label: '4', type: 'digit' },
+    { label: '5', type: 'digit' },
+    { label: '6', type: 'digit' },
+    { label: '-', type: 'op' },
+
+    { label: '1', type: 'digit' },
+    { label: '2', type: 'digit' },
+    { label: '3', type: 'digit' },
+    { label: '+', type: 'op' },
+
+    { label: '±', type: 'plusminus' },
+    { label: '0', type: 'digit' },
+    { label: '.', type: 'digit' },
+    { label: '=', type: 'equal' },
+
+    { label: '√', type: 'sqrt' },
   ];
 
   const handleClick = (btn: typeof buttons[0]) => {
@@ -133,185 +170,199 @@ export const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
       case 'op': handleOperator(btn.label); break;
       case 'equal': calculate(); break;
       case 'clear': handleClear(); break;
-      case 'ce': handleClearEntry(); break;
-      case 'special':
-        if (btn.label === '√') handleSqrt();
-        if (btn.label === '%') handlePercentage();
-        break;
+      case 'backspace': handleBackspace(); break;
+      case 'special': handlePercentage(); break;
+      case 'sqrt': handleSqrt(); break;
+      case 'plusminus': handlePlusMinus(); break;
     }
   };
 
-  // Quick corner snap: Top-Left, Top-Right, Bottom-Left, Bottom-Right
-  const snapToCorner = (corner: 'tl' | 'tr' | 'bl' | 'br') => {
-    setActiveCorner(corner);
-    const isMobile = window.innerWidth < 640;
-    const offset = isMobile ? 12 : 24;
-    const halfW = window.innerWidth / 2;
-    const halfH = window.innerHeight / 2;
-    const calcHalfW = isMobile ? 140 : 155;
-    const calcHalfH = isMobile ? 180 : 195;
-
-    switch (corner) {
-      case 'tl':
-        setPosition({ x: -(halfW - calcHalfW) + offset, y: -(halfH - calcHalfH) + offset });
-        break;
-      case 'tr':
-        setPosition({ x: (halfW - calcHalfW) - offset, y: -(halfH - calcHalfH) + offset });
-        break;
-      case 'bl':
-        setPosition({ x: -(halfW - calcHalfW) + offset, y: (halfH - calcHalfH) - offset });
-        break;
-      case 'br':
-        setPosition({ x: (halfW - calcHalfW) - offset, y: (halfH - calcHalfH) - offset });
-        break;
-    }
-  };
-
-  // When user drags and releases, detect which corner was closest and snap smoothly
-  const handleDragEnd = (_: any, info: any) => {
-    const newX = position.x + info.offset.x;
-    const newY = position.y + info.offset.y;
-    const isRight = newX > 0;
-    const isBottom = newY > 0;
-    const closestCorner: 'tl' | 'tr' | 'bl' | 'br' = isRight 
-      ? (isBottom ? 'br' : 'tr') 
-      : (isBottom ? 'bl' : 'tl');
-    snapToCorner(closestCorner);
+  // Corner positioning classes for instant flinging out of the question's way
+  const getCornerClass = () => {
+    if (cornerPosition === 'tl') return 'top-14 left-2 sm:top-16 sm:left-6';
+    if (cornerPosition === 'bl') return 'bottom-16 left-2 sm:bottom-6 sm:left-6';
+    if (cornerPosition === 'br') return 'bottom-16 right-2 sm:bottom-6 sm:right-6';
+    // default 'tr'
+    return 'top-14 right-2 sm:top-16 sm:right-6';
   };
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-2">
+    <div className={cn(
+      "fixed z-[70] transition-all duration-300 pointer-events-auto",
+      cornerPosition !== 'free' ? getCornerClass() : "top-20 right-4"
+    )}>
       <motion.div
         drag
+        dragListener={false}
+        dragControls={dragControls}
         dragMomentum={false}
-        dragElastic={0.06}
-        animate={position}
-        onDragEnd={handleDragEnd}
-        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-        className="pointer-events-auto bg-theme-card rounded-3xl overflow-hidden shadow-2xl w-72 sm:w-80 border-4 border-amber-500/40 select-none shadow-amber-500/10"
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
+        dragElastic={0.08}
+        onDragStart={() => setCornerPosition('free')}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className={cn(
+          "bg-theme-card border-2 border-amber-500/70 rounded-3xl shadow-2xl overflow-hidden transition-all select-none backdrop-blur-md",
+          isMinimized 
+            ? "w-64 border-amber-500 shadow-amber-500/20" 
+            : isEnlarged
+              ? "w-[330px] sm:w-[380px] shadow-2xl"
+              : "w-[280px] sm:w-[320px] shadow-2xl"
+        )}
       >
-        {/* Thumb Draggable Header */}
-        <div className="px-3.5 py-2.5 bg-gradient-to-r from-theme-card via-theme-bg to-theme-card text-theme-text border-b border-theme-border cursor-grab active:cursor-grabbing touch-none select-none">
-          <div className="flex items-center justify-between gap-1 mb-2">
-            <div className="flex items-center gap-1.5 text-xs font-black text-amber-500">
-              <GripHorizontal size={18} className="text-amber-500 animate-pulse" />
-              <span>CBT Calc</span>
-              <span className="text-[10px] text-theme-muted font-normal">(Push to corner)</span>
-            </div>
+        {/* DRAGGABLE HEADER BAR (Only this bar initiates dragging to avoid key glitching) */}
+        <div 
+          onPointerDown={(e) => dragControls.start(e)}
+          className="px-3.5 py-2.5 bg-gradient-to-r from-theme-card via-amber-500/10 to-theme-card text-theme-text border-b border-theme-border cursor-grab active:cursor-grabbing touch-none select-none flex items-center justify-between gap-2"
+        >
+          {/* Drag Handle & Title */}
+          <div className="flex items-center gap-1.5 text-xs font-black text-amber-500">
+            <GripHorizontal size={18} className="text-amber-500 shrink-0" />
+            <CalcIcon size={14} className="text-amber-500 shrink-0" />
+            <span>CBT Calc</span>
+            {isMinimized && (
+              <span className="font-mono text-xs text-theme-text font-black ml-1 truncate max-w-[90px]">
+                = {display}
+              </span>
+            )}
+          </div>
 
-            <button 
+          {/* Quick Corner Snap Buttons (Requirement 2: Push to top right, top left, bottom left, bottom right) */}
+          <div className="flex items-center gap-0.5 bg-theme-bg/80 px-1 py-0.5 rounded-lg border border-theme-border/60">
+            <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onClose(); }} 
-              className="p-1 hover:bg-rose-500/10 text-theme-muted hover:text-rose-500 rounded-lg transition-colors"
-              title="Close Calculator"
+              onClick={(e) => { e.stopPropagation(); setCornerPosition('tl'); }}
+              className={cn("p-1 rounded text-theme-muted hover:text-amber-500 transition-colors", cornerPosition === 'tl' && "text-amber-500 bg-amber-500/10")}
+              title="Snap to Top-Left"
             >
-              <X size={18} />
+              <ArrowUpLeft size={12} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setCornerPosition('tr'); }}
+              className={cn("p-1 rounded text-theme-muted hover:text-amber-500 transition-colors", cornerPosition === 'tr' && "text-amber-500 bg-amber-500/10")}
+              title="Snap to Top-Right"
+            >
+              <ArrowUpRight size={12} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setCornerPosition('bl'); }}
+              className={cn("p-1 rounded text-theme-muted hover:text-amber-500 transition-colors", cornerPosition === 'bl' && "text-amber-500 bg-amber-500/10")}
+              title="Snap to Bottom-Left"
+            >
+              <ArrowDownLeft size={12} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setCornerPosition('br'); }}
+              className={cn("p-1 rounded text-theme-muted hover:text-amber-500 transition-colors", cornerPosition === 'br' && "text-amber-500 bg-amber-500/10")}
+              title="Snap to Bottom-Right"
+            >
+              <ArrowDownRight size={12} />
             </button>
           </div>
 
-          {/* Quick Thumb Corner Snaps (TR, TL, BR, BL) */}
-          <div className="flex items-center justify-between gap-1 pt-1 border-t border-theme-border/50 text-[10px] font-bold">
-            <span className="text-theme-muted text-[9px] uppercase tracking-wider">Snap:</span>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => snapToCorner('tl')}
-                className={cn(
-                  "px-2 py-0.5 rounded-md font-mono font-black border transition-all flex items-center gap-0.5",
-                  activeCorner === 'tl' 
-                    ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm" 
-                    : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
-                )}
-                title="Push to Top-Left"
-              >
-                <ArrowUpLeft size={10} />
-                <span>TL</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => snapToCorner('tr')}
-                className={cn(
-                  "px-2 py-0.5 rounded-md font-mono font-black border transition-all flex items-center gap-0.5",
-                  activeCorner === 'tr' 
-                    ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm" 
-                    : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
-                )}
-                title="Push to Top-Right"
-              >
-                <ArrowUpRight size={10} />
-                <span>TR</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => snapToCorner('bl')}
-                className={cn(
-                  "px-2 py-0.5 rounded-md font-mono font-black border transition-all flex items-center gap-0.5",
-                  activeCorner === 'bl' 
-                    ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm" 
-                    : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
-                )}
-                title="Push to Bottom-Left"
-              >
-                <ArrowDownLeft size={10} />
-                <span>BL</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => snapToCorner('br')}
-                className={cn(
-                  "px-2 py-0.5 rounded-md font-mono font-black border transition-all flex items-center gap-0.5",
-                  activeCorner === 'br' 
-                    ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm" 
-                    : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
-                )}
-                title="Push to Bottom-Right"
-              >
-                <ArrowDownRight size={10} />
-                <span>BR</span>
-              </button>
-            </div>
-          </div>
-        </div>
+          {/* Controls: Minimize, Enlarge, Close */}
+          <div className="flex items-center gap-1">
+            {/* Minimize Toggle */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMinimized(prev => !prev);
+              }}
+              className="p-1 hover:bg-theme-bg text-theme-muted hover:text-amber-500 rounded-lg transition-colors"
+              title={isMinimized ? "Expand Calculator" : "Minimize to Floating Pill"}
+            >
+              {isMinimized ? <Maximize2 size={13} /> : <Minus size={13} />}
+            </button>
 
-        <div className="p-3.5 sm:p-4 bg-theme-bg">
-          {/* Display */}
-          <div className="bg-theme-card border-2 border-theme-border rounded-2xl p-3 mb-3 min-h-[68px] flex flex-col items-end justify-center shadow-inner">
-            <div className="text-[11px] font-mono text-theme-muted mb-0.5 h-4 overflow-hidden text-right w-full">
-              {equation.join(' ')}
-            </div>
-            <div className="text-2xl sm:text-3xl font-mono font-black text-theme-text tracking-tight text-right w-full overflow-hidden">
-              {display}
-            </div>
-          </div>
-
-          {/* Keypad */}
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-            {buttons.map((btn, idx) => (
+            {/* Enlarge Toggle */}
+            {!isMinimized && (
               <button
-                key={idx}
                 type="button"
                 onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
-                  handleClick(btn);
+                  setIsEnlarged(prev => !prev);
                 }}
                 className={cn(
-                  "h-10 sm:h-11 rounded-xl font-black text-sm sm:text-base transition-all active:scale-95 shadow-sm flex items-center justify-center",
-                  btn.type === 'digit' && "bg-theme-card text-theme-text hover:bg-theme-bg border border-theme-border",
-                  btn.type === 'op' && "bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-700",
-                  btn.type === 'equal' && "bg-amber-500 text-slate-950 hover:bg-amber-400 border border-amber-600 font-black",
-                  btn.type === 'clear' && "bg-rose-600 text-white hover:bg-rose-500 border border-rose-700",
-                  btn.type === 'ce' && "bg-orange-600 text-white hover:bg-orange-500 border border-orange-700",
-                  btn.type === 'special' && "bg-theme-card text-theme-text hover:bg-theme-bg border border-theme-border"
+                  "p-1 hover:bg-theme-bg rounded-lg transition-colors",
+                  isEnlarged ? "text-amber-500" : "text-theme-muted hover:text-theme-text"
                 )}
+                title={isEnlarged ? "Standard Size" : "Enlarge Touch Keypad"}
               >
-                {btn.label}
+                <Maximize2 size={13} />
               </button>
-            ))}
+            )}
+
+            {/* Close Button */}
+            <button 
+              type="button"
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                onClose(); 
+              }} 
+              className="p-1 hover:bg-rose-500/20 text-theme-muted hover:text-rose-500 rounded-lg transition-colors"
+              title="Close Calculator"
+            >
+              <X size={15} />
+            </button>
           </div>
         </div>
+
+        {/* FULL DIGITAL DISPLAY & TOUCH-READY KEYPAD */}
+        {!isMinimized && (
+          <div className={cn(
+            "bg-theme-bg space-y-2.5",
+            isEnlarged ? "p-4 space-y-3.5" : "p-3 sm:p-3.5"
+          )}>
+            {/* Digital Display */}
+            <div className={cn(
+              "bg-theme-card border-2 border-theme-border rounded-2xl flex flex-col items-end justify-center shadow-inner",
+              isEnlarged ? "p-3.5 min-h-[70px]" : "p-2.5 min-h-[58px]"
+            )}>
+              <div className="text-[11px] font-mono text-theme-muted mb-0.5 h-4 overflow-hidden text-right w-full">
+                {equation.join(' ')}
+              </div>
+              <div className={cn(
+                "font-mono font-black text-theme-text tracking-tight text-right w-full overflow-hidden truncate",
+                isEnlarged ? "text-3xl" : "text-2xl"
+              )}>
+                {display}
+              </div>
+            </div>
+
+            {/* Keypad Grid (Standard 4-Column Layout) */}
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+              {buttons.map((btn, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleClick(btn)}
+                  className={cn(
+                    "rounded-xl font-black transition-all active:scale-90 shadow-sm flex items-center justify-center cursor-pointer select-none",
+                    isEnlarged ? "h-12 text-base" : "h-9 sm:h-10 text-sm",
+                    btn.type === 'digit' && "bg-theme-card text-theme-text hover:bg-theme-bg border border-theme-border",
+                    btn.type === 'op' && "bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-700",
+                    btn.type === 'equal' && "bg-amber-500 text-slate-950 hover:bg-amber-400 border border-amber-600 font-black",
+                    btn.type === 'clear' && "bg-rose-600 text-white hover:bg-rose-500 border border-rose-700",
+                    btn.type === 'backspace' && "bg-orange-600 text-white hover:bg-orange-500 border border-orange-700",
+                    (btn.type === 'special' || btn.type === 'sqrt' || btn.type === 'plusminus') && "bg-theme-card text-amber-500 hover:bg-theme-bg border border-theme-border font-bold"
+                  )}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Hint Bar */}
+            <div className="flex items-center justify-between text-[10px] text-theme-muted pt-0.5 px-0.5">
+              <span>Drag top bar to move</span>
+              <span className="text-amber-500 font-bold">Tap arrows to snap corner</span>
+            </div>
+          </div>
+        )}
       </motion.div>
     </div>
   );

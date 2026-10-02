@@ -93,7 +93,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
   // State: Paper Format
   const [paperFormat, setPaperFormat] = useState<ExamPaperFormat>('objective');
   const [continuationOrder, setContinuationOrder] = useState<ContinuationOrder>('obj_first');
-  const [breakDurationMinutes, setBreakDurationMinutes] = useState<number>(15);
+  const [breakDurationMinutes, setBreakDurationMinutes] = useState<number>(5);
 
   // State: Duration
   const [durationMinutes, setDurationMinutes] = useState<number>(() => {
@@ -231,7 +231,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
       startingSubject: finalStartingSubject,
       paperFormat,
       continuationOrder: paperFormat === 'both_continuation' ? continuationOrder : undefined,
-      breakDurationMinutes: paperFormat === 'both_continuation' ? Math.max(15, breakDurationMinutes) : undefined,
+      breakDurationMinutes: paperFormat === 'both_continuation' ? Math.max(5, breakDurationMinutes) : undefined,
       durationMinutes,
       practiceMode,
       selectedYear: practiceMode === 'yearly' ? selectedYear : undefined
@@ -530,47 +530,128 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
                 </motion.div>
               )}
 
-              {/* Paper Format (Objectives vs Theory) for WAEC/NECO */}
+              {/* Paper Format (Objectives vs Theory vs Both with Break) for WAEC/NECO */}
               {supportsTheory && (
                 <div className="pt-4 border-t border-theme-border/60 space-y-3">
-                  <span className="text-xs font-black uppercase tracking-wider text-purple-400 block">
-                    Paper Format:
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-purple-400 block">
+                      Paper Format Selection:
+                    </span>
+                    <span className="text-[10px] text-theme-muted font-bold">
+                      National Exam Standard
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <button
                       type="button"
                       onClick={() => setPaperFormat('objective')}
                       className={cn(
-                        "p-3.5 rounded-2xl border-2 text-left transition-all flex items-center justify-between",
+                        "p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 active:scale-98",
                         paperFormat === 'objective'
                           ? "border-emerald-500 bg-emerald-500/10 text-emerald-400 ring-2 ring-emerald-500/20"
-                          : "border-theme-border bg-theme-bg text-theme-muted"
+                          : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-muted"
                       )}
                     >
-                      <div>
-                        <span className="font-bold text-sm text-theme-text block">Objectives Only</span>
-                        <span className="text-[11px] text-theme-muted">Paper 1 Multiple Choice format</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-theme-text">Objectives Only</span>
+                        {paperFormat === 'objective' && <CheckCircle2 size={16} className="text-emerald-500" />}
                       </div>
-                      {paperFormat === 'objective' && <CheckCircle2 size={18} className="text-emerald-500" />}
+                      <span className="text-[11px] text-theme-muted">Paper 1 Multiple Choice questions only</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setPaperFormat('theory')}
                       className={cn(
-                        "p-3.5 rounded-2xl border-2 text-left transition-all flex items-center justify-between",
+                        "p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 active:scale-98",
                         paperFormat === 'theory'
                           ? "border-purple-500 bg-purple-500/10 text-purple-400 ring-2 ring-purple-500/20"
-                          : "border-theme-border bg-theme-bg text-theme-muted"
+                          : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-muted"
                       )}
                     >
-                      <div>
-                        <span className="font-bold text-sm text-theme-text block">Theory / Essays</span>
-                        <span className="text-[11px] text-theme-muted">Exact past questions with answer inputs & workings upload</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-theme-text">Theory / Essays</span>
+                        {paperFormat === 'theory' && <CheckCircle2 size={16} className="text-purple-400" />}
                       </div>
-                      {paperFormat === 'theory' && <CheckCircle2 size={18} className="text-purple-400" />}
+                      <span className="text-[11px] text-theme-muted">Paper 2 Essay questions, answer inbox & rough sheet uploads</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaperFormat('both_continuation')}
+                      className={cn(
+                        "p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 active:scale-98",
+                        paperFormat === 'both_continuation'
+                          ? "border-amber-500 bg-amber-500/15 text-amber-400 ring-2 ring-amber-500/30 shadow-sm"
+                          : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-muted"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-amber-400 flex items-center gap-1">
+                          <Coffee size={14} />
+                          <span>Both Obj & Theory</span>
+                        </span>
+                        {paperFormat === 'both_continuation' && <CheckCircle2 size={16} className="text-amber-400" />}
+                      </div>
+                      <span className="text-[11px] text-theme-muted">Write both with at least 5-minute break in between</span>
                     </button>
                   </div>
+
+                  {/* Both Objectives & Theory Break Configuration (Requirement 4) */}
+                  {paperFormat === 'both_continuation' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="p-4 sm:p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-4 pt-4"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-black uppercase tracking-wider text-theme-text mb-1.5">
+                            Order of Papers:
+                          </label>
+                          <select
+                            value={continuationOrder}
+                            onChange={(e) => setContinuationOrder(e.target.value as ContinuationOrder)}
+                            className="w-full px-3.5 py-2.5 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold text-theme-text focus:outline-none focus:border-amber-500"
+                          >
+                            <option value="obj_first">Objectives First ➔ Break ➔ Theory</option>
+                            <option value="theory_first">Theory First ➔ Break ➔ Objectives</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-black uppercase tracking-wider text-theme-text mb-1.5">
+                            Intermission Break Duration (Min 5 Mins):
+                          </label>
+                          <div className="flex gap-1.5">
+                            {[5, 10, 15, 20, 30].map(m => (
+                              <button
+                                key={m}
+                                type="button"
+                                onClick={() => setBreakDurationMinutes(m)}
+                                className={cn(
+                                  "flex-1 py-2 rounded-xl text-xs font-bold border transition-all active:scale-95",
+                                  breakDurationMinutes === m
+                                    ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-sm"
+                                    : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
+                                )}
+                              >
+                                {m}m
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-theme-muted italic flex items-center gap-1.5">
+                        <Coffee size={14} className="text-amber-500 shrink-0" />
+                        <span>
+                          After completing whichever section was written first, a relaxed {breakDurationMinutes}-minute intermission timer allows you to refresh before starting the second section.
+                        </span>
+                      </p>
+                    </motion.div>
+                  )}
                 </div>
               )}
             </div>

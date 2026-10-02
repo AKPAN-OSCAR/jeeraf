@@ -514,7 +514,7 @@ export default function App() {
       setContinuationPart1TheoryAnswers({});
       setContinuationPart1TimeTaken(0);
       setNextPaperTitle(nextTitle);
-      setIntermissionBreakMinutes(Math.max(15, config.breakDurationMinutes || 15));
+      setIntermissionBreakMinutes(Math.max(5, config.breakDurationMinutes || 5));
 
       setCurrentSubject(orderedSubjects[0]);
       setCurrentQuestions(part1);
@@ -680,13 +680,13 @@ export default function App() {
 
     let score = 0;
     const resultAnswers = allSessionQuestions.map(q => {
-      const selected = allAnswers[q.id] ?? null;
+      const selected = allAnswers[q.id] !== undefined ? allAnswers[q.id] : null;
       const isTheory = q.type === 'theory' || !q.options || q.options.length === 0;
       let isCorrect = false;
 
       if (isTheory) {
         // Theory answer is marked complete if submitted with meaningful response
-        const candidateText = allTheory[q.id]?.trim() || '';
+        const candidateText = (allTheory[q.id] || '').trim();
         isCorrect = candidateText.length >= 10;
         if (isCorrect) score++;
       } else {
@@ -698,7 +698,7 @@ export default function App() {
         questionId: q.id,
         selectedAnswer: selected,
         isCorrect,
-        theoryAnswer: allTheory[q.id]
+        theoryAnswer: allTheory[q.id] || ''
       };
     });
 
@@ -713,23 +713,29 @@ export default function App() {
       date: new Date().toISOString(),
       answers: resultAnswers,
       theoryAnswers: allTheory,
-      isContinuation,
-      timingMode: examSessionConfig?.timingMode
+      isContinuation: Boolean(isContinuation),
+      timingMode: examSessionConfig?.timingMode || 'merged'
     };
 
-    if (db) {
-      const resultsPath = 'sib_results';
-      addDoc(collection(db, resultsPath), {
-        ...result,
-        date: serverTimestamp()
-      }).catch(fsErr => {
-        console.error("Background save failed:", fsErr);
-        handleFirestoreError(fsErr, OperationType.WRITE, resultsPath);
-      });
-    }
-
+    // Transition immediately without any delay or blocking
     setLastResult(result);
     navigateToState('result');
+
+    // Asynchronous background persistence (never blocks user screen transition)
+    if (db) {
+      try {
+        const resultsPath = 'sib_results';
+        const cleanPayload = JSON.parse(JSON.stringify(result));
+        addDoc(collection(db, resultsPath), {
+          ...cleanPayload,
+          savedAt: serverTimestamp()
+        }).catch(fsErr => {
+          console.warn("Background save note:", fsErr);
+        });
+      } catch (err) {
+        console.warn("Serialization note:", err);
+      }
+    }
   };
 
   const handleConfirmPayment = async () => {

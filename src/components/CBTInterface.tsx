@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import { 
   ChevronLeft, ChevronRight, Clock, Send, AlertCircle, 
   Flag, X, Calculator as CalcIcon, CheckCircle2, 
   Bookmark, ArrowRight, ArrowLeft, GripHorizontal, Check, RefreshCw,
-  LayoutGrid, ArrowUp, ArrowDown, ChevronDown, ChevronUp, Upload, Camera
+  LayoutGrid, ChevronDown, ChevronUp, Upload, Camera, HelpCircle
 } from 'lucide-react';
-import { Question, Subject, ExamType } from '../types';
+import { Subject, Question, ExamType } from '../types';
 import { cn } from '../data/lib/utils';
-import { Calculator } from './Calculator';
 import { MathRenderer } from './MathRenderer';
+import { Calculator } from './Calculator';
 
 interface CBTInterfaceProps {
   subject: Subject;
@@ -24,21 +24,31 @@ interface CBTInterfaceProps {
   user: any;
   profile?: any;
   onLogout: () => void;
-  onFinish: (answers: Record<string, number | null>, timeTaken: number, theoryAnswers?: Record<string, string>) => void;
-  onContinuationSectionComplete?: (answers: Record<string, number | null>, timeTaken: number, theoryAnswers?: Record<string, string>) => void;
+  onFinish: (
+    answers: Record<string, number | null>, 
+    timeTaken: number,
+    theoryAnswers?: Record<string, string>,
+    theoryUploads?: Record<string, string[]>
+  ) => void;
+  onContinuationSectionComplete?: (
+    answers: Record<string, number | null>, 
+    timeTaken: number,
+    theoryAnswers?: Record<string, string>,
+    theoryUploads?: Record<string, string[]>
+  ) => void;
   onNavigateTo?: (target: any) => void;
 }
 
 export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   subject,
-  subjects = [],
+  subjects,
   isMergedMode = false,
   isContinuationSection = false,
   continuationPart = 1,
-  nextPartTitle,
-  examType,
-  questions,
-  durationMinutes,
+  nextPartTitle = 'Paper 2',
+  examType = 'JAMB',
+  questions = [],
+  durationMinutes = 60,
   user,
   profile,
   onLogout,
@@ -46,11 +56,10 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   onContinuationSectionComplete,
   onNavigateTo,
 }) => {
-  // Partition questions strictly by subject
+  // Group questions by subject strictly
   const subjectGroups = useMemo(() => {
     const map = new Map<Subject, Question[]>();
-    
-    // Preserve custom order if subjects prop provided
+
     if (subjects && subjects.length > 0) {
       subjects.forEach(s => map.set(s, []));
     }
@@ -81,7 +90,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
     return subjectList[0] || subject;
   });
 
-  // Track the current question index inside each subject independently
+  // Track current question index inside each subject independently
   const [subjectIndices, setSubjectIndices] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {};
     subjectList.forEach(s => { init[s] = 0; });
@@ -103,6 +112,57 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   const [theoryUploads, setTheoryUploads] = useState<Record<string, string[]>>({});
   const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
 
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false);
+  
+  // Navigation Modal State
+  const [showQuestionNav, setShowQuestionNav] = useState(false);
+  const [navDockPosition, setNavDockPosition] = useState<'bottom' | 'top'>('bottom');
+  const [navSelectedSubject, setNavSelectedSubject] = useState<Subject | null>(null);
+  const navDragControls = useDragControls();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
+  const [visitedQuestions, setVisitedQuestions] = useState<Set<string>>(new Set([currentQuestion?.id].filter(Boolean)));
+
+  // Mark question visited
+  useEffect(() => {
+    if (currentQuestion) {
+      setVisitedQuestions(prev => new Set(prev).add(currentQuestion.id));
+    }
+  }, [currentQuestion]);
+
+  // Fast Submit Handler with Zero Lag (Requirement 1 & 4)
+  const handleSubmitFast = useCallback(() => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setShowSubmitConfirm(false);
+    const timeTaken = Math.max(0, durationMinutes * 60 - timeLeft);
+
+    if (isContinuationSection && continuationPart === 1 && onContinuationSectionComplete) {
+      onContinuationSectionComplete(answers, timeTaken, theoryAnswers, theoryUploads);
+    } else {
+      onFinish(answers, timeTaken, theoryAnswers, theoryUploads);
+    }
+  }, [answers, theoryAnswers, theoryUploads, timeLeft, durationMinutes, onFinish, onContinuationSectionComplete, isSubmitting, isContinuationSection, continuationPart]);
+
+  // Timer countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSubmitFast();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [handleSubmitFast]);
+
   const handleUploadWorkings = (questionId: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
     Array.from(files).forEach((file) => {
@@ -119,57 +179,6 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
       reader.readAsDataURL(file);
     });
   };
-  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [showCalculator, setShowCalculator] = useState(false);
-  
-  // Navigation Modal State
-  const [showQuestionNav, setShowQuestionNav] = useState(false);
-  // Dock position for Navigator Sheet: 'bottom' or 'top' (Requirement 2)
-  const [navDockPosition, setNavDockPosition] = useState<'bottom' | 'top'>('bottom');
-  // Selected subject in drilldown Navigator (Requirement 1)
-  const [navSelectedSubject, setNavSelectedSubject] = useState<Subject | null>(null);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
-  const [visitedQuestions, setVisitedQuestions] = useState<Set<string>>(new Set([currentQuestion?.id].filter(Boolean)));
-
-  // Mark question visited
-  useEffect(() => {
-    if (currentQuestion) {
-      setVisitedQuestions(prev => new Set(prev).add(currentQuestion.id));
-    }
-  }, [currentQuestion]);
-
-  // Timer countdown
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleSubmitFast();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Fast Submit Handler with Zero Lag (Requirement 4)
-  const handleSubmitFast = useCallback(() => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    setShowSubmitConfirm(false);
-    const timeTaken = Math.max(0, durationMinutes * 60 - timeLeft);
-
-    if (isContinuationSection && continuationPart === 1 && onContinuationSectionComplete) {
-      onContinuationSectionComplete(answers, timeTaken, theoryAnswers);
-    } else {
-      onFinish(answers, timeTaken, theoryAnswers);
-    }
-  }, [answers, theoryAnswers, timeLeft, durationMinutes, onFinish, onContinuationSectionComplete, isSubmitting, isContinuationSection, continuationPart]);
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -177,8 +186,6 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
     const s = seconds % 60;
     return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
-
-  const showCalcButton = examType === 'Personal CBT' || ['Mathematics', 'Physics', 'Chemistry', 'Further Mathematics', 'Accounting'].includes(currentQuestion?.subject || activeSubject);
 
   const handleSelectAnswer = (optionIndex: number) => {
     if (!currentQuestion) return;
@@ -298,9 +305,9 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   return (
     <div className="min-h-screen bg-theme-bg text-theme-text flex flex-col transition-colors duration-300 select-none pb-24 sm:pb-12">
       
-      {/* TOP HEADER - 3-DASH SIDEBAR MENU IS DISABLED (Requirement 5) */}
+      {/* TOP HEADER - 3-DASH SIDEBAR MENU DISABLED (Requirement 5) */}
       <header className="bg-theme-card border-b border-theme-border px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        {/* Left: Back / Exit Exam Button with Little Screen Confirm (Requirement 5) */}
+        {/* Left: Exit Exam Button with Little Screen Confirm (Requirement 5) */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
@@ -320,6 +327,11 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
                 {isMergedMode ? 'Merged Exam' : 'One-by-One'}
               </span>
+              {isContinuationSection && (
+                <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20 hidden sm:inline">
+                  Part {continuationPart} of 2
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-theme-muted">
               Question <strong className="text-theme-text">{currentSubIndex + 1}</strong> of {activeSubjectQuestions.length} in {activeSubject}
@@ -340,34 +352,45 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
 
         {/* Right: Calculator, Navigator Sheet, Submit */}
         <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {showCalcButton && (
-            <button
-              type="button"
-              onClick={() => setShowCalculator(true)}
-              className="p-2 sm:px-3 sm:py-2 bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border border-theme-border rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
-              title="Open Draggable Calculator"
-            >
-              <CalcIcon size={16} className="text-amber-500" />
-              <span className="hidden md:inline">Calc</span>
-            </button>
-          )}
+          {/* Floating Calculator Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setShowCalculator(prev => !prev)}
+            className={cn(
+              "p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border active:scale-95 cursor-pointer",
+              showCalculator 
+                ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-md ring-2 ring-amber-500/40" 
+                : "bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border-theme-border"
+            )}
+            title="Toggle Floating CBT Calculator"
+          >
+            <CalcIcon size={16} className={showCalculator ? "text-slate-950" : "text-amber-500"} />
+            <span className="hidden md:inline">Calculator</span>
+          </button>
 
+          {/* Question Navigator Map Toggle Button */}
           <button
             type="button"
             onClick={() => {
               setNavSelectedSubject(activeSubject);
-              setShowQuestionNav(true);
+              setShowQuestionNav(prev => !prev);
             }}
-            className="p-2 sm:px-3 sm:py-2 bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border border-theme-border rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
-            title="Open Question Map Navigator"
+            className={cn(
+              "p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border active:scale-95 cursor-pointer",
+              showQuestionNav
+                ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-md"
+                : "bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border-theme-border"
+            )}
+            title="Toggle Question Map Navigator"
           >
-            <LayoutGrid size={16} className="text-amber-500" />
+            <LayoutGrid size={16} className={showQuestionNav ? "text-slate-950" : "text-amber-500"} />
             <span className="hidden sm:inline">Map</span>
             <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-theme-card border border-theme-border text-theme-text">
               {totalAnsweredAcrossExam}/{questions.length}
             </span>
           </button>
 
+          {/* Submit Exam Button */}
           <button
             disabled={isSubmitting}
             onClick={() => setShowSubmitConfirm(true)}
@@ -378,7 +401,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
             ) : (
               <Send size={15} />
             )}
-            <span>Submit</span>
+            <span>{isContinuationSection && continuationPart === 1 ? 'Finish Part 1' : 'Submit'}</span>
           </button>
         </div>
       </header>
@@ -398,146 +421,158 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                     type="button"
                     onClick={() => handleSwitchSubject(s)}
                     className={cn(
-                      "px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 border shadow-sm shrink-0 active:scale-98",
+                      "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border whitespace-nowrap active:scale-95",
                       isActive
-                        ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-md ring-2 ring-amber-500/30 scale-102"
-                        : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text hover:bg-theme-card"
+                        ? "bg-amber-500 text-slate-950 border-amber-500 shadow-md ring-2 ring-amber-500/30 font-black"
+                        : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text hover:border-theme-muted"
                     )}
                   >
                     <span>{s}</span>
-                    <span className="text-[10px] opacity-80">({stat.total} Qs)</span>
-                    
-                    {/* Finished or Unfinished Badge (Requirement 3) */}
                     <span className={cn(
-                      "text-[9px] font-black px-1.5 py-0.5 rounded-full flex items-center gap-1",
+                      "text-[10px] px-1.5 py-0.5 rounded-full font-black",
                       isActive
                         ? "bg-slate-950/20 text-slate-950"
                         : stat.isFinished
                           ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                          : stat.answered > 0
-                            ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                            : "bg-theme-card text-theme-muted border border-theme-border"
+                          : "bg-theme-card border border-theme-border text-theme-muted"
                     )}>
-                      {stat.isFinished ? (
-                        <>
-                          <Check size={10} />
-                          <span>Finished</span>
-                        </>
-                      ) : (
-                        <span>{stat.answered}/{stat.total}</span>
-                      )}
+                      {stat.answered}/{stat.total} {stat.isFinished ? '✓' : `(${stat.unanswered} left)`}
                     </span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="hidden lg:flex items-center gap-1 text-[11px] text-theme-muted shrink-0">
-              <span>Switch subject to change questions</span>
-            </div>
+            <span className="hidden lg:inline text-[11px] text-theme-muted italic">
+              Switch subjects using the buttons above. You cannot Next across subject boundaries.
+            </span>
           </div>
         </div>
       )}
 
-      {/* MAIN EXAM QUESTION DISPLAY (Requirement 3: ISOLATED PER SUBJECT, NO ACCIDENTAL NEXTING) */}
-      <main className="flex-1 container mx-auto px-3 sm:px-6 py-4 sm:py-6 max-w-6xl grid lg:grid-cols-4 gap-6 items-start">
+      {/* MAIN EXAM CONTENT BODY */}
+      <main className="flex-1 container mx-auto max-w-6xl p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         
         {/* Left 3 Columns: Active Subject Question Card */}
         <div className="lg:col-span-3 space-y-4">
           
           <motion.div
-            key={`${activeSubject}-${currentSubIndex}`}
+            key={`${activeSubject}-${currentQuestion?.id || currentSubIndex}`}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.15 }}
-            className="bg-theme-card rounded-3xl p-5 sm:p-8 shadow-sm border border-theme-border min-h-[400px] flex flex-col justify-between"
+            transition={{ duration: 0.2 }}
+            className="bg-theme-card rounded-3xl p-5 sm:p-8 border border-theme-border shadow-sm space-y-6"
           >
-            {/* Top Bar of Question Card */}
-            <div className="space-y-4 mb-6">
-              <div className="flex items-center justify-between gap-2 border-b border-theme-border/60 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-theme-bg text-amber-500 text-xs font-black rounded-full uppercase tracking-wider border border-theme-border">
-                    {activeSubject} • Q {currentSubIndex + 1}
-                  </span>
-                  <span className="text-xs text-theme-muted">
-                    ({currentSubIndex + 1} of {activeSubjectQuestions.length})
-                  </span>
-                </div>
+            {/* Question Card Meta Bar */}
+            <div className="flex items-center justify-between pb-3 border-b border-theme-border/60">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full font-black text-xs">
+                  {activeSubject} • Question {currentSubIndex + 1}
+                </span>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={toggleFlag}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all border",
-                      flaggedQuestions.has(currentQuestion?.id)
-                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
-                        : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
-                    )}
-                  >
-                    <Flag size={13} fill={flaggedQuestions.has(currentQuestion?.id) ? "currentColor" : "none"} />
-                    <span className="hidden sm:inline">
-                      {flaggedQuestions.has(currentQuestion?.id) ? "Flagged" : "Flag"}
-                    </span>
-                  </button>
+                {currentQuestion?.year && (
+                  <span className="px-2.5 py-1 bg-theme-bg text-theme-muted border border-theme-border rounded-full text-xs font-bold">
+                    {currentQuestion.year}
+                  </span>
+                )}
 
-                  {currentQuestion?.section && (
-                    <span className="text-[10px] font-bold text-theme-muted uppercase tracking-wider bg-theme-bg px-2.5 py-1 rounded-full border border-theme-border hidden sm:inline">
-                      {currentQuestion.section}
-                    </span>
-                  )}
-                </div>
+                {currentQuestion?.section && (
+                  <span className="px-2.5 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full text-xs font-bold">
+                    {currentQuestion.section}
+                  </span>
+                )}
               </div>
 
-              {/* Comprehension Passage */}
-              {currentQuestion?.passage && (
-                <div className="p-4 sm:p-5 bg-theme-bg border-l-4 border-amber-500 rounded-r-2xl max-h-60 overflow-y-auto pr-2 scrollbar-thin">
-                  <h4 className="text-[11px] font-black text-amber-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                    <Bookmark size={13} />
-                    <span>Read Comprehension Passage:</span>
-                  </h4>
-                  <div className="text-xs sm:text-sm text-theme-text/90 leading-relaxed italic">
-                    <MathRenderer text={currentQuestion.passage} />
-                  </div>
-                </div>
-              )}
-
-              {/* Diagram Reference Image */}
-              {currentQuestion?.images && currentQuestion.images.length > 0 && (
-                <div className="flex flex-wrap gap-3 my-3">
-                  {currentQuestion.images.map((img, i) => img && (
-                    <img 
-                      key={i} 
-                      src={img} 
-                      alt={`Reference diagram ${i + 1}`} 
-                      className="max-h-60 sm:max-h-72 rounded-2xl border border-theme-border shadow-sm object-contain bg-white/5"
-                      referrerPolicy="no-referrer"
-                    />
-                  ))}
-                </div>
-              )}
-
-              {/* Question Stem */}
-              <div className="text-base sm:text-lg md:text-xl font-medium text-theme-text leading-relaxed">
-                <MathRenderer text={currentQuestion?.question || ''} />
-              </div>
+              {/* Flag Question Button */}
+              <button
+                type="button"
+                onClick={toggleFlag}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all active:scale-95",
+                  flaggedQuestions.has(currentQuestion?.id)
+                    ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
+                    : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
+                )}
+              >
+                <Flag size={14} fill={flaggedQuestions.has(currentQuestion?.id) ? "currentColor" : "none"} />
+                <span>{flaggedQuestions.has(currentQuestion?.id) ? "Flagged" : "Flag"}</span>
+              </button>
             </div>
 
-            {/* Answer Area: Theory Workspace OR Multiple Choice Options */}
-            {isTheoryQuestion ? (
-              <div className="space-y-4 pt-4 border-t border-theme-border/60">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20">
-                    Theory Solution Area
-                  </span>
-                  <span className="text-[11px] text-theme-muted font-mono">
-                    {(theoryAnswers[currentQuestion?.id] || '').length} chars
-                  </span>
+            {/* Comprehension Passage if present */}
+            {currentQuestion?.passage && (
+              <div className="p-4 sm:p-5 bg-theme-bg rounded-2xl border border-theme-border space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-500 uppercase tracking-wider">
+                  <Bookmark size={14} />
+                  <span>Reading Passage:</span>
                 </div>
+                <div className="text-xs sm:text-sm text-theme-text leading-relaxed font-serif max-h-56 overflow-y-auto pr-2 scrollbar-thin">
+                  <MathRenderer text={currentQuestion.passage} />
+                </div>
+              </div>
+            )}
 
-                {/* Math Shortcuts */}
-                <div className="flex flex-wrap items-center gap-1.5 p-2 bg-theme-bg/60 rounded-xl border border-theme-border/60">
-                  <span className="text-[9px] font-bold uppercase text-theme-muted mr-1">Math Tool:</span>
+            {/* Question Text */}
+            <div className="text-sm sm:text-base font-medium text-theme-text leading-relaxed">
+              <MathRenderer text={currentQuestion?.question || 'Question content loading...'} />
+            </div>
+
+            {/* Question Diagram / Image if present */}
+            {currentQuestion?.imageUrl && (
+              <div className="my-4 p-2 bg-theme-bg rounded-2xl border border-theme-border max-w-md mx-auto">
+                <img 
+                  src={currentQuestion.imageUrl} 
+                  alt="Question Diagram" 
+                  className="rounded-xl w-full h-auto object-contain max-h-64"
+                />
+              </div>
+            )}
+
+            {/* OBJECTIVES MODE: Multi-Choice Options A, B, C, D */}
+            {!isTheoryQuestion && currentQuestion?.options && currentQuestion.options.length > 0 && (
+              <div className="space-y-3 pt-2">
+                {currentQuestion.options.map((option, idx) => {
+                  const isSelected = answers[currentQuestion.id] === idx;
+                  const optionLabel = String.fromCharCode(65 + idx);
+
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectAnswer(idx)}
+                      className={cn(
+                        "w-full p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3.5 group cursor-pointer active:scale-98",
+                        isSelected
+                          ? "bg-amber-500/10 border-amber-500 shadow-sm ring-1 ring-amber-500/30"
+                          : "bg-theme-bg border-theme-border hover:border-theme-muted"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0 transition-colors border",
+                        isSelected
+                          ? "bg-amber-500 text-slate-950 border-amber-500"
+                          : "bg-theme-card text-theme-muted border-theme-border group-hover:text-theme-text"
+                      )}>
+                        {optionLabel}
+                      </div>
+
+                      <div className="flex-1 text-xs sm:text-sm text-theme-text pt-0.5 leading-relaxed">
+                        <MathRenderer text={option} />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* THEORIES MODE: Text Answer Inbox & Rough Sheet Photo Attachments */}
+            {isTheoryQuestion && (
+              <div className="space-y-4 pt-2">
+                {/* Math Formulas Toolbar */}
+                <div className="flex flex-wrap items-center gap-1.5 p-2 bg-theme-bg rounded-xl border border-theme-border">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-theme-muted mr-1">
+                    Quick Symbols:
+                  </span>
                   {[
                     { label: 'x²', val: '^{2}' },
                     { label: '√x', val: '\\sqrt{}' },
@@ -585,7 +620,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                     </div>
                   )}
 
-                  {/* Photo of Notebook Workings Attachment (Requirement 1 & Theory Flow) */}
+                  {/* Photo of Notebook Workings Attachment */}
                   <div className="p-4 bg-theme-bg/70 border border-theme-border rounded-2xl space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
@@ -637,62 +672,21 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="grid gap-2.5 sm:gap-3.5 pt-2">
-                {currentQuestion?.options?.map((option, idx) => {
-                  const isSelected = answers[currentQuestion.id] === idx;
-                  const letter = String.fromCharCode(65 + idx);
-
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleSelectAnswer(idx)}
-                      className={cn(
-                        "flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl border-2 text-left transition-all group relative active:scale-99",
-                        isSelected
-                          ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20 shadow-sm"
-                          : "border-theme-border hover:border-amber-500/40 bg-theme-card hover:bg-theme-bg"
-                      )}
-                    >
-                      <div className={cn(
-                        "w-8 h-8 rounded-full border-2 flex items-center justify-center font-black text-xs shrink-0 transition-all",
-                        isSelected
-                          ? "bg-amber-500 border-amber-500 text-slate-950 font-black"
-                          : "border-theme-border text-theme-muted group-hover:border-amber-500/60"
-                      )}>
-                        {letter}
-                      </div>
-
-                      <div className={cn(
-                        "text-sm sm:text-base leading-relaxed transition-colors flex-1",
-                        isSelected ? "text-theme-text font-bold" : "text-theme-text/90"
-                      )}>
-                        <MathRenderer text={option} />
-                      </div>
-
-                      {isSelected && (
-                        <CheckCircle2 size={18} className="text-amber-500 shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
             )}
 
-            {/* SUBJECT COMPLETION OR UNFINISHED STATUS BANNER (Requirement 3) */}
+            {/* SUBJECT FINISHED / UNFINISHED STATUS BANNER (Requirement 3) */}
             {isAtEndOfActiveSubject && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
                 className={cn(
-                  "mt-6 p-4 sm:p-5 rounded-2xl border-2 space-y-3",
+                  "p-4 sm:p-5 rounded-2xl border-2 space-y-3",
                   activeStats.isFinished
                     ? "bg-emerald-500/10 border-emerald-500/40"
                     : "bg-amber-500/10 border-amber-500/40"
                 )}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     {activeStats.isFinished ? (
                       <CheckCircle2 size={24} className="text-emerald-500 shrink-0" />
@@ -701,12 +695,10 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                     )}
                     <div>
                       <h4 className="font-black text-sm text-theme-text flex items-center gap-2">
-                        <span>End of {activeSubject} Questions</span>
+                        <span>{activeSubject} Section Summary</span>
                         <span className={cn(
-                          "text-[10px] font-black uppercase px-2 py-0.5 rounded-full border",
-                          activeStats.isFinished
-                            ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
-                            : "bg-amber-500/20 text-amber-400 border-amber-500/40"
+                          "text-xs px-2 py-0.5 rounded-full font-bold",
+                          activeStats.isFinished ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
                         )}>
                           {activeStats.isFinished ? 'Subject Finished ✓' : `Subject Unfinished (${activeStats.unanswered} left)`}
                         </span>
@@ -742,7 +734,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                           setSubjectIndices(prev => ({ ...prev, [activeSubject]: unIdx }));
                         }
                       }}
-                      className="px-3.5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                      className="px-3.5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
                     >
                       <RefreshCw size={13} />
                       <span>Review Unanswered in {activeSubject} ({activeStats.unanswered} left)</span>
@@ -754,12 +746,22 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                     <button
                       type="button"
                       onClick={() => handleSwitchSubject(nextSubjectInOrder)}
-                      className="px-4 py-2.5 bg-theme-bg hover:bg-theme-card text-theme-text border border-theme-border font-bold text-xs uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+                      className="px-4 py-2.5 bg-theme-bg hover:bg-theme-card text-theme-text border border-theme-border font-bold text-xs uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
                     >
                       <span>Switch to {nextSubjectInOrder}</span>
                       <ArrowRight size={14} />
                     </button>
                   )}
+
+                  {/* Direct Submit Exam Button at end of subject */}
+                  <button
+                    type="button"
+                    onClick={() => setShowSubmitConfirm(true)}
+                    className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:brightness-110 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ml-auto"
+                  >
+                    <Send size={14} />
+                    <span>Submit Entire Exam</span>
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -770,7 +772,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
             <button
               disabled={currentSubIndex === 0}
               onClick={handlePrevInSubject}
-              className="flex items-center gap-2 px-6 py-3 bg-theme-card border border-theme-border rounded-2xl font-bold text-sm text-theme-text hover:bg-theme-bg disabled:opacity-30 transition-all active:scale-95 shadow-sm"
+              className="flex items-center gap-2 px-6 py-3 bg-theme-card border border-theme-border rounded-2xl font-bold text-sm text-theme-text hover:bg-theme-bg disabled:opacity-30 transition-all active:scale-95 shadow-sm cursor-pointer"
             >
               <ChevronLeft size={18} />
               <span>Previous Question</span>
@@ -780,15 +782,15 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               {activeSubject} • Q {currentSubIndex + 1} of {activeSubjectQuestions.length}
             </span>
 
-            {/* Next Button is Strictly Disabled at end of active subject (Requirement 3) */}
+            {/* Next in Subject Button (Disabled on last question to enforce subject boundary) */}
             <button
               disabled={isAtEndOfActiveSubject}
               onClick={handleNextInSubject}
               className={cn(
-                "flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 shadow-md",
+                "flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 shadow-sm",
                 isAtEndOfActiveSubject
                   ? "bg-theme-card border border-theme-border text-theme-muted opacity-40 cursor-not-allowed"
-                  : "bg-amber-500 hover:bg-amber-400 text-slate-950 font-black shadow-amber-500/20"
+                  : "bg-amber-500 hover:bg-amber-400 text-slate-950 font-black shadow-amber-500/20 cursor-pointer"
               )}
             >
               <span>{isAtEndOfActiveSubject ? 'End of Subject' : 'Next Question'}</span>
@@ -823,7 +825,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               {/* Grid of Numbers in Active Subject */}
               <div className="grid grid-cols-5 gap-1.5 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
                 {activeSubjectQuestions.map((q, idx) => {
-                  const isAnswered = answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0);
+                  const isAnswered = answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0) || (theoryUploads[q.id] && theoryUploads[q.id].length > 0);
                   const isFlagged = flaggedQuestions.has(q.id);
                   const isCurrent = idx === currentSubIndex;
 
@@ -833,7 +835,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                       type="button"
                       onClick={() => setSubjectIndices(prev => ({ ...prev, [activeSubject]: idx }))}
                       className={cn(
-                        "w-full aspect-square rounded-xl text-xs font-black flex items-center justify-center transition-all relative border active:scale-95",
+                        "w-full aspect-square rounded-xl text-xs font-black flex items-center justify-center transition-all relative border active:scale-95 cursor-pointer",
                         isCurrent
                           ? "bg-amber-500 text-slate-950 border-amber-500 ring-2 ring-amber-500/40 font-black shadow-sm"
                           : isFlagged
@@ -877,71 +879,101 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
       </main>
 
       {/* MOBILE BOTTOM NAVIGATION BAR */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-theme-card/95 backdrop-blur-md border-t border-theme-border px-3 py-2.5 flex items-center justify-between shadow-lg">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-theme-card/95 backdrop-blur-md border-t border-theme-border px-2.5 py-2 flex items-center justify-between shadow-lg">
         <button
           disabled={currentSubIndex === 0}
           onClick={handlePrevInSubject}
-          className="flex items-center gap-1 px-3 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold text-theme-text disabled:opacity-30"
+          className="flex items-center gap-1 px-2.5 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold text-theme-text disabled:opacity-30 active:scale-95 cursor-pointer"
         >
           <ChevronLeft size={16} />
           <span>Prev</span>
         </button>
 
         <button
+          onClick={() => setShowCalculator(prev => !prev)}
+          className={cn(
+            "p-2 rounded-xl border text-xs font-bold flex items-center gap-1 active:scale-95 cursor-pointer",
+            showCalculator ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-sm ring-2 ring-amber-500/40" : "bg-theme-bg text-theme-muted border-theme-border"
+          )}
+          title="Toggle Calculator"
+        >
+          <CalcIcon size={14} className={showCalculator ? "text-slate-950" : "text-amber-500"} />
+          <span>Calc</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setNavSelectedSubject(activeSubject);
+            setShowQuestionNav(prev => !prev);
+          }}
+          className={cn(
+            "p-2 rounded-xl border text-xs font-bold flex items-center gap-1 active:scale-95 cursor-pointer",
+            showQuestionNav ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-sm" : "bg-theme-bg text-theme-muted border-theme-border"
+          )}
+          title="Toggle Navigator"
+        >
+          <LayoutGrid size={14} className={showQuestionNav ? "text-slate-950" : "text-amber-500"} />
+          <span>Q {currentSubIndex + 1}/{activeSubjectQuestions.length}</span>
+        </button>
+
+        <button
           onClick={toggleFlag}
           className={cn(
-            "p-2 rounded-xl border text-xs font-bold flex items-center gap-1",
+            "p-2 rounded-xl border text-xs font-bold flex items-center gap-1 active:scale-95 cursor-pointer",
             flaggedQuestions.has(currentQuestion?.id)
               ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
               : "bg-theme-bg text-theme-muted border-theme-border"
           )}
         >
           <Flag size={14} fill={flaggedQuestions.has(currentQuestion?.id) ? "currentColor" : "none"} />
-          <span>{flaggedQuestions.has(currentQuestion?.id) ? 'Flagged' : 'Flag'}</span>
         </button>
 
-        <span className="text-[11px] font-bold text-theme-muted">
-          Q {currentSubIndex + 1}/{activeSubjectQuestions.length}
-        </span>
-
-        {/* Disabled on last question of subject to prevent unintended subject jump */}
-        <button
-          disabled={isAtEndOfActiveSubject}
-          onClick={handleNextInSubject}
-          className={cn(
-            "flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-all",
-            isAtEndOfActiveSubject
-              ? "bg-theme-bg border border-theme-border text-theme-muted opacity-40 cursor-not-allowed"
-              : "bg-amber-500 text-slate-950 font-black"
-          )}
-        >
-          <span>Next</span>
-          <ChevronRight size={16} />
-        </button>
+        {/* Submit or Next on mobile */}
+        {isAtEndOfActiveSubject ? (
+          <button
+            onClick={() => setShowSubmitConfirm(true)}
+            className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-black shadow-sm bg-gradient-to-r from-emerald-500 to-green-600 text-slate-950 active:scale-95 cursor-pointer"
+          >
+            <span>Submit</span>
+            <Send size={14} />
+          </button>
+        ) : (
+          <button
+            onClick={handleNextInSubject}
+            className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-black shadow-sm bg-amber-500 text-slate-950 active:scale-95 cursor-pointer"
+          >
+            <span>Next</span>
+            <ChevronRight size={16} />
+          </button>
+        )}
       </div>
 
       {/* DRAGGABLE FULL-WIDTH QUESTION NAVIGATOR SHEET (Requirements 1 & 2) */}
       <AnimatePresence>
         {showQuestionNav && (
-          <div className={cn(
-            "fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-center p-0 sm:p-4 transition-all",
-            navDockPosition === 'top' ? "items-start" : "items-end sm:items-center"
-          )}>
+          <div 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowQuestionNav(false);
+              }
+            }}
+            className={cn(
+              "fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-center p-0 sm:p-4 transition-all",
+              navDockPosition === 'top' ? "items-start" : "items-end sm:items-center"
+            )}
+          >
             <motion.div
               drag="y"
+              dragListener={false}
+              dragControls={navDragControls}
               dragConstraints={{ top: 0, bottom: 200 }}
               dragElastic={0.12}
               onDragEnd={(_, info) => {
-                // If user drags up while at bottom, snap to top dock!
-                if (info.offset.y < -80 && navDockPosition === 'bottom') {
+                if (info.offset.y < -60 && navDockPosition === 'bottom') {
                   setNavDockPosition('top');
-                }
-                // If user drags down while at top, snap to bottom dock!
-                else if (info.offset.y > 80 && navDockPosition === 'top') {
+                } else if (info.offset.y > 60 && navDockPosition === 'top') {
                   setNavDockPosition('bottom');
-                }
-                // If user drags down hard while at bottom, close navigator!
-                else if (info.offset.y > 120 && navDockPosition === 'bottom') {
+                } else if (info.offset.y > 100 && navDockPosition === 'bottom') {
                   setShowQuestionNav(false);
                 }
               }}
@@ -950,12 +982,15 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               exit={{ opacity: 0, y: navDockPosition === 'top' ? -100 : 100 }}
               className="bg-theme-card border-t sm:border border-theme-border rounded-t-[2.5rem] sm:rounded-3xl w-full max-w-4xl max-h-[88vh] overflow-y-auto p-4 sm:p-7 space-y-4 shadow-2xl relative select-none"
             >
-              {/* Thumb Drag Handle Bar with Push Top / Bottom Toggle (Requirement 2) */}
+              {/* Thumb Drag Handle Bar with Push Top / Bottom Toggle */}
               <div className="flex items-center justify-between pb-1 border-b border-theme-border/60">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-1.5 rounded-full bg-theme-muted/40 cursor-grab active:cursor-grabbing touch-none" />
+                <div 
+                  onPointerDown={(e) => navDragControls.start(e)}
+                  className="flex items-center gap-2 cursor-grab active:cursor-grabbing touch-none py-1"
+                >
+                  <div className="w-12 h-2 rounded-full bg-amber-500/50 hover:bg-amber-500 transition-colors" />
                   <span className="text-[10px] uppercase tracking-wider text-theme-muted font-bold hidden sm:inline">
-                    (Push up to dock Top / Push down to dock Bottom)
+                    (Drag bar to dock Top or Bottom)
                   </span>
                 </div>
 
@@ -964,7 +999,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                   <button
                     type="button"
                     onClick={() => setNavDockPosition(prev => prev === 'top' ? 'bottom' : 'top')}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-theme-bg hover:bg-theme-card border border-theme-border text-[11px] font-bold text-amber-500 transition-all"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-theme-bg hover:bg-theme-card border border-theme-border text-[11px] font-bold text-amber-500 transition-all cursor-pointer"
                     title={navDockPosition === 'top' ? 'Push to Bottom' : 'Push to Top'}
                   >
                     {navDockPosition === 'top' ? (
@@ -983,7 +1018,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowQuestionNav(false)}
-                    className="p-1.5 rounded-xl bg-theme-bg text-theme-muted hover:text-theme-text border border-theme-border"
+                    className="p-1.5 rounded-xl bg-theme-bg text-theme-muted hover:text-theme-text border border-theme-border cursor-pointer"
                     title="Close Navigator"
                   >
                     <X size={18} />
@@ -1002,7 +1037,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                       <button
                         type="button"
                         onClick={() => setNavSelectedSubject(null)}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-theme-bg hover:bg-theme-card text-theme-text border border-theme-border text-xs font-bold transition-all sm:hidden"
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-theme-bg hover:bg-theme-card text-theme-text border border-theme-border text-xs font-bold transition-all sm:hidden cursor-pointer"
                       >
                         <ArrowLeft size={14} />
                         <span>All Subjects</span>
@@ -1029,7 +1064,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                           type="button"
                           onClick={() => setNavSelectedSubject(s)}
                           className={cn(
-                            "px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex items-center gap-1.5",
+                            "px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex items-center gap-1.5 cursor-pointer",
                             isChosen
                               ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-sm"
                               : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
@@ -1065,7 +1100,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                           type="button"
                           onClick={() => setNavSelectedSubject(s)}
                           className={cn(
-                            "w-full p-3.5 rounded-2xl border-2 text-left transition-all flex items-center justify-between gap-3 group active:scale-98",
+                            "w-full p-3.5 rounded-2xl border-2 text-left transition-all flex items-center justify-between gap-3 group active:scale-98 cursor-pointer",
                             isChosen
                               ? "bg-amber-500/10 border-amber-500 shadow-sm"
                               : "bg-theme-bg border-theme-border hover:border-theme-muted"
@@ -1117,33 +1152,29 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                         <>
                           <div className="flex items-center justify-between pb-2 border-b border-theme-border/60">
                             <div>
-                              <h4 className="font-black text-sm text-theme-text flex items-center gap-2">
-                                <span>{displaySub} Question Numbers</span>
-                                <span className="text-xs font-bold text-amber-500">
-                                  ({subQs.length} Questions)
-                                </span>
+                              <h4 className="text-xs font-black uppercase tracking-wider text-amber-500">
+                                {displaySub} Questions Attached ({subQs.length}):
                               </h4>
                               <p className="text-[11px] text-theme-muted">
-                                Tap any question number to jump immediately to that question.
+                                Tap any question number below to jump directly to it in {displaySub}.
                               </p>
                             </div>
-
                             <span className={cn(
-                              "text-xs font-black px-2 py-0.5 rounded-full border",
+                              "text-[10px] font-black px-2 py-0.5 rounded-full border",
                               stat.isFinished
-                                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                                : "bg-theme-card text-theme-muted border-theme-border"
+                                ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                                : "bg-amber-500/15 text-amber-400 border-amber-500/30"
                             )}>
-                              {stat.answered}/{stat.total} Answered
+                              {stat.answered}/{stat.total} Done
                             </span>
                           </div>
 
-                          {/* Number Grid for the chosen subject */}
-                          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2 max-h-72 overflow-y-auto p-1 scrollbar-thin">
+                          {/* Grid of question numbers */}
+                          <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
                             {subQs.map((q, idx) => {
-                              const isAnswered = answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0);
+                              const isAnswered = answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0) || (theoryUploads[q.id] && theoryUploads[q.id].length > 0);
                               const isFlagged = flaggedQuestions.has(q.id);
-                              const isCurrent = activeSubject === displaySub && currentSubIndex === idx;
+                              const isCurrent = displaySub === activeSubject && idx === currentSubIndex;
 
                               return (
                                 <button
@@ -1151,14 +1182,14 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                                   type="button"
                                   onClick={() => handleJumpToQuestion(displaySub, idx)}
                                   className={cn(
-                                    "w-full aspect-square rounded-xl text-xs font-black flex items-center justify-center transition-all relative border active:scale-95",
+                                    "aspect-square rounded-xl font-black text-xs transition-all relative border flex items-center justify-center active:scale-90 cursor-pointer",
                                     isCurrent
-                                      ? "bg-amber-500 text-slate-950 border-amber-500 ring-2 ring-amber-500/40 shadow-sm font-black"
+                                      ? "bg-amber-500 text-slate-950 border-amber-500 ring-2 ring-amber-500/40 shadow-sm"
                                       : isFlagged
                                         ? "bg-amber-500/20 text-amber-400 border-amber-500/50"
                                         : isAnswered
                                           ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                                          : "bg-theme-card text-theme-muted border-theme-border hover:bg-theme-bg"
+                                          : "bg-theme-card text-theme-muted border-theme-border hover:text-theme-text"
                                   )}
                                 >
                                   {idx + 1}
@@ -1170,8 +1201,8 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                             })}
                           </div>
 
-                          {/* Legend on Navigator */}
-                          <div className="pt-2 border-t border-theme-border/60 flex flex-wrap items-center gap-4 text-[10px] text-theme-muted">
+                          {/* Navigator Legend */}
+                          <div className="pt-2 border-t border-theme-border/60 flex flex-wrap items-center gap-3 text-[10px] text-theme-muted">
                             <div className="flex items-center gap-1.5">
                               <div className="w-2.5 h-2.5 rounded-sm bg-amber-500" />
                               <span>Current</span>
@@ -1201,7 +1232,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
         )}
       </AnimatePresence>
 
-      {/* DRAGGABLE CORNER-SNAPPING CALCULATOR (Requirement 2) */}
+      {/* DRAGGABLE CORNER-SNAPPING CALCULATOR (Requirement 2 & 3) */}
       {showCalculator && (
         <Calculator onClose={() => setShowCalculator(false)} />
       )}
@@ -1209,7 +1240,14 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
       {/* CONFIRM EXIT EXAM MODAL (Requirement 5) */}
       <AnimatePresence>
         {showExitConfirm && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowExitConfirm(false);
+              }
+            }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -1231,7 +1269,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowExitConfirm(false)}
-                  className="flex-1 py-3 bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border border-theme-border rounded-2xl font-bold text-xs uppercase tracking-wider transition-all"
+                  className="flex-1 py-3 bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border border-theme-border rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
                 >
                   Resume Exam
                 </button>
@@ -1242,7 +1280,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                     setShowExitConfirm(false);
                     onNavigateTo?.('cbt_config');
                   }}
-                  className="flex-1 py-3 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
+                  className="flex-1 py-3 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   Confirm Exit
                 </button>
@@ -1252,10 +1290,17 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
         )}
       </AnimatePresence>
 
-      {/* FAST SUBMIT CONFIRMATION MODAL (Requirement 4) */}
+      {/* FAST SUBMIT CONFIRMATION MODAL (Requirement 1 & 4) */}
       <AnimatePresence>
         {showSubmitConfirm && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowSubmitConfirm(false);
+              }
+            }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -1267,11 +1312,24 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-xl font-black text-theme-text">Submit CBT Examination</h3>
+                <h3 className="text-xl font-black text-theme-text">
+                  {isContinuationSection && continuationPart === 1 
+                    ? `Complete Part 1 & Start Intermission Break` 
+                    : `Submit CBT Examination`}
+                </h3>
                 <p className="text-xs text-theme-muted">
                   Total Answered: <strong className="text-emerald-500 font-bold">{totalAnsweredAcrossExam}</strong> of{' '}
                   <strong className="text-theme-text">{questions.length}</strong> questions.
                 </p>
+
+                {isContinuationSection && continuationPart === 1 && (
+                  <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl text-left text-xs space-y-1">
+                    <span className="font-bold text-purple-400 block">Next: 5-Minute Intermission Break</span>
+                    <p className="text-theme-muted text-[11px]">
+                      Submitting Part 1 will take you to your relaxing intermission break. Once refreshed, you will proceed to {nextPartTitle}.
+                    </p>
+                  </div>
+                )}
 
                 {/* Per-Subject Breakdown for Merged Mode */}
                 {isMergedMode && subjectList.length > 1 && (
@@ -1304,7 +1362,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowSubmitConfirm(false)}
-                  className="flex-1 py-3 bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border border-theme-border rounded-2xl font-bold text-xs uppercase tracking-wider transition-all"
+                  className="flex-1 py-3 bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border border-theme-border rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
                 >
                   Return to Test
                 </button>
@@ -1313,9 +1371,16 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => handleSubmitFast()}
-                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95"
+                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95 cursor-pointer"
                 >
-                  Yes, Submit Now
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                      <span>Submitting...</span>
+                    </div>
+                  ) : (
+                    <span>{isContinuationSection && continuationPart === 1 ? 'Start Break Now' : 'Yes, Submit Now'}</span>
+                  )}
                 </button>
               </div>
             </motion.div>
