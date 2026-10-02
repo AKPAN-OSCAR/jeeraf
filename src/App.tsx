@@ -10,10 +10,11 @@ import { ExamTypeSelection } from './components/ExamTypeSelection';
 import { PersonalCBTReady } from './components/PersonalCBTReady';
 import { Dashboard } from './components/Dashboard';
 import { CBTInterface } from './components/CBTInterface';
+import { ExamIntermissionBreak } from './components/ExamIntermissionBreak';
 import { ResultDashboard } from './components/ResultDashboard';
 import { ProgressTracker } from './components/ProgressTracker';
 import { questions as allQuestions } from './data/questions';
-import { Subject, Question, QuizResult, ExamType } from './types';
+import { Subject, Question, QuizResult, ExamType, ExamSessionConfig } from './types';
 import { auth, db } from './firebase';
 import { getStandardLimit } from './data/lib/utils';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -46,6 +47,7 @@ export type AppState =
   | 'personal_ready' 
   | 'dashboard' 
   | 'cbt' 
+  | 'exam_intermission'
   | 'result' 
   | 'progress' 
   | 'textbooks' 
@@ -61,6 +63,7 @@ export const getPathFromState = (s: AppState): string => {
     case 'cbt_subjects': return '/cbt';
     case 'personal_ready': return '/cbt/ready';
     case 'cbt': return '/cbt/exam';
+    case 'exam_intermission': return '/cbt/break';
     case 'result': return '/cbt/results';
     case 'system_ai': return '/ai';
     case 'browser': return '/browser';
@@ -79,6 +82,7 @@ export const getStateFromPath = (path: string): AppState | null => {
   if (clean === '/cbt/practice' || clean === '/cbt/subjects') return 'cbt_subjects';
   if (clean === '/cbt/ready') return 'personal_ready';
   if (clean === '/cbt/exam') return 'cbt';
+  if (clean === '/cbt/break') return 'exam_intermission';
   if (clean === '/cbt/results' || clean === '/results') return 'result';
   if (clean === '/ai' || clean === '/chat') return 'system_ai';
   if (clean === '/browser') return 'browser';
@@ -424,6 +428,150 @@ export default function App() {
     }
   };
 
+  // Advanced Exam / Merged & Continuation State
+  const [examSessionConfig, setExamSessionConfig] = useState<ExamSessionConfig | null>(null);
+  const [continuationPart, setContinuationPart] = useState<1 | 2>(1);
+  const [continuationPart1Questions, setContinuationPart1Questions] = useState<Question[]>([]);
+  const [continuationPart2Questions, setContinuationPart2Questions] = useState<Question[]>([]);
+  const [continuationPart1Answers, setContinuationPart1Answers] = useState<Record<string, number | null>>({});
+  const [continuationPart1TheoryAnswers, setContinuationPart1TheoryAnswers] = useState<Record<string, string>>({});
+  const [continuationPart1TimeTaken, setContinuationPart1TimeTaken] = useState<number>(0);
+  const [intermissionBreakMinutes, setIntermissionBreakMinutes] = useState<number>(15);
+  const [nextPaperTitle, setNextPaperTitle] = useState<string>('');
+
+  const handleStartAdvancedExam = (config: ExamSessionConfig) => {
+    setExamSessionConfig(config);
+    const combinedQuestions = [...allQuestions, ...adminQuestions];
+    
+    // Helper to get questions for a given subject
+    const getQuestionsForSubject = (subj: Subject) => {
+      let filtered = combinedQuestions.filter(q =>
+        q.subject === subj &&
+        q.examType === config.examType &&
+        (config.practiceMode === 'yearly' && config.selectedYear ? q.year === config.selectedYear : true)
+      );
+      if (filtered.length === 0) {
+        // Fallback to any questions for this subject
+        filtered = combinedQuestions.filter(q => q.subject === subj);
+      }
+      return filtered;
+    };
+
+    if (config.paperFormat === 'both_continuation') {
+      // Gather questions across the selected subjects
+      let allSelectedQuestions: Question[] = [];
+      config.subjects.forEach(subj => {
+        allSelectedQuestions.push(...getQuestionsForSubject(subj));
+      });
+
+      if (allSelectedQuestions.length === 0) {
+        alert(`No questions found for ${config.examType} - ${config.subjects.join(', ')}.`);
+        return;
+      }
+
+      // Separate into Objectives and Theory
+      let objQuestions = allSelectedQuestions.filter(q => q.type !== 'theory' && q.section !== 'Theory' && q.options && q.options.length > 0);
+      let theoryQuestions = allSelectedQuestions.filter(q => q.type === 'theory' || q.section === 'Theory' || !q.options || q.options.length === 0);
+
+      // If theory questions are scarce, create syllabus-grounded theory questions for the subjects
+      if (theoryQuestions.length === 0) {
+        theoryQuestions = config.subjects.map((subj, idx) => ({
+          id: `gen-theory-${subj}-${Date.now()}-${idx}`,
+          subject: subj,
+          examType: config.examType,
+          year: config.selectedYear || 2024,
+          difficulty: 'Hard',
+          section: 'Theory',
+          type: 'theory',
+          marks: 10,
+          question: `**Paper 2: Theory & Essay Section (${subj})**\n\n(a) Clearly state the foundational principles, definitions, and mathematical equations governing this topic in ${subj}.\n\n(b) Write a comprehensive, step-by-step mathematical calculation, analytical reasoning, and proof addressing a practical scenario in this domain.\n\n[Provide full working, units, and clear justifications for full marks.]`,
+          options: [],
+          correctAnswer: -1,
+          explanation: `**Model Solution & Marking Scheme for ${subj}:**\n1. Definition and principles correctly stated with appropriate scientific/technical vocabulary (3 Marks).\n2. Formula substitution and algebraic manipulations correctly presented (4 Marks).\n3. Accurate final computation with correct SI units and conclusion (3 Marks).`,
+          modelAnswer: `Full detailed theoretical explanation and step-by-step calculations with proper units.`,
+          topic: `${subj} Core Theory`
+        }));
+      }
+
+      const isTheoryFirst = config.continuationOrder === 'theory_first';
+      const part1 = isTheoryFirst ? theoryQuestions : objQuestions;
+      const part2 = isTheoryFirst ? objQuestions : theoryQuestions;
+      const nextTitle = isTheoryFirst ? 'Paper 1: Objective Multiple-Choice Questions' : 'Paper 2: Theory & Essay Questions';
+
+      setContinuationPart(1);
+      setContinuationPart1Questions(part1);
+      setContinuationPart2Questions(part2);
+      setContinuationPart1Answers({});
+      setContinuationPart1TheoryAnswers({});
+      setContinuationPart1TimeTaken(0);
+      setNextPaperTitle(nextTitle);
+      setIntermissionBreakMinutes(Math.max(15, config.breakDurationMinutes || 15));
+
+      setCurrentSubject(config.subjects[0]);
+      setCurrentQuestions(part1);
+      // Half time for Part 1
+      setCurrentDuration(Math.max(15, Math.round(config.durationMinutes / 2)));
+      navigateToState('cbt');
+      return;
+    }
+
+    // Single format: Objectives Only or Theory Only
+    let collectedQuestions: Question[] = [];
+    if (config.timingMode === 'merged') {
+      // Merged national mode: all selected subjects under one unified timer
+      config.subjects.forEach(subj => {
+        let qs = getQuestionsForSubject(subj);
+        if (config.paperFormat === 'theory') {
+          qs = qs.filter(q => q.type === 'theory' || q.section === 'Theory');
+        } else {
+          qs = qs.filter(q => q.type !== 'theory' && q.section !== 'Theory');
+        }
+        collectedQuestions.push(...qs);
+      });
+    } else {
+      // One-by-one mode
+      const primarySubject = config.subjects[0] || 'Mathematics';
+      let qs = getQuestionsForSubject(primarySubject);
+      if (config.paperFormat === 'theory') {
+        qs = qs.filter(q => q.type === 'theory' || q.section === 'Theory');
+      } else {
+        qs = qs.filter(q => q.type !== 'theory' && q.section !== 'Theory');
+      }
+      collectedQuestions = qs;
+    }
+
+    if (collectedQuestions.length === 0) {
+      alert(`No practice questions found for ${config.examType} with the selected options.`);
+      return;
+    }
+
+    setCurrentSubject(config.subjects[0]);
+    setCurrentQuestions(collectedQuestions);
+    setCurrentDuration(config.durationMinutes);
+    navigateToState('cbt');
+  };
+
+  const handleContinuationSectionComplete = (
+    answers: Record<string, number | null>,
+    timeTaken: number,
+    theoryAnswers?: Record<string, string>
+  ) => {
+    setContinuationPart1Answers(answers);
+    setContinuationPart1TheoryAnswers(theoryAnswers || {});
+    setContinuationPart1TimeTaken(timeTaken);
+    // Transition to intermission break countdown (min 15 mins)
+    navigateToState('exam_intermission');
+  };
+
+  const handleCompleteIntermissionBreak = () => {
+    // Launch Part 2 of the continuation exam
+    setContinuationPart(2);
+    setCurrentQuestions(continuationPart2Questions);
+    const halfDuration = Math.max(15, Math.round((examSessionConfig?.durationMinutes || 60) / 2));
+    setCurrentDuration(halfDuration);
+    navigateToState('cbt');
+  };
+
   const handleStartExam = (subject: Subject, duration: number, practiceMode: 'yearly' | 'random' = 'random', selectedYear?: number) => {
     let subjectQuestions: Question[] = [];
     const combinedQuestions = [...allQuestions, ...adminQuestions];
@@ -502,16 +650,46 @@ export default function App() {
     navigateToState('cbt');
   };
 
-  const handleFinishExam = (answers: Record<string, number | null>, timeTaken: number) => {
+  const handleFinishExam = (
+    answers: Record<string, number | null>, 
+    timeTaken: number,
+    theoryAnswers?: Record<string, string>
+  ) => {
+    let allSessionQuestions = currentQuestions;
+    let allAnswers = answers;
+    let allTheory = theoryAnswers || {};
+    let totalTimeTaken = timeTaken;
+    let isContinuation = false;
+
+    if (examSessionConfig?.paperFormat === 'both_continuation' && continuationPart === 2) {
+      isContinuation = true;
+      allSessionQuestions = [...continuationPart1Questions, ...continuationPart2Questions];
+      allAnswers = { ...continuationPart1Answers, ...answers };
+      allTheory = { ...continuationPart1TheoryAnswers, ...(theoryAnswers || {}) };
+      totalTimeTaken = continuationPart1TimeTaken + timeTaken;
+    }
+
     let score = 0;
-    const resultAnswers = currentQuestions.map(q => {
-      const selected = answers[q.id] ?? null;
-      const isCorrect = selected === q.correctAnswer;
-      if (isCorrect) score++;
+    const resultAnswers = allSessionQuestions.map(q => {
+      const selected = allAnswers[q.id] ?? null;
+      const isTheory = q.type === 'theory' || !q.options || q.options.length === 0;
+      let isCorrect = false;
+
+      if (isTheory) {
+        // Theory answer is marked complete if submitted with meaningful response
+        const candidateText = allTheory[q.id]?.trim() || '';
+        isCorrect = candidateText.length >= 10;
+        if (isCorrect) score++;
+      } else {
+        isCorrect = selected === q.correctAnswer;
+        if (isCorrect) score++;
+      }
+
       return {
         questionId: q.id,
         selectedAnswer: selected,
-        isCorrect
+        isCorrect,
+        theoryAnswer: allTheory[q.id]
       };
     });
 
@@ -521,10 +699,13 @@ export default function App() {
       subject: currentSubject!,
       examType: selectedExamType!,
       score,
-      totalQuestions: currentQuestions.length,
-      timeTaken,
+      totalQuestions: allSessionQuestions.length,
+      timeTaken: totalTimeTaken,
       date: new Date().toISOString(),
-      answers: resultAnswers
+      answers: resultAnswers,
+      theoryAnswers: allTheory,
+      isContinuation,
+      timingMode: examSessionConfig?.timingMode
     };
 
     if (db) {
@@ -728,6 +909,7 @@ export default function App() {
           availableQuestions={customQuestions}
           adminQuestions={adminQuestions}
           onStart={handleStartExam} 
+          onStartAdvanced={handleStartAdvancedExam}
           onLogout={handleLogout} 
           onViewProgress={() => navigateToState('progress')}
           onNavigateTo={handleNavigateTo}
@@ -790,10 +972,26 @@ export default function App() {
           onStatusChange={() => {}}
         />
       )}
+
+      {state === 'exam_intermission' && user && (
+        <ExamIntermissionBreak
+          examType={selectedExamType || 'WAEC'}
+          subjects={examSessionConfig?.subjects || (currentSubject ? [currentSubject] : ['Mathematics'])}
+          nextPaperTitle={nextPaperTitle}
+          nextQuestionsCount={continuationPart2Questions.length}
+          initialMinutes={intermissionBreakMinutes}
+          onCompleteBreak={handleCompleteIntermissionBreak}
+        />
+      )}
       
       {state === 'cbt' && currentSubject && (
         <CBTInterface
           subject={currentSubject}
+          subjects={examSessionConfig?.subjects}
+          isMergedMode={examSessionConfig?.timingMode === 'merged' && (examSessionConfig?.subjects?.length || 0) > 1}
+          isContinuationSection={examSessionConfig?.paperFormat === 'both_continuation'}
+          continuationPart={continuationPart}
+          nextPartTitle={nextPaperTitle}
           examType={selectedExamType || undefined}
           questions={currentQuestions}
           durationMinutes={currentDuration}
@@ -801,6 +999,7 @@ export default function App() {
           profile={profile}
           onLogout={handleLogout}
           onFinish={handleFinishExam}
+          onContinuationSectionComplete={handleContinuationSectionComplete}
           onNavigateTo={handleNavigateTo}
         />
       )}
@@ -812,7 +1011,13 @@ export default function App() {
           user={user}
           profile={profile}
           onLogout={handleLogout}
-          onRestart={() => handleStartExam(currentSubject!, currentDuration)}
+          onRestart={() => {
+            if (examSessionConfig) {
+              handleStartAdvancedExam(examSessionConfig);
+            } else {
+              handleStartExam(currentSubject!, currentDuration);
+            }
+          }}
           onHome={() => navigateToState('dashboard')}
           onNavigateTo={handleNavigateTo}
         />

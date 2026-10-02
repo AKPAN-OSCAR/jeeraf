@@ -10,18 +10,29 @@ import { CBTQuestionAISolutionModal } from './CBTQuestionAISolutionModal';
 
 interface CBTInterfaceProps {
   subject: Subject;
+  subjects?: Subject[];
+  isMergedMode?: boolean;
+  isContinuationSection?: boolean;
+  continuationPart?: 1 | 2;
+  nextPartTitle?: string;
   examType?: ExamType;
   questions: Question[];
   durationMinutes: number;
   user: any;
   profile?: any;
   onLogout: () => void;
-  onFinish: (answers: Record<string, number | null>, timeTaken: number) => void;
+  onFinish: (answers: Record<string, number | null>, timeTaken: number, theoryAnswers?: Record<string, string>) => void;
+  onContinuationSectionComplete?: (answers: Record<string, number | null>, timeTaken: number, theoryAnswers?: Record<string, string>) => void;
   onNavigateTo?: (target: any) => void;
 }
 
 export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   subject,
+  subjects = [],
+  isMergedMode = false,
+  isContinuationSection = false,
+  continuationPart = 1,
+  nextPartTitle,
   examType,
   questions,
   durationMinutes,
@@ -29,10 +40,12 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   profile,
   onLogout,
   onFinish,
+  onContinuationSectionComplete,
   onNavigateTo,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number | null>>({});
+  const [theoryAnswers, setTheoryAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
@@ -42,7 +55,21 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   const [visitedQuestions, setVisitedQuestions] = useState<Set<string>>(new Set([questions[0]?.id]));
   const [showAiModal, setShowAiModal] = useState(false);
 
+  // Group questions by subject for Merged Mode
+  const subjectGroups = React.useMemo(() => {
+    const map = new Map<Subject, { questions: Question[]; startIndex: number }>();
+    questions.forEach((q, i) => {
+      if (!map.has(q.subject)) {
+        map.set(q.subject, { questions: [], startIndex: i });
+      }
+      map.get(q.subject)!.questions.push(q);
+    });
+    return map;
+  }, [questions]);
+  const subjectList = Array.from(subjectGroups.keys());
+
   const currentQuestion = questions[currentIndex];
+  const isTheoryQuestion = currentQuestion?.section === 'Theory' || currentQuestion?.type === 'theory' || (!currentQuestion?.options || currentQuestion.options.length === 0);
 
   useEffect(() => {
     if (currentQuestion) {
@@ -69,8 +96,12 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
     if (isSubmitting) return;
     setIsSubmitting(true);
     const timeTaken = durationMinutes * 60 - timeLeft;
-    onFinish(answers, timeTaken);
-  }, [answers, timeLeft, durationMinutes, onFinish, isSubmitting]);
+    if (isContinuationSection && continuationPart === 1 && onContinuationSectionComplete) {
+      onContinuationSectionComplete(answers, timeTaken, theoryAnswers);
+    } else {
+      onFinish(answers, timeTaken, theoryAnswers);
+    }
+  }, [answers, theoryAnswers, timeLeft, durationMinutes, onFinish, onContinuationSectionComplete, isSubmitting, isContinuationSection, continuationPart]);
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -186,6 +217,43 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
       <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl grid lg:grid-cols-4 gap-8">
         {/* Question Area */}
         <div className="lg:col-span-3 space-y-6">
+          {/* Merged Mode Subject Switcher Tabs */}
+          {subjectList.length > 1 && (
+            <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+              {subjectList.map((s) => {
+                const info = subjectGroups.get(s)!;
+                const isCurrentSubject = currentQuestion?.subject === s;
+                const answeredInSubject = info.questions.filter(
+                  (q) => answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0)
+                ).length;
+
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setCurrentIndex(info.startIndex)}
+                    className={cn(
+                      "px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 border shadow-sm",
+                      isCurrentSubject
+                        ? "bg-theme-accent text-white border-theme-accent shadow-md scale-102"
+                        : "bg-theme-card border-theme-border text-theme-muted hover:text-theme-text hover:bg-theme-bg"
+                    )}
+                  >
+                    <span>{s}</span>
+                    <span
+                      className={cn(
+                        "text-[10px] font-black px-2 py-0.5 rounded-full",
+                        isCurrentSubject ? "bg-white/20 text-white" : "bg-theme-bg text-theme-muted"
+                      )}
+                    >
+                      {answeredInSubject}/{info.questions.length}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <motion.div
             key={currentIndex}
             initial={{ opacity: 0, x: 20 }}
@@ -198,6 +266,11 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                   <span className="inline-block px-3 py-1 bg-theme-bg text-theme-accent text-xs font-bold rounded-full uppercase tracking-wider border border-theme-border">
                     Question {currentIndex + 1}
                   </span>
+                  {currentQuestion?.subject && (
+                    <span className="text-xs font-bold text-theme-muted">
+                      • {currentQuestion.subject}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-4">
                   <button
@@ -248,35 +321,99 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               </div>
             </div>
 
-            <div className="grid gap-4 mt-auto">
-              {currentQuestion.options.map((option, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectAnswer(idx)}
-                  className={cn(
-                    "flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all group",
-                    answers[currentQuestion.id] === idx
-                      ? "border-theme-accent bg-theme-accent/5"
-                      : "border-theme-border hover:border-theme-accent/30 hover:bg-theme-bg"
-                  )}
-                >
-                  <div className={cn(
-                    "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold shrink-0 transition-all",
-                    answers[currentQuestion.id] === idx
-                      ? "bg-theme-accent border-theme-accent text-white"
-                      : "border-theme-border text-theme-muted group-hover:border-theme-accent/50"
-                  )}>
-                    {String.fromCharCode(65 + idx)}
+            {/* Answer Mode: Theory/Essay Workspace OR Multiple Choice Options */}
+            {isTheoryQuestion ? (
+              <div className="space-y-4 mt-auto">
+                <div className="flex items-center justify-between border-b border-theme-border/60 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20">
+                      Theory / Essay Solution Area
+                    </span>
+                    {currentQuestion.marks && (
+                      <span className="text-xs font-bold text-amber-400">
+                        [{currentQuestion.marks} Marks]
+                      </span>
+                    )}
                   </div>
-                  <span className={cn(
-                    "text-lg transition-colors",
-                    answers[currentQuestion.id] === idx ? "text-theme-text font-medium" : "text-theme-text/80"
-                  )}>
-                    <MathRenderer text={option} />
+                  <span className="text-[10px] text-theme-muted">
+                    {(theoryAnswers[currentQuestion.id] || '').length} characters typed
                   </span>
-                </button>
-              ))}
-            </div>
+                </div>
+
+                {/* Math helper shortcuts */}
+                <div className="flex flex-wrap items-center gap-1.5 p-2 bg-theme-bg/60 rounded-xl border border-theme-border/60">
+                  <span className="text-[9px] font-bold uppercase text-theme-muted mr-1">Insert Symbol:</span>
+                  {[
+                    { label: 'x²', val: '^{2}' },
+                    { label: '√x', val: '\\sqrt{}' },
+                    { label: 'a/b', val: '\\frac{a}{b}' },
+                    { label: 'π', val: '\\pi' },
+                    { label: 'θ', val: '\\theta' },
+                    { label: '±', val: '\\pm' },
+                    { label: '°', val: '^{\\circ}' },
+                    { label: '∫', val: '\\int' },
+                    { label: 'Σ', val: '\\sum' }
+                  ].map(sym => (
+                    <button
+                      key={sym.label}
+                      type="button"
+                      onClick={() => {
+                        const prev = theoryAnswers[currentQuestion.id] || '';
+                        setTheoryAnswers({ ...theoryAnswers, [currentQuestion.id]: prev + ' $' + sym.val + '$ ' });
+                      }}
+                      className="px-2 py-1 bg-theme-card hover:bg-theme-accent/20 hover:text-theme-accent border border-theme-border rounded-lg text-xs font-mono font-bold transition-all"
+                    >
+                      {sym.label}
+                    </button>
+                  ))}
+                </div>
+
+                <textarea
+                  rows={8}
+                  value={theoryAnswers[currentQuestion.id] || ''}
+                  onChange={(e) => setTheoryAnswers({ ...theoryAnswers, [currentQuestion.id]: e.target.value })}
+                  placeholder="Type your complete step-by-step mathematical proof, calculations, reasoning, or essay answer here..."
+                  className="w-full p-4 bg-theme-bg border-2 border-theme-border rounded-2xl text-sm font-sans focus:outline-none focus:border-theme-accent text-theme-text leading-relaxed"
+                />
+
+                {theoryAnswers[currentQuestion.id]?.includes('$') && (
+                  <div className="p-3 bg-theme-bg/40 border border-theme-border/60 rounded-xl">
+                    <span className="text-[9px] font-bold text-theme-muted uppercase block mb-1">Live Formula Preview:</span>
+                    <MathRenderer text={theoryAnswers[currentQuestion.id]} />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-4 mt-auto">
+                {currentQuestion.options.map((option, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelectAnswer(idx)}
+                    className={cn(
+                      "flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all group",
+                      answers[currentQuestion.id] === idx
+                        ? "border-theme-accent bg-theme-accent/5"
+                        : "border-theme-border hover:border-theme-accent/30 hover:bg-theme-bg"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold shrink-0 transition-all",
+                      answers[currentQuestion.id] === idx
+                        ? "bg-theme-accent border-theme-accent text-white"
+                        : "border-theme-border text-theme-muted group-hover:border-theme-accent/50"
+                    )}>
+                      {String.fromCharCode(65 + idx)}
+                    </div>
+                    <span className={cn(
+                      "text-lg transition-colors",
+                      answers[currentQuestion.id] === idx ? "text-theme-text font-medium" : "text-theme-text/80"
+                    )}>
+                      <MathRenderer text={option} />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           {/* Navigation */}
@@ -402,9 +539,15 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               <div className="w-16 h-16 bg-theme-accent/10 text-theme-accent rounded-full flex items-center justify-center mx-auto mb-6">
                 <AlertCircle size={32} />
               </div>
-              <h3 className="text-2xl font-bold text-theme-text text-center mb-2">Submit Examination?</h3>
-              <p className="text-theme-muted text-center mb-8">
-                You have answered {Object.keys(answers).length} out of {questions.length} questions. Are you sure you want to end the exam?
+              <h3 className="text-2xl font-bold text-theme-text text-center mb-2">
+                {isContinuationSection && continuationPart === 1
+                  ? "Finish Part 1 & Start Break?"
+                  : "Submit Examination?"}
+              </h3>
+              <p className="text-theme-muted text-center mb-8 text-xs leading-relaxed">
+                {isContinuationSection && continuationPart === 1
+                  ? `You have answered ${Object.keys(answers).length + Object.keys(theoryAnswers).filter(k => theoryAnswers[k]?.trim()).length} out of ${questions.length} questions. You will now transition to the 15-minute intermission countdown break before beginning ${nextPartTitle || 'Part 2'}.`
+                  : `You have answered ${Object.keys(answers).length + Object.keys(theoryAnswers).filter(k => theoryAnswers[k]?.trim()).length} out of ${questions.length} questions. Are you sure you want to end the exam?`}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -416,10 +559,14 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                 <button
                   disabled={isSubmitting}
                   onClick={handleSubmit}
-                  className="py-3 px-6 bg-theme-accent text-white rounded-xl font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="py-3 px-4 bg-theme-accent text-white rounded-xl font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-xs uppercase tracking-wider whitespace-nowrap"
                 >
                   {isSubmitting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  {isSubmitting ? 'Submitting...' : 'Yes, Submit'}
+                  {isSubmitting
+                    ? 'Submitting...'
+                    : isContinuationSection && continuationPart === 1
+                      ? 'Finish & Take Break'
+                      : 'Yes, Submit'}
                 </button>
               </div>
             </motion.div>

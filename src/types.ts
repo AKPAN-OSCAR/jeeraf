@@ -26,6 +26,22 @@ export type ExamType = 'JAMB' | 'WAEC' | 'NECO' | 'WAEC GCE' | 'NECO GCE' | 'Per
 
 export type QuestionSection = 'Comprehension' | 'Lexis and Structure' | 'Word Stress' | 'Oral English' | 'General' | 'Theory' | 'Practical';
 
+export type ExamPaperFormat = 'objective' | 'theory' | 'both_continuation';
+export type ExamTimingMode = 'one_by_one' | 'merged';
+export type ContinuationOrder = 'obj_first' | 'theory_first';
+
+export interface ExamSessionConfig {
+  examType: ExamType;
+  timingMode: ExamTimingMode;
+  subjects: Subject[];
+  paperFormat: ExamPaperFormat;
+  continuationOrder?: ContinuationOrder;
+  breakDurationMinutes?: number; // Minimum 15 minutes as per Pomofocus rule
+  durationMinutes: number;
+  practiceMode: 'yearly' | 'random';
+  selectedYear?: number;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -63,11 +79,14 @@ export interface Question {
   year?: number; // Standard year of the exam
   difficulty?: 'Easy' | 'Medium' | 'Hard'; // Standard difficulty levels
   section?: QuestionSection;
+  type?: 'objective' | 'theory';
+  marks?: number; // For theory questions
   passage?: string; // For comprehension passages
   question: string;
   options: string[];
   correctAnswer: number; // Index of options
   explanation: string;
+  modelAnswer?: string; // Model answer for theory questions
   topic?: string;
   images?: string[]; // Supporting diagrams/images
   tags?: string[]; // Custom tags for filtering
@@ -86,5 +105,9 @@ export interface QuizResult {
     questionId: string;
     selectedAnswer: number | null;
     isCorrect: boolean;
+    theoryAnswer?: string;
   }[];
+  theoryAnswers?: Record<string, string>;
+  isContinuation?: boolean;
+  timingMode?: ExamTimingMode;
 }

@@ -220,39 +220,75 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                       )}
                     </div>
 
-                    <div className="grid gap-3 mb-6">
-                      {q.options.map((opt, optIdx) => {
-                        const isSelected = userAns?.selectedAnswer === optIdx;
-                        const isCorrectOpt = q.correctAnswer === optIdx;
-
-                        return (
-                          <div
-                            key={optIdx}
-                            className={cn(
-                              "p-4 rounded-xl border-2 flex items-center gap-3",
-                              isCorrectOpt 
-                                ? "border-emerald-500 bg-emerald-500/10" 
-                                : isSelected 
-                                  ? "border-rose-500 bg-rose-500/10" 
-                                  : "border-theme-border bg-theme-bg"
-                            )}
-                          >
-                            <div className={cn(
-                              "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
-                              isCorrectOpt ? "bg-emerald-500 text-white" : isSelected ? "bg-rose-500 text-white" : "bg-theme-border text-theme-muted"
-                            )}>
-                              {String.fromCharCode(65 + optIdx)}
-                            </div>
-                            <span className={cn(
-                              "text-sm",
-                              isCorrectOpt ? "text-emerald-500 font-medium" : isSelected ? "text-rose-500 font-medium" : "text-theme-text"
-                            )}>
-                              <MathRenderer text={opt} />
+                    {/* Theory Question Presentation vs Objective Multiple Choice */}
+                    {q.type === 'theory' || !q.options || q.options.length === 0 ? (
+                      <div className="space-y-4 mb-6">
+                        <div className="p-4 bg-theme-bg rounded-2xl border border-theme-border space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black uppercase tracking-wider text-purple-400">
+                              Your Submitted Theory Answer / Calculations
                             </span>
+                            {q.marks && (
+                              <span className="text-xs font-bold text-amber-400">
+                                [{q.marks} Marks]
+                              </span>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
+                          {userAns?.theoryAnswer || (result.theoryAnswers && result.theoryAnswers[q.id]) ? (
+                            <div className="text-sm text-theme-text font-mono whitespace-pre-wrap p-3 bg-theme-card/60 rounded-xl border border-theme-border">
+                              <MathRenderer text={userAns?.theoryAnswer || (result.theoryAnswers && result.theoryAnswers[q.id]) || ''} />
+                            </div>
+                          ) : (
+                            <p className="text-xs text-theme-muted italic">No candidate answer submitted.</p>
+                          )}
+                        </div>
+
+                        {q.modelAnswer && (
+                          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">
+                              Summary Model Answer:
+                            </span>
+                            <div className="text-xs text-theme-text font-medium">
+                              <MathRenderer text={q.modelAnswer} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="grid gap-3 mb-6">
+                        {(q.options || []).map((opt, optIdx) => {
+                          const isSelected = userAns?.selectedAnswer === optIdx;
+                          const isCorrectOpt = q.correctAnswer === optIdx;
+
+                          return (
+                            <div
+                              key={optIdx}
+                              className={cn(
+                                "p-4 rounded-xl border-2 flex items-center gap-3",
+                                isCorrectOpt 
+                                  ? "border-emerald-500 bg-emerald-500/10" 
+                                  : isSelected 
+                                    ? "border-rose-500 bg-rose-500/10" 
+                                    : "border-theme-border bg-theme-bg"
+                              )}
+                            >
+                              <div className={cn(
+                                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                                isCorrectOpt ? "bg-emerald-500 text-white" : isSelected ? "bg-rose-500 text-white" : "bg-theme-border text-theme-muted"
+                              )}>
+                                {String.fromCharCode(65 + optIdx)}
+                              </div>
+                              <span className={cn(
+                                "text-sm",
+                                isCorrectOpt ? "text-emerald-500 font-medium" : isSelected ? "text-rose-500 font-medium" : "text-theme-text"
+                              )}>
+                                <MathRenderer text={opt} />
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     <div className="bg-theme-accent/5 rounded-2xl p-6 border border-theme-accent/10 space-y-4">
                       <div className="flex items-center justify-between border-b border-theme-accent/10 pb-2">

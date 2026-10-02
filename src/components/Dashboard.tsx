@@ -7,10 +7,11 @@ import {
   Languages, MessageSquare, Book, FileText, ChevronLeft, ArrowRight,
   Calendar, Sliders
 } from 'lucide-react';
-import { Subject, ExamType, Question } from '../types';
+import { Subject, ExamType, Question, ExamSessionConfig } from '../types';
 import { cn, getStandardLimit } from '../data/lib/utils';
 import { SidebarMenu } from './SidebarMenu';
 import { SubjectGuide } from './SubjectGuide';
+import { ExamSetupModal } from './ExamSetupModal';
 import { subjectGuides } from '../data/subjectGuides';
 import { questions as staticQuestions } from '../data/questions';
 import { JeeRafHeadIcon } from './AIAvatar';
@@ -23,6 +24,7 @@ interface DashboardProps {
   availableQuestions?: Question[];
   adminQuestions?: Question[];
   onStart: (subject: Subject, time: number, practiceMode: 'yearly' | 'random', selectedYear?: number) => void;
+  onStartAdvanced?: (config: ExamSessionConfig) => void;
   onLogout: () => void;
   onViewProgress: () => void;
   onNavigateTo: (target: 'dashboard' | 'textbooks' | 'exam_select' | 'progress' | 'admin_console' | 'subscription_portal' | 'fun' | 'blog' | 'awards' | 'system_ai' | 'browser') => void;
@@ -62,10 +64,11 @@ const timeOptions = [
   { label: '120 Minutes', value: 120 },
 ];
 
-export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, defaultDuration = 60, availableQuestions = [], adminQuestions = [], onStart, onLogout, onViewProgress, onNavigateTo, onChangeExamType }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, defaultDuration = 60, availableQuestions = [], adminQuestions = [], onStart, onStartAdvanced, onLogout, onViewProgress, onNavigateTo, onChangeExamType }) => {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedTime, setSelectedTime] = useState<number>(defaultDuration);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
   const [practiceMode, setPracticeMode] = useState<'yearly' | 'random'>('random');
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
@@ -273,7 +276,40 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
                 </div>
               )}
 
-              <div className="mb-12">
+              {/* National Exam Merged Timing & Continuation Simulation Card */}
+              {examType && examType !== 'Personal CBT' && (
+                <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border-2 border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-wider">
+                        National Exam Simulator
+                      </span>
+                      <span className="text-xs text-theme-muted font-bold">
+                        {examType === 'JAMB' ? 'Strict 4-Subject Merged CBT' : 'Merged / Theory Continuation'}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-black text-theme-text">
+                      {examType === 'JAMB' ? 'JAMB 4-Subject Merged CBT Mock' : `${examType} Merged Timing & Theory Continuation Mock`}
+                    </h3>
+                    <p className="text-xs text-theme-muted max-w-xl">
+                      {examType === 'JAMB'
+                        ? 'Simulate the authentic JAMB hall: All 4 subjects running simultaneously under one combined master timer with instant subject switcher tabs.'
+                        : 'Choose between Objectives only, Theory only, or the full Continuation session with an authentic 15-minute Pomofocus break between papers.'}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsSetupModalOpen(true)}
+                    className="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-all shrink-0 active:scale-95"
+                  >
+                    <span>Configure Merged / Continuation Exam</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              )}
+
+              <div className="mb-8">
                 <h2 className="text-3xl font-black text-theme-text leading-tight mb-2 tracking-tight">
                   Welcome, <span className="text-theme-accent">{profile?.nickname || 'Scholar'}</span>
                 </h2>
@@ -511,13 +547,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
                     )}
                   </div>
 
-                  <div className="mt-12 pt-8 border-t border-theme-border">
+                  <div className="mt-12 pt-8 border-t border-theme-border flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={handleStartFinal}
-                      className="w-full bg-theme-accent text-white rounded-[2rem] py-6 font-black text-xl hover:opacity-90 transition-all shadow-2xl shadow-theme-accent/20 flex items-center justify-center gap-4 group"
+                      className="flex-1 bg-theme-accent text-white rounded-[2rem] py-5 font-black text-lg hover:opacity-90 transition-all shadow-xl shadow-theme-accent/20 flex items-center justify-center gap-3 group"
                     >
-                      <Play size={28} fill="currentColor" className="group-hover:scale-110 transition-transform" />
-                      Start {selectedSubject} CBT
+                      <Play size={24} fill="currentColor" className="group-hover:scale-110 transition-transform" />
+                      Start {selectedSubject} (One-by-One)
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsSetupModalOpen(true)}
+                      className="px-6 py-5 bg-theme-bg hover:bg-theme-card border-2 border-theme-border hover:border-theme-accent text-theme-text rounded-[2rem] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                    >
+                      <span>Merged / Theory Break Setup</span>
+                      <ArrowRight size={16} />
                     </button>
                   </div>
                 </div>
@@ -532,6 +577,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
           subject={selectedSubject} 
           isOpen={isGuideOpen} 
           onClose={() => setIsGuideOpen(false)} 
+        />
+      )}
+
+      {/* Advanced Pre-Exam Options & Merged / Continuation Setup Modal */}
+      {examType && isSetupModalOpen && (
+        <ExamSetupModal
+          isOpen={isSetupModalOpen}
+          onClose={() => setIsSetupModalOpen(false)}
+          examType={examType}
+          availableSubjects={filteredSubjects.map(s => s.name as Subject)}
+          initialSubject={selectedSubject || undefined}
+          availableYears={availableYears}
+          onStartExam={(config) => {
+            setIsSetupModalOpen(false);
+            if (onStartAdvanced) {
+              onStartAdvanced(config);
+            } else {
+              onStart(config.subjects[0], config.durationMinutes, config.practiceMode, config.selectedYear);
+            }
+          }}
         />
       )}
     </div>
