@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronLeft, Clock, Layers, Sparkles, BookOpen, 
   ArrowRight, ShieldCheck, Flame, Coffee, FileText, 
-  CheckCircle2, Check, AlertCircle, Calendar, Star, HelpCircle
+  CheckCircle2, Check, AlertCircle, Calendar, Star, HelpCircle,
+  ArrowLeft, Upload, Camera, HelpCircleIcon
 } from 'lucide-react';
 import { 
   Subject, ExamType, ExamTimingMode, 
@@ -36,7 +37,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
   examType,
   availableSubjects = [],
   initialSubject,
-  availableYears = [2024, 2023, 2022, 2021, 2020],
+  availableYears = [2024, 2023, 2022, 2021, 2020, 2019, 2018],
   user,
   profile,
   onLogout,
@@ -47,7 +48,14 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
   const isJamb = examType === 'JAMB';
   const supportsTheory = examType === 'WAEC' || examType === 'NECO' || examType === 'WAEC GCE' || examType === 'NECO GCE' || examType === 'Personal CBT';
 
-  // Merge provided available subjects with common subjects if list is small
+  // Step Wizard State (Requirement 1: Split into distinct steps)
+  // Step 1: Mode (Merged vs One-by-One)
+  // Step 2: Subject Selection (One subject for One-by-One, 4 for JAMB, or custom for Merged)
+  // Step 3: Exam Duration
+  // Step 4: Practice Mode (Random vs Past Year) & Launch
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+
+  // Subject pool
   const subjectPool: Subject[] = useMemo(() => {
     const list: Subject[] = availableSubjects.length > 0 ? [...availableSubjects] : [...ALL_COMMON_SUBJECTS];
     if (isJamb && !list.includes('English')) {
@@ -66,7 +74,6 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
       if (initialSubject && initialSubject !== 'English') {
         defaults.push(initialSubject);
       }
-      // Add electives up to 4 total
       const electives: Subject[] = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics'];
       for (const el of electives) {
         if (defaults.length < 4 && !defaults.includes(el) && subjectPool.includes(el)) {
@@ -80,7 +87,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
 
   // State: Starting Subject for Merged Mode
   const [startingSubject, setStartingSubject] = useState<Subject>(() => {
-    return selectedSubjects[0] || 'English';
+    return selectedSubjects[0] || (isJamb ? 'English' : 'Mathematics');
   });
 
   // State: Paper Format
@@ -90,7 +97,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
 
   // State: Duration
   const [durationMinutes, setDurationMinutes] = useState<number>(() => {
-    if (isJamb) return 120; // Standard 2 hours
+    if (isJamb) return 120; // 2 hours for standard JAMB
     return 60;
   });
 
@@ -98,16 +105,52 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
   const [practiceMode, setPracticeMode] = useState<'random' | 'yearly'>('random');
   const [selectedYear, setSelectedYear] = useState<number | undefined>(availableYears[0] || 2024);
 
-  // Handle subject toggle
-  const toggleSubject = (s: Subject) => {
+  // When switching timingMode, adjust default duration and selected subject
+  const handleSelectTimingMode = (mode: ExamTimingMode) => {
+    setTimingMode(mode);
+    if (mode === 'one_by_one') {
+      setDurationMinutes(40);
+      // For one-by-one, select a single subject
+      if (selectedSubjects.length > 1) {
+        setSelectedSubjects([selectedSubjects[0]]);
+        setStartingSubject(selectedSubjects[0]);
+      } else if (selectedSubjects.length === 0) {
+        setSelectedSubjects([subjectPool[0] || 'Mathematics']);
+        setStartingSubject(subjectPool[0] || 'Mathematics');
+      }
+    } else {
+      // Merged mode
+      if (isJamb) {
+        setDurationMinutes(120);
+        // Ensure 4 subjects
+        if (selectedSubjects.length < 4) {
+          const defaults: Subject[] = ['English'];
+          const electives: Subject[] = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics'];
+          for (const el of electives) {
+            if (defaults.length < 4 && !defaults.includes(el) && subjectPool.includes(el)) {
+              defaults.push(el);
+            }
+          }
+          setSelectedSubjects(defaults);
+        }
+      } else {
+        setDurationMinutes(selectedSubjects.length * 35 || 60);
+      }
+    }
+  };
+
+  // Toggle subject in Step 2
+  const handleToggleSubject = (s: Subject) => {
     if (timingMode === 'one_by_one') {
+      // Single subject selection: replaces previous choice
       setSelectedSubjects([s]);
       setStartingSubject(s);
       return;
     }
 
+    // Merged mode selection
     if (isJamb) {
-      if (s === 'English') return; // English is compulsory in JAMB
+      if (s === 'English') return; // English is compulsory
       if (selectedSubjects.includes(s)) {
         if (selectedSubjects.length > 2) {
           const next = selectedSubjects.filter(x => x !== s);
@@ -118,7 +161,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
         }
       } else {
         if (selectedSubjects.length >= 4) {
-          // Replace last non-English subject
+          // Replace last non-English elective
           const next = [...selectedSubjects.slice(0, 3), s];
           setSelectedSubjects(next);
         } else {
@@ -126,6 +169,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
         }
       }
     } else {
+      // WAEC / NECO Merged
       if (selectedSubjects.includes(s)) {
         if (selectedSubjects.length > 1) {
           const next = selectedSubjects.filter(x => x !== s);
@@ -140,18 +184,42 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
     }
   };
 
-  const handleLaunch = () => {
-    if (isJamb && selectedSubjects.length !== 4) {
-      alert(`JAMB requires exactly 4 subjects (English + 3 electives). You have selected ${selectedSubjects.length}/4.`);
+  // Step 1 Validation & Next
+  const handleStep1Next = () => {
+    setCurrentStep(2);
+  };
+
+  // Step 2 Validation & Next
+  const handleStep2Next = () => {
+    if (timingMode === 'one_by_one') {
+      if (selectedSubjects.length !== 1) {
+        alert("Please select one subject to practice.");
+        return;
+      }
+    } else {
+      if (isJamb && selectedSubjects.length !== 4) {
+        alert(`JAMB UTME mandates exactly 4 subjects (English + 3 electives). You have selected ${selectedSubjects.length}/4.`);
+        return;
+      }
+      if (selectedSubjects.length === 0) {
+        alert("Please select at least one subject.");
+        return;
+      }
+    }
+    setCurrentStep(3);
+  };
+
+  // Step 3 Validation & Next
+  const handleStep3Next = () => {
+    if (durationMinutes <= 0) {
+      alert("Please select a valid exam duration.");
       return;
     }
+    setCurrentStep(4);
+  };
 
-    if (selectedSubjects.length === 0) {
-      alert("Please select at least one subject to proceed.");
-      return;
-    }
-
-    // Ensure startingSubject is in selectedSubjects
+  // Step 4 Final Launch
+  const handleLaunchExam = () => {
     const finalStartingSubject = selectedSubjects.includes(startingSubject)
       ? startingSubject
       : selectedSubjects[0];
@@ -172,6 +240,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
 
   return (
     <div className="min-h-screen bg-theme-bg text-theme-text flex flex-col transition-colors duration-300">
+      
       {/* Top Header */}
       <header className="bg-theme-card border-b border-theme-border sticky top-0 z-30 shadow-sm px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -179,12 +248,17 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
           
           <button
             type="button"
-            onClick={onBack}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-theme-bg hover:bg-theme-border text-theme-muted hover:text-theme-text border border-theme-border text-xs font-bold transition-all"
+            onClick={() => {
+              if (currentStep > 1) {
+                setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3 | 4);
+              } else {
+                onBack();
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-theme-bg hover:bg-theme-border text-theme-muted hover:text-theme-text border border-theme-border text-xs font-bold transition-all active:scale-95"
           >
             <ChevronLeft size={16} />
-            <span className="hidden sm:inline">Change Exam</span>
-            <span className="sm:hidden">Back</span>
+            <span>{currentStep === 1 ? 'Change Exam' : 'Back'}</span>
           </button>
 
           <div>
@@ -192,492 +266,573 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
               <span className="text-xs font-black uppercase tracking-wider text-amber-500">
                 {examType} Examination
               </span>
-              <span className="hidden sm:inline text-xs text-theme-muted">• Pre-Exam Setup</span>
+              <span className="hidden sm:inline text-xs text-theme-muted">• Configuration Wizard</span>
             </div>
             <h1 className="text-sm sm:text-base font-bold text-theme-text leading-tight">
-              Configure Your CBT Mode & Schedule
+              {currentStep === 1 && "Step 1: Choose CBT Timing Mode"}
+              {currentStep === 2 && "Step 2: Choose Subject(s)"}
+              {currentStep === 3 && "Step 3: Set Exam Duration"}
+              {currentStep === 4 && "Step 4: Practice Mode & Launch"}
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-bold border border-emerald-500/20">
-            <CheckCircle2 size={14} />
-            <span>Ready to Customize</span>
-          </div>
+        {/* Wizard Step Breadcrumbs */}
+        <div className="flex items-center gap-1.5 text-xs font-bold">
+          {[
+            { num: 1, label: 'Mode' },
+            { num: 2, label: 'Subjects' },
+            { num: 3, label: 'Duration' },
+            { num: 4, label: 'Start' }
+          ].map(s => (
+            <div 
+              key={s.num}
+              className={cn(
+                "flex items-center gap-1 px-2.5 py-1 rounded-full border text-[11px] font-black transition-all",
+                currentStep === s.num
+                  ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
+                  : currentStep > s.num
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                    : "bg-theme-bg text-theme-muted border-theme-border opacity-50"
+              )}
+            >
+              <span>{s.num}</span>
+              <span className="hidden md:inline">{s.label}</span>
+            </div>
+          ))}
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl space-y-6 sm:space-y-8">
+      {/* Main Wizard Flow Container */}
+      <main className="flex-1 container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-3xl space-y-6 sm:space-y-8 flex flex-col justify-between">
         
-        {/* STEP 1: EXAM TIMING MODE */}
-        <section className="bg-theme-card rounded-3xl p-5 sm:p-7 border border-theme-border shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-sm">
-                1
-              </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-theme-text leading-tight">
+        {/* ========================================================================= */}
+        {/* STEP 1: CONFIGURE CBT MODE ONLY (Merged vs One-by-One) with Next Button */}
+        {/* ========================================================================= */}
+        {currentStep === 1 && (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, x: -15 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 15 }}
+            className="space-y-6"
+          >
+            <div className="bg-theme-card rounded-3xl p-6 sm:p-8 border border-theme-border shadow-sm space-y-5">
+              <div className="space-y-1.5">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                  Step 1 of 4: Examination Mode
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-theme-text">
                   Choose Examination Timing Mode
                 </h2>
-                <p className="text-xs text-theme-muted">
-                  Simulate the actual unified national test or focus on one subject at a time.
+                <p className="text-xs sm:text-sm text-theme-muted leading-relaxed">
+                  Select whether you want to simulate the unified national examination with all subjects combined, or focus exclusively on one subject at a time.
                 </p>
               </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {/* Merged Mode Card */}
-            <button
-              type="button"
-              onClick={() => {
-                setTimingMode('merged');
-                if (isJamb) setDurationMinutes(120);
-                else setDurationMinutes(selectedSubjects.length * 35);
-              }}
-              className={cn(
-                "p-4 sm:p-5 rounded-2xl border-2 text-left transition-all relative overflow-hidden flex flex-col justify-between gap-3",
-                timingMode === 'merged'
-                  ? "border-amber-500 bg-amber-500/5 ring-4 ring-amber-500/10 shadow-md"
-                  : "border-theme-border bg-theme-bg hover:border-theme-muted text-theme-muted"
-              )}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={cn(
-                    "p-2 rounded-xl",
-                    timingMode === 'merged' ? "bg-amber-500 text-slate-950" : "bg-theme-card text-theme-muted"
-                  )}>
-                    <Flame size={18} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-theme-text">Merged Time</h3>
-                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">
-                      National Simulation
-                    </span>
-                  </div>
-                </div>
-                {timingMode === 'merged' && (
-                  <CheckCircle2 size={20} className="text-amber-500 shrink-0" />
-                )}
-              </div>
-              <p className="text-xs text-theme-muted leading-relaxed">
-                All chosen subjects run simultaneously under <strong>one unified countdown timer</strong>. Switch between subjects at any time during the test.
-              </p>
-            </button>
-
-            {/* One-by-One Mode Card */}
-            <button
-              type="button"
-              onClick={() => {
-                setTimingMode('one_by_one');
-                setDurationMinutes(40);
-                if (selectedSubjects.length > 1) {
-                  setSelectedSubjects([selectedSubjects[0]]);
-                  setStartingSubject(selectedSubjects[0]);
-                }
-              }}
-              className={cn(
-                "p-4 sm:p-5 rounded-2xl border-2 text-left transition-all relative overflow-hidden flex flex-col justify-between gap-3",
-                timingMode === 'one_by_one'
-                  ? "border-blue-500 bg-blue-500/5 ring-4 ring-blue-500/10 shadow-md"
-                  : "border-theme-border bg-theme-bg hover:border-theme-muted text-theme-muted"
-              )}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={cn(
-                    "p-2 rounded-xl",
-                    timingMode === 'one_by_one' ? "bg-blue-500 text-white" : "bg-theme-card text-theme-muted"
-                  )}>
-                    <Layers size={18} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-theme-text">One-by-One Subject</h3>
-                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
-                      Targeted Practice
-                    </span>
-                  </div>
-                </div>
-                {timingMode === 'one_by_one' && (
-                  <CheckCircle2 size={20} className="text-blue-500 shrink-0" />
-                )}
-              </div>
-              <p className="text-xs text-theme-muted leading-relaxed">
-                Practice <strong>one single subject</strong> with dedicated timing (e.g. 40 minutes for 40 questions). Ideal for mastering specific weak areas.
-              </p>
-            </button>
-          </div>
-        </section>
-
-        {/* STEP 2: SUBJECT SELECTION */}
-        <section className="bg-theme-card rounded-3xl p-5 sm:p-7 border border-theme-border shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-theme-accent/10 text-theme-accent flex items-center justify-center font-bold text-sm">
-                2
-              </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-theme-text leading-tight">
-                  Select Examination Subjects
-                </h2>
-                <p className="text-xs text-theme-muted">
-                  {isJamb 
-                    ? "JAMB UTME mandates English Language + exactly 3 elective subjects."
-                    : timingMode === 'one_by_one'
-                      ? "Choose the single subject you want to practice."
-                      : "Choose the subjects included in your merged examination session."}
-                </p>
-              </div>
-            </div>
-
-            {isJamb && (
-              <span className={cn(
-                "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider self-start sm:self-auto border",
-                selectedSubjects.length === 4
-                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                  : "bg-amber-500/10 text-amber-500 border-amber-500/20"
-              )}>
-                {selectedSubjects.length} / 4 Subjects Chosen
-              </span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
-            {subjectPool.map((s) => {
-              const isSelected = selectedSubjects.includes(s);
-              const isLockedEnglish = isJamb && s === 'English';
-
-              return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                {/* Merged Mode Card */}
                 <button
-                  key={s}
                   type="button"
-                  onClick={() => toggleSubject(s)}
+                  onClick={() => handleSelectTimingMode('merged')}
                   className={cn(
-                    "p-3 rounded-2xl border-2 text-xs font-bold text-left flex items-center justify-between gap-2 transition-all relative",
-                    isSelected
-                      ? "bg-theme-accent text-white border-theme-accent shadow-sm"
-                      : "bg-theme-bg border-theme-border text-theme-text hover:border-theme-muted",
-                    isLockedEnglish && "opacity-95 ring-1 ring-amber-400"
+                    "p-5 rounded-3xl border-2 text-left transition-all relative overflow-hidden flex flex-col justify-between gap-4 active:scale-99",
+                    timingMode === 'merged'
+                      ? "border-amber-500 bg-amber-500/10 ring-4 ring-amber-500/15 shadow-md"
+                      : "border-theme-border bg-theme-bg hover:border-theme-muted text-theme-muted"
                   )}
                 >
-                  <div className="truncate flex items-center gap-1.5">
-                    {isLockedEnglish && <Star size={12} className="text-amber-300 shrink-0 fill-amber-300" />}
-                    <span className="truncate">{s}</span>
-                  </div>
-                  {isSelected && <Check size={14} className="shrink-0" />}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* WHICH SUBJECT STARTS FIRST (FOR MERGED MODE) */}
-          {timingMode === 'merged' && selectedSubjects.length > 1 && (
-            <motion.div
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="pt-4 border-t border-theme-border/60 space-y-2.5"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-500">
-                  ★ Which Subject Starts First?
-                </span>
-                <span className="text-[11px] text-theme-muted">
-                  (Choose which subject displays on screen when your test begins)
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {selectedSubjects.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setStartingSubject(s)}
-                    className={cn(
-                      "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border",
-                      startingSubject === s
-                        ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-sm"
-                        : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
-                    )}
-                  >
-                    <span>{s}</span>
-                    {startingSubject === s && <Check size={12} />}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </section>
-
-        {/* STEP 3: PAPER FORMAT (OBJECTIVE VS THEORY VS CONTINUATION) */}
-        {supportsTheory && (
-          <section className="bg-theme-card rounded-3xl p-5 sm:p-7 border border-theme-border shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-sm">
-                3
-              </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-theme-text leading-tight">
-                  Paper Format & Essay Continuation
-                </h2>
-                <p className="text-xs text-theme-muted">
-                  Choose between multiple-choice objectives, theory essays, or full continuous exam.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <button
-                type="button"
-                onClick={() => setPaperFormat('objective')}
-                className={cn(
-                  "p-4 rounded-2xl border-2 text-left transition-all",
-                  paperFormat === 'objective'
-                    ? "border-emerald-500 bg-emerald-500/5 text-emerald-400 ring-2 ring-emerald-500/20"
-                    : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-muted"
-                )}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-theme-text">Objectives Only</span>
-                  {paperFormat === 'objective' && <CheckCircle2 size={16} className="text-emerald-500" />}
-                </div>
-                <p className="text-xs text-theme-muted">Paper 1 Multiple Choice questions only.</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaperFormat('theory')}
-                className={cn(
-                  "p-4 rounded-2xl border-2 text-left transition-all",
-                  paperFormat === 'theory'
-                    ? "border-purple-500 bg-purple-500/5 text-purple-400 ring-2 ring-purple-500/20"
-                    : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-muted"
-                )}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-theme-text">Theory / Essays</span>
-                  {paperFormat === 'theory' && <CheckCircle2 size={16} className="text-purple-400" />}
-                </div>
-                <p className="text-xs text-theme-muted">Paper 2 Essay, calculations, and mathematical proofs.</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaperFormat('both_continuation')}
-                className={cn(
-                  "p-4 rounded-2xl border-2 text-left transition-all",
-                  paperFormat === 'both_continuation'
-                    ? "border-amber-500 bg-amber-500/10 text-amber-400 ring-2 ring-amber-500/20 shadow-sm"
-                    : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-muted"
-                )}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-amber-400 flex items-center gap-1.5">
-                    <Coffee size={14} /> Full Continuation
-                  </span>
-                  {paperFormat === 'both_continuation' && <CheckCircle2 size={16} className="text-amber-400" />}
-                </div>
-                <p className="text-xs text-theme-muted">Both Papers + minimum 15-minute intermission break.</p>
-              </button>
-            </div>
-
-            {/* Continuation Settings */}
-            {paperFormat === 'both_continuation' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="p-4 sm:p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-4"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-theme-text mb-1.5">
-                      Starting Paper Order
-                    </label>
-                    <select
-                      value={continuationOrder}
-                      onChange={(e) => setContinuationOrder(e.target.value as ContinuationOrder)}
-                      className="w-full px-3.5 py-2.5 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold text-theme-text focus:outline-none focus:border-amber-500"
-                    >
-                      <option value="obj_first">Objectives First ➔ 15m Break ➔ Theory</option>
-                      <option value="theory_first">Theory First ➔ 15m Break ➔ Objectives</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-theme-text mb-1.5">
-                      Intermission Break Duration (Min 15m)
-                    </label>
-                    <div className="flex gap-2">
-                      {[15, 20, 25, 30].map(m => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => setBreakDurationMinutes(m)}
-                          className={cn(
-                            "flex-1 py-2 rounded-xl text-xs font-bold border transition-all",
-                            breakDurationMinutes === m
-                              ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-sm"
-                              : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
-                          )}
-                        >
-                          {m}m
-                        </button>
-                      ))}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "p-3 rounded-2xl shadow-sm",
+                        timingMode === 'merged' ? "bg-amber-500 text-slate-950 font-black" : "bg-theme-card text-theme-muted"
+                      )}>
+                        <Flame size={22} />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-base text-theme-text">Merged Time</h3>
+                        <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">
+                          National Simulation
+                        </span>
+                      </div>
                     </div>
+                    {timingMode === 'merged' && (
+                      <CheckCircle2 size={24} className="text-amber-500 shrink-0" />
+                    )}
                   </div>
-                </div>
+                  <p className="text-xs text-theme-muted leading-relaxed">
+                    Runs all {isJamb ? '4 JAMB subjects' : 'chosen subjects'} under <strong>one unified countdown clock</strong>. Switch between subjects whenever you want during the test.
+                  </p>
+                </button>
 
-                <p className="text-xs text-theme-muted italic flex items-center gap-1.5">
-                  <Coffee size={14} className="text-amber-500 shrink-0" />
-                  <span>
-                    Between Paper 1 and Paper 2, a Pomofocus countdown timer will let you rest, hydrate, and stretch before tackling the next section.
-                  </span>
-                </p>
-              </motion.div>
-            )}
-          </section>
+                {/* One-by-One Subject Card */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectTimingMode('one_by_one')}
+                  className={cn(
+                    "p-5 rounded-3xl border-2 text-left transition-all relative overflow-hidden flex flex-col justify-between gap-4 active:scale-99",
+                    timingMode === 'one_by_one'
+                      ? "border-blue-500 bg-blue-500/10 ring-4 ring-blue-500/15 shadow-md"
+                      : "border-theme-border bg-theme-bg hover:border-theme-muted text-theme-muted"
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "p-3 rounded-2xl shadow-sm",
+                        timingMode === 'one_by_one' ? "bg-blue-500 text-white font-black" : "bg-theme-card text-theme-muted"
+                      )}>
+                        <Layers size={22} />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-base text-theme-text">One-by-One</h3>
+                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">
+                          Single Subject Practice
+                        </span>
+                      </div>
+                    </div>
+                    {timingMode === 'one_by_one' && (
+                      <CheckCircle2 size={24} className="text-blue-500 shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-xs text-theme-muted leading-relaxed">
+                    Practice <strong>only one selected subject</strong> with independent timing (e.g. 40 minutes for 40 questions). Ideal for mastering specific subject topics.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Step 1 Next Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleStep1Next}
+                className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-black text-sm uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-amber-500/10 transition-all active:scale-98"
+              >
+                <span>Next: Choose Subject(s)</span>
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </motion.div>
         )}
 
-        {/* STEP 4: TIME LIMIT & PRACTICE MODE */}
-        <section className="bg-theme-card rounded-3xl p-5 sm:p-7 border border-theme-border shadow-sm space-y-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold text-sm">
-              {supportsTheory ? 4 : 3}
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-theme-text leading-tight">
-                Exam Duration & Year Selection
-              </h2>
-              <p className="text-xs text-theme-muted">
-                Adjust total countdown timer and select whether to run random mock questions or a specific past year.
-              </p>
-            </div>
-          </div>
+        {/* ========================================================================= */}
+        {/* STEP 2: SUBJECT SELECTION SCREEN (1 for One-by-One, 4 for JAMB / Merged) */}
+        {/* ========================================================================= */}
+        {currentStep === 2 && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 15 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -15 }}
+            className="space-y-6"
+          >
+            <div className="bg-theme-card rounded-3xl p-6 sm:p-8 border border-theme-border shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-theme-border/60">
+                <div className="space-y-1">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                    Step 2 of 4: Subject Selection
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-black text-theme-text">
+                    {timingMode === 'one_by_one' ? 'Select Single Subject' : 'Select Examination Subjects'}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-theme-muted">
+                    {timingMode === 'one_by_one'
+                      ? 'Select the single subject you want to practice for this session.'
+                      : isJamb
+                        ? 'JAMB UTME mandates English Language + 3 elective subjects (4 total).'
+                        : 'Select the subjects included in your merged examination session.'}
+                  </p>
+                </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Duration */}
-            <div className="space-y-2">
-              <label className="block text-xs font-black uppercase tracking-wider text-theme-muted">
-                Exam Countdown Duration
-              </label>
-              <div className="flex items-center gap-2">
-                {[30, 45, 60, 90, 120, 180].map(m => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setDurationMinutes(m)}
-                    className={cn(
-                      "flex-1 py-2 rounded-xl text-xs font-bold border transition-all",
-                      durationMinutes === m
-                        ? "bg-theme-accent text-white border-theme-accent shadow-sm"
-                        : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
+                <div className="self-start sm:self-auto">
+                  <span className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border flex items-center gap-1.5",
+                    timingMode === 'one_by_one'
+                      ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                      : selectedSubjects.length === (isJamb ? 4 : selectedSubjects.length)
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                        : "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                  )}>
+                    {timingMode === 'one_by_one' ? (
+                      <span>1 Subject Selected: {selectedSubjects[0] || 'None'}</span>
+                    ) : (
+                      <span>{selectedSubjects.length} / {isJamb ? 4 : 'Any'} Chosen</span>
                     )}
-                  >
-                    {m}m
-                  </button>
-                ))}
+                  </span>
+                </div>
+              </div>
+
+              {/* Subject Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
+                {subjectPool.map((s) => {
+                  const isSelected = selectedSubjects.includes(s);
+                  const isLockedEnglish = isJamb && s === 'English' && timingMode === 'merged';
+
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => handleToggleSubject(s)}
+                      className={cn(
+                        "p-3.5 rounded-2xl border-2 text-xs font-bold text-left flex items-center justify-between gap-2 transition-all relative active:scale-98",
+                        isSelected
+                          ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-md ring-2 ring-amber-500/30"
+                          : "bg-theme-bg border-theme-border text-theme-text hover:border-theme-muted",
+                        isLockedEnglish && "ring-1 ring-amber-400"
+                      )}
+                    >
+                      <div className="truncate flex items-center gap-1.5">
+                        {isLockedEnglish && <Star size={12} className="text-slate-950 shrink-0 fill-slate-950" />}
+                        <span className="truncate">{s}</span>
+                      </div>
+                      {isSelected && <Check size={16} className="shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* WHICH STARTS FIRST SELECTOR (FOR MERGED MODE) */}
+              {timingMode === 'merged' && selectedSubjects.length > 1 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="pt-4 border-t border-theme-border/60 space-y-2.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-500">
+                      ★ Which Subject Starts First?
+                    </span>
+                    <span className="text-[11px] text-theme-muted">
+                      (Choose which subject displays on screen when your live test begins)
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {selectedSubjects.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setStartingSubject(s)}
+                        className={cn(
+                          "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border active:scale-95",
+                          startingSubject === s
+                            ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-sm"
+                            : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
+                        )}
+                      >
+                        <span>{s}</span>
+                        {startingSubject === s && <Check size={12} />}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Paper Format (Objectives vs Theory) for WAEC/NECO */}
+              {supportsTheory && (
+                <div className="pt-4 border-t border-theme-border/60 space-y-3">
+                  <span className="text-xs font-black uppercase tracking-wider text-purple-400 block">
+                    Paper Format:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPaperFormat('objective')}
+                      className={cn(
+                        "p-3.5 rounded-2xl border-2 text-left transition-all flex items-center justify-between",
+                        paperFormat === 'objective'
+                          ? "border-emerald-500 bg-emerald-500/10 text-emerald-400 ring-2 ring-emerald-500/20"
+                          : "border-theme-border bg-theme-bg text-theme-muted"
+                      )}
+                    >
+                      <div>
+                        <span className="font-bold text-sm text-theme-text block">Objectives Only</span>
+                        <span className="text-[11px] text-theme-muted">Paper 1 Multiple Choice format</span>
+                      </div>
+                      {paperFormat === 'objective' && <CheckCircle2 size={18} className="text-emerald-500" />}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaperFormat('theory')}
+                      className={cn(
+                        "p-3.5 rounded-2xl border-2 text-left transition-all flex items-center justify-between",
+                        paperFormat === 'theory'
+                          ? "border-purple-500 bg-purple-500/10 text-purple-400 ring-2 ring-purple-500/20"
+                          : "border-theme-border bg-theme-bg text-theme-muted"
+                      )}
+                    >
+                      <div>
+                        <span className="font-bold text-sm text-theme-text block">Theory / Essays</span>
+                        <span className="text-[11px] text-theme-muted">Exact past questions with answer inputs & workings upload</span>
+                      </div>
+                      {paperFormat === 'theory' && <CheckCircle2 size={18} className="text-purple-400" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Navigation Buttons for Step 2 */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className="px-6 py-4 bg-theme-card hover:bg-theme-bg border border-theme-border text-theme-muted hover:text-theme-text font-bold text-xs uppercase tracking-wider rounded-2xl transition-all"
+              >
+                Back
+              </button>
+
+              <button
+                type="button"
+                onClick={handleStep2Next}
+                className="flex-1 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-black text-sm uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-amber-500/10 transition-all active:scale-98"
+              >
+                <span>Next: Exam Duration</span>
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* STEP 3: EXAM DURATION SCREEN (Countdown timer setting) */}
+        {/* ========================================================================= */}
+        {currentStep === 3 && (
+          <motion.div
+            key="step3"
+            initial={{ opacity: 0, x: 15 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -15 }}
+            className="space-y-6"
+          >
+            <div className="bg-theme-card rounded-3xl p-6 sm:p-8 border border-theme-border shadow-sm space-y-6">
+              <div className="space-y-1.5 pb-3 border-b border-theme-border/60">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                  Step 3 of 4: Exam Duration
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-theme-text">
+                  Set Examination Countdown Timer
+                </h2>
+                <p className="text-xs sm:text-sm text-theme-muted leading-relaxed">
+                  Choose how much time you want for this examination session. The unified timer counts down live on screen.
+                </p>
+              </div>
+
+              {/* Duration Presets */}
+              <div className="space-y-3">
+                <span className="text-xs font-black uppercase tracking-wider text-theme-muted block">
+                  Select Timer Duration:
+                </span>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+                  {(timingMode === 'one_by_one' 
+                    ? [20, 30, 40, 50, 60, 90]
+                    : [60, 90, 120, 150, 180, 210]
+                  ).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setDurationMinutes(m)}
+                      className={cn(
+                        "py-3.5 rounded-2xl text-xs sm:text-sm font-black border transition-all flex flex-col items-center justify-center gap-1 active:scale-95",
+                        durationMinutes === m
+                          ? "bg-amber-500 text-slate-950 border-amber-500 shadow-md ring-2 ring-amber-500/30"
+                          : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text hover:bg-theme-card"
+                      )}
+                    >
+                      <span className="text-base sm:text-lg">{m}</span>
+                      <span className="text-[10px] uppercase opacity-75">Mins</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Informational Callout */}
+              <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex items-center gap-3">
+                <Clock size={22} className="text-amber-500 shrink-0" />
+                <p className="text-xs text-theme-muted leading-relaxed">
+                  {timingMode === 'merged' && isJamb && durationMinutes === 120 ? (
+                    <span><strong>Official JAMB UTME Standard:</strong> 120 minutes (2 Hours) for 4 subjects.</span>
+                  ) : (
+                    <span>Timer will start counting down as soon as you enter the live CBT exam page.</span>
+                  )}
+                </p>
               </div>
             </div>
 
-            {/* Practice Mode */}
-            <div className="space-y-2">
-              <label className="block text-xs font-black uppercase tracking-wider text-theme-muted">
-                Practice Mode
-              </label>
-              <div className="flex gap-2">
+            {/* Navigation Buttons for Step 3 */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="px-6 py-4 bg-theme-card hover:bg-theme-bg border border-theme-border text-theme-muted hover:text-theme-text font-bold text-xs uppercase tracking-wider rounded-2xl transition-all"
+              >
+                Back
+              </button>
+
+              <button
+                type="button"
+                onClick={handleStep3Next}
+                className="flex-1 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-black text-sm uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-amber-500/10 transition-all active:scale-98"
+              >
+                <span>Next: Practice Mode</span>
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* STEP 4: PRACTICE MODE (Random Mock vs Past Year) & FINAL START BUTTON */}
+        {/* ========================================================================= */}
+        {currentStep === 4 && (
+          <motion.div
+            key="step4"
+            initial={{ opacity: 0, x: 15 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -15 }}
+            className="space-y-6"
+          >
+            <div className="bg-theme-card rounded-3xl p-6 sm:p-8 border border-theme-border shadow-sm space-y-6">
+              <div className="space-y-1.5 pb-3 border-b border-theme-border/60">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                  Step 4 of 4: Practice Mode & Final Verification
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-theme-text">
+                  Choose Question Practice Mode
+                </h2>
+                <p className="text-xs sm:text-sm text-theme-muted leading-relaxed">
+                  Select whether to generate a random syllabus mock exam or practice questions from a specific past year series.
+                </p>
+              </div>
+
+              {/* Random vs Past Year Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                   type="button"
                   onClick={() => setPracticeMode('random')}
                   className={cn(
-                    "flex-1 py-2 rounded-xl text-xs font-bold border transition-all",
+                    "p-5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-3 active:scale-98",
                     practiceMode === 'random'
-                      ? "bg-theme-accent text-white border-theme-accent shadow-sm"
-                      : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
+                      ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20 shadow-sm"
+                      : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-muted"
                   )}
                 >
-                  Random Mock
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-base text-theme-text">Random Mock Exam</span>
+                    {practiceMode === 'random' && <CheckCircle2 size={20} className="text-amber-500" />}
+                  </div>
+                  <p className="text-xs text-theme-muted leading-relaxed">
+                    Pulls authentic questions randomly across topics to test overall readiness.
+                  </p>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPracticeMode('yearly')}
                   className={cn(
-                    "flex-1 py-2 rounded-xl text-xs font-bold border transition-all",
+                    "p-5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-3 active:scale-98",
                     practiceMode === 'yearly'
-                      ? "bg-theme-accent text-white border-theme-accent shadow-sm"
-                      : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
+                      ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20 shadow-sm"
+                      : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-muted"
                   )}
                 >
-                  Past Year Exam
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-base text-theme-text">Past Year Exam</span>
+                    {practiceMode === 'yearly' && <CheckCircle2 size={20} className="text-amber-500" />}
+                  </div>
+                  <p className="text-xs text-theme-muted leading-relaxed">
+                    Practice the exact series of questions from a specific historical year.
+                  </p>
                 </button>
               </div>
-            </div>
-          </div>
 
-          {/* Past Year Pills */}
-          {practiceMode === 'yearly' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="pt-3 border-t border-theme-border/60 space-y-2"
-            >
-              <span className="text-[10px] font-black uppercase tracking-wider text-theme-muted block">
-                Select Past Exam Year:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {availableYears.map(yr => (
-                  <button
-                    key={yr}
-                    type="button"
-                    onClick={() => setSelectedYear(yr)}
-                    className={cn(
-                      "px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all",
-                      selectedYear === yr
-                        ? "bg-theme-accent text-white border-theme-accent shadow-sm"
-                        : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
-                    )}
-                  >
-                    {yr}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </section>
-
-        {/* BOTTOM ACTION / START CBT BUTTON */}
-        <div className="sticky bottom-4 z-20">
-          <div className="bg-theme-card/95 backdrop-blur-md border border-theme-border rounded-3xl p-4 sm:p-5 shadow-2xl space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="font-black text-theme-text">Configuration:</span>
-                <span className="text-amber-500 font-bold">
-                  {examType} • {timingMode === 'merged' ? 'Merged Time' : 'One-by-One'}
-                </span>
-                <span className="text-theme-muted">• {selectedSubjects.length} Subject(s)</span>
-                <span className="text-theme-muted">• {durationMinutes} Mins</span>
-              </div>
-
-              {timingMode === 'merged' && (
-                <div className="text-xs text-theme-muted">
-                  Starts with: <strong className="text-theme-text">{startingSubject}</strong>
-                </div>
+              {/* Past Year Selection Pills */}
+              {practiceMode === 'yearly' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="p-4 rounded-2xl bg-theme-bg border border-theme-border space-y-2.5"
+                >
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-500 block">
+                    Select Exam Year:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {availableYears.map(yr => (
+                      <button
+                        key={yr}
+                        type="button"
+                        onClick={() => setSelectedYear(yr)}
+                        className={cn(
+                          "px-4 py-2 rounded-xl text-xs font-black border transition-all active:scale-95",
+                          selectedYear === yr
+                            ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
+                            : "bg-theme-card border-theme-border text-theme-muted hover:text-theme-text"
+                        )}
+                      >
+                        {yr}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
               )}
+
+              {/* Final Summary Card Before Launch */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-theme-bg border border-theme-border space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted block">
+                  Exam Summary Configuration:
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <span className="text-theme-muted block">Exam:</span>
+                    <strong className="text-theme-text font-black">{examType}</strong>
+                  </div>
+                  <div>
+                    <span className="text-theme-muted block">Mode:</span>
+                    <strong className="text-amber-500 font-bold">{timingMode === 'merged' ? 'Merged Time' : 'One-by-One'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-theme-muted block">Subjects:</span>
+                    <strong className="text-theme-text font-bold">{selectedSubjects.length} Subject(s)</strong>
+                  </div>
+                  <div>
+                    <span className="text-theme-muted block">Duration:</span>
+                    <strong className="text-theme-text font-bold">{durationMinutes} Mins</strong>
+                  </div>
+                </div>
+
+                {timingMode === 'merged' && (
+                  <div className="text-xs text-theme-muted pt-2 border-t border-theme-border/60">
+                    First subject displayed: <strong className="text-theme-text">{startingSubject}</strong>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleLaunch}
-              className="w-full py-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:brightness-110 text-slate-950 font-black text-sm uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2.5 shadow-xl shadow-amber-500/10 transition-all active:scale-98"
-            >
-              <span>Start {examType} CBT Exam</span>
-              <ArrowRight size={18} />
-            </button>
-          </div>
-        </div>
+            {/* Navigation Buttons for Step 4 (Back & START EXAM BUTTON) */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="px-6 py-4 bg-theme-card hover:bg-theme-bg border border-theme-border text-theme-muted hover:text-theme-text font-bold text-xs uppercase tracking-wider rounded-2xl transition-all"
+              >
+                Back
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLaunchExam}
+                className="flex-1 py-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:brightness-110 text-slate-950 font-black text-sm uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2.5 shadow-2xl shadow-amber-500/20 transition-all active:scale-98"
+              >
+                <span>Start {examType} CBT Exam</span>
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
       </main>
     </div>
   );

@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight, Clock, Send, AlertCircle, 
   Flag, X, Calculator as CalcIcon, CheckCircle2, 
   Bookmark, ArrowRight, ArrowLeft, GripHorizontal, Check, RefreshCw,
-  LayoutGrid, ArrowUp, ArrowDown, ChevronDown, ChevronUp
+  LayoutGrid, ArrowUp, ArrowDown, ChevronDown, ChevronUp, Upload, Camera
 } from 'lucide-react';
 import { Question, Subject, ExamType } from '../types';
 import { cn } from '../data/lib/utils';
@@ -100,7 +100,25 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   // Answers & UI State
   const [answers, setAnswers] = useState<Record<string, number | null>>({});
   const [theoryAnswers, setTheoryAnswers] = useState<Record<string, string>>({});
+  const [theoryUploads, setTheoryUploads] = useState<Record<string, string[]>>({});
   const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
+
+  const handleUploadWorkings = (questionId: string, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        if (result) {
+          setTheoryUploads((prev) => ({
+            ...prev,
+            [questionId]: [...(prev[questionId] || []), result]
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
@@ -221,7 +239,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   const getSubjectStats = (s: Subject) => {
     const subQs = subjectGroups.get(s) || [];
     const answered = subQs.filter(
-      q => answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0)
+      q => answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0) || (theoryUploads[q.id] && theoryUploads[q.id].length > 0)
     ).length;
     const total = subQs.length;
     const isFinished = answered === total && total > 0;
@@ -245,12 +263,12 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   const totalAnsweredAcrossExam = useMemo(() => {
     let count = 0;
     questions.forEach(q => {
-      if (answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0)) {
+      if (answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0) || (theoryUploads[q.id] && theoryUploads[q.id].length > 0)) {
         count++;
       }
     });
     return count;
-  }, [questions, answers, theoryAnswers]);
+  }, [questions, answers, theoryAnswers, theoryUploads]);
 
   // Keyboard navigation within the active subject
   useEffect(() => {
@@ -545,20 +563,79 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                   ))}
                 </div>
 
-                <textarea
-                  rows={7}
-                  value={theoryAnswers[currentQuestion?.id] || ''}
-                  onChange={(e) => setTheoryAnswers({ ...theoryAnswers, [currentQuestion.id]: e.target.value })}
-                  placeholder="Type your complete step-by-step mathematical proof or essay solution here..."
-                  className="w-full p-4 bg-theme-bg border-2 border-theme-border rounded-2xl text-sm font-sans focus:outline-none focus:border-amber-500 text-theme-text leading-relaxed"
-                />
-
-                {theoryAnswers[currentQuestion?.id]?.includes('$') && (
-                  <div className="p-3 bg-theme-bg/40 border border-theme-border/60 rounded-xl">
-                    <span className="text-[9px] font-bold text-theme-muted uppercase block mb-1">Formula Preview:</span>
-                    <MathRenderer text={theoryAnswers[currentQuestion.id]} />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-theme-muted uppercase tracking-wider">
+                      Written Solution (Optional if Uploading Notebook Sheets):
+                    </span>
                   </div>
-                )}
+
+                  <textarea
+                    rows={6}
+                    value={theoryAnswers[currentQuestion?.id] || ''}
+                    onChange={(e) => setTheoryAnswers({ ...theoryAnswers, [currentQuestion.id]: e.target.value })}
+                    placeholder="Type your step-by-step mathematical proof, calculations, or essay response here (optional if submitting handwritten sheet photo below)..."
+                    className="w-full p-4 bg-theme-bg border-2 border-theme-border rounded-2xl text-sm font-sans focus:outline-none focus:border-amber-500 text-theme-text leading-relaxed"
+                  />
+
+                  {theoryAnswers[currentQuestion?.id]?.includes('$') && (
+                    <div className="p-3 bg-theme-bg/40 border border-theme-border/60 rounded-xl">
+                      <span className="text-[9px] font-bold text-theme-muted uppercase block mb-1">Formula Preview:</span>
+                      <MathRenderer text={theoryAnswers[currentQuestion.id]} />
+                    </div>
+                  )}
+
+                  {/* Photo of Notebook Workings Attachment (Requirement 1 & Theory Flow) */}
+                  <div className="p-4 bg-theme-bg/70 border border-theme-border rounded-2xl space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <h5 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+                          <Camera size={15} className="text-amber-500" />
+                          <span>Snap / Upload Photo of Handwritten Workings</span>
+                        </h5>
+                        <p className="text-[11px] text-theme-muted">
+                          Solve in your rough sheet or notebook, snap a photo, and attach it to this question.
+                        </p>
+                      </div>
+
+                      <label className="cursor-pointer px-4 py-2 bg-theme-card hover:bg-theme-bg border border-theme-border text-theme-text rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 self-start sm:self-auto active:scale-95 shadow-sm">
+                        <Upload size={14} className="text-amber-500" />
+                        <span>Upload Workings</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleUploadWorkings(currentQuestion.id, e.target.files)}
+                        />
+                      </label>
+                    </div>
+
+                    {/* Previews of attached workings for this question */}
+                    {(theoryUploads[currentQuestion?.id] || []).length > 0 && (
+                      <div className="flex flex-wrap gap-2.5 pt-2">
+                        {(theoryUploads[currentQuestion?.id] || []).map((img, i) => (
+                          <div key={i} className="relative group rounded-xl overflow-hidden border border-theme-border">
+                            <img src={img} alt={`Workings sheet ${i + 1}`} className="w-20 h-20 object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTheoryUploads(prev => ({
+                                  ...prev,
+                                  [currentQuestion.id]: (prev[currentQuestion.id] || []).filter((_, idx) => idx !== i)
+                                }));
+                              }}
+                              className="absolute top-1 right-1 p-1 bg-rose-600 text-white rounded-full opacity-80 hover:opacity-100 transition-opacity"
+                              title="Remove photo"
+                            >
+                              <X size={10} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="grid gap-2.5 sm:gap-3.5 pt-2">
