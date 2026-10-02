@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight, Clock, Send, AlertCircle, Menu, Flag, X, Sparkles } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, Clock, Send, AlertCircle, 
+  Menu, Flag, X, Calculator as CalcIcon, CheckCircle2, Bookmark
+} from 'lucide-react';
 import { Question, Subject, ExamType } from '../types';
 import { cn } from '../data/lib/utils';
 import { Calculator } from './Calculator';
 import { SidebarMenu } from './SidebarMenu';
 import { MathRenderer } from './MathRenderer';
-import { CBTQuestionAISolutionModal } from './CBTQuestionAISolutionModal';
 
 interface CBTInterfaceProps {
   subject: Subject;
@@ -53,10 +55,10 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [visitedQuestions, setVisitedQuestions] = useState<Set<string>>(new Set([questions[0]?.id]));
-  const [showAiModal, setShowAiModal] = useState(false);
+  const [activeNavigatorSubject, setActiveNavigatorSubject] = useState<Subject | 'all'>('all');
 
   // Group questions by subject for Merged Mode
-  const subjectGroups = React.useMemo(() => {
+  const subjectGroups = useMemo(() => {
     const map = new Map<Subject, { questions: Question[]; startIndex: number }>();
     questions.forEach((q, i) => {
       if (!map.has(q.subject)) {
@@ -66,9 +68,9 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
     });
     return map;
   }, [questions]);
-  const subjectList = Array.from(subjectGroups.keys());
+  const subjectList = useMemo(() => Array.from(subjectGroups.keys()), [subjectGroups]);
 
-  const currentQuestion = questions[currentIndex];
+  const currentQuestion = questions[currentIndex] || questions[0];
   const isTheoryQuestion = currentQuestion?.section === 'Theory' || currentQuestion?.type === 'theory' || (!currentQuestion?.options || currentQuestion.options.length === 0);
 
   useEffect(() => {
@@ -77,6 +79,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
     }
   }, [currentIndex, currentQuestion]);
 
+  // Exam Countdown Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -110,7 +113,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
     return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const showCalcButton = examType === 'Personal CBT' || ['Mathematics', 'Physics', 'Chemistry'].includes(subject);
+  const showCalcButton = examType === 'Personal CBT' || ['Mathematics', 'Physics', 'Chemistry', 'Further Mathematics', 'Accounting'].includes(currentQuestion?.subject || subject);
 
   const handleSelectAnswer = (optionIndex: number) => {
     setAnswers((prev) => ({
@@ -131,203 +134,266 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
     });
   };
 
+  // Total answered calculation
+  const totalAnsweredCount = useMemo(() => {
+    let count = 0;
+    questions.forEach(q => {
+      if (answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0)) {
+        count++;
+      }
+    });
+    return count;
+  }, [questions, answers, theoryAnswers]);
+
+  // Keyboard navigation shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Avoid hotkeys when typing in a textarea or input
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+
+      if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'n') {
+        if (currentIndex < questions.length - 1) {
+          setCurrentIndex(prev => prev + 1);
+        }
+      } else if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'p') {
+        if (currentIndex > 0) {
+          setCurrentIndex(prev => prev - 1);
+        }
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFlag();
+      } else if (['a', 'b', 'c', 'd', 'e'].includes(e.key.toLowerCase()) && !isTheoryQuestion && currentQuestion?.options) {
+        const optIdx = e.key.toLowerCase().charCodeAt(0) - 97;
+        if (optIdx < currentQuestion.options.length) {
+          handleSelectAnswer(optIdx);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, questions.length, isTheoryQuestion, currentQuestion]);
+
   return (
-    <div className="min-h-screen bg-theme-bg text-theme-text flex flex-col transition-colors duration-300">
-      {/* Header */}
-      <header className="bg-theme-card border-b border-theme-border px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-theme-bg text-theme-text flex flex-col transition-colors duration-300 select-none pb-20 lg:pb-8">
+      
+      {/* Top Header - Responsive for Mobile & Desktop */}
+      <header className="bg-theme-card border-b border-theme-border px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+        {/* Left Side: Exit + Title */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <SidebarMenu user={user} profile={profile} onLogout={onLogout} onNavigate={onNavigateTo} />
+          
           <button
             onClick={() => {
-              if (window.confirm("Are you sure you want to end this exam and return to the subjects dashboard? Your current progress will not be saved.")) {
+              if (window.confirm("Are you sure you want to end this exam and return to the dashboard? Your ongoing progress will be lost.")) {
                 onNavigateTo?.('dashboard');
               }
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-theme-bg hover:bg-theme-border text-theme-muted hover:text-rose-500 border border-theme-border rounded-xl text-xs font-bold transition-all"
-            title="Exit to Subjects Dashboard"
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-theme-bg hover:bg-rose-500/10 text-theme-muted hover:text-rose-500 border border-theme-border rounded-xl text-xs font-bold transition-all"
+            title="Exit Exam"
           >
-            <ChevronLeft size={16} /> Exit
+            <ChevronLeft size={16} />
+            <span className="hidden sm:inline">Exit</span>
           </button>
-          <div className="hidden sm:flex w-10 h-10 bg-theme-accent rounded-lg items-center justify-center text-white font-bold">
-            {subject[0]}
-          </div>
+
           <div>
-            <h1 className="text-lg font-bold text-theme-text leading-tight">{subject} Examination</h1>
-            <p className="text-xs text-theme-muted">Question {currentIndex + 1} of {questions.length}</p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs sm:text-sm font-black text-theme-text leading-tight truncate max-w-[120px] sm:max-w-[200px]">
+                {currentQuestion?.subject || subject}
+              </span>
+              <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                {isMergedMode ? 'Merged' : 'One-by-One'}
+              </span>
+            </div>
+            <p className="text-[11px] text-theme-muted">
+              Q <strong className="text-theme-text">{currentIndex + 1}</strong> of {questions.length}
+            </p>
           </div>
         </div>
 
+        {/* Center: Live Timer Badge */}
         <div className={cn(
-          "flex items-center gap-2 px-4 py-2 rounded-full font-mono font-bold text-lg transition-colors",
-          timeLeft < 300 ? "bg-rose-500/10 text-rose-500 animate-pulse" : "bg-theme-bg/50 text-theme-accent border border-theme-border"
+          "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-mono font-black text-sm sm:text-base border shadow-sm transition-colors",
+          timeLeft < 300 
+            ? "bg-rose-500/15 text-rose-500 border-rose-500/40 animate-pulse" 
+            : "bg-theme-bg text-amber-500 border-amber-500/30"
         )}>
-          <Clock size={20} />
-          {formatTime(timeLeft)}
+          <Clock size={16} className="text-amber-500" />
+          <span>{formatTime(timeLeft)}</span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowQuestionNav(true)}
-            className="p-2 bg-theme-card hover:bg-theme-bg text-theme-muted rounded-xl transition-all flex items-center gap-2 border border-theme-border"
-            title="Question Navigator"
-          >
-            <Menu size={20} />
-            <span className="hidden sm:inline text-sm font-bold text-theme-accent">Navigator</span>
-          </button>
-
+        {/* Right Side: Calculator, Question Map, Submit */}
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {showCalcButton && (
             <button
               onClick={() => setShowCalculator(true)}
-              className="p-2 bg-theme-card hover:bg-theme-bg text-theme-muted rounded-xl transition-all flex items-center gap-2 border border-theme-border"
+              className="p-2 sm:px-3 sm:py-2 bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border border-theme-border rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
               title="Open Calculator"
             >
-              <div className="bg-theme-accent text-white w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold">
-                +/-
-              </div>
-              <span className="hidden md:inline text-sm font-bold text-theme-text transition-colors">Calc</span>
+              <CalcIcon size={16} className="text-amber-500" />
+              <span className="hidden md:inline">Calc</span>
             </button>
           )}
 
-          {/* JeeRaf AI Study Helper Button */}
           <button
-            type="button"
-            onClick={() => setShowAiModal(true)}
-            className="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 rounded-xl transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
-            title="Ask JeeRaf AI for guidance or concept clarity on this question"
+            onClick={() => setShowQuestionNav(true)}
+            className="p-2 sm:px-3 sm:py-2 bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border border-theme-border rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+            title="View Question Navigator"
           >
-            <Sparkles size={16} className="text-amber-500" />
-            <span className="hidden sm:inline text-xs font-black text-amber-500">AI Help</span>
+            <Menu size={16} className="text-theme-accent" />
+            <span className="hidden sm:inline">Map</span>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-theme-card border border-theme-border text-theme-text">
+              {totalAnsweredCount}/{questions.length}
+            </span>
           </button>
 
           <button
             disabled={isSubmitting}
             onClick={() => setShowSubmitConfirm(true)}
-            className="bg-theme-accent hover:opacity-90 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-theme-accent/20 disabled:opacity-50"
+            className="px-3.5 sm:px-5 py-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:brightness-110 text-slate-950 font-black text-xs sm:text-sm rounded-xl flex items-center gap-1.5 shadow-md transition-all active:scale-95 disabled:opacity-50"
           >
             {isSubmitting ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Send size={18} />
+              <Send size={15} />
             )}
-            {isSubmitting ? 'Submitting...' : 'Submit'}
+            <span>Submit</span>
           </button>
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl grid lg:grid-cols-4 gap-8">
-        {/* Question Area */}
-        <div className="lg:col-span-3 space-y-6">
+      {/* Main Examination Layout */}
+      <main className="flex-1 container mx-auto px-3 sm:px-6 py-4 sm:py-6 max-w-6xl grid lg:grid-cols-4 gap-6 items-start">
+        
+        {/* Left 3 Columns: Active Subject Tabs, Question Card, Options */}
+        <div className="lg:col-span-3 space-y-4">
+          
           {/* Merged Mode Subject Switcher Tabs */}
-          {subjectList.length > 1 && (
-            <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
-              {subjectList.map((s) => {
-                const info = subjectGroups.get(s)!;
-                const isCurrentSubject = currentQuestion?.subject === s;
-                const answeredInSubject = info.questions.filter(
-                  (q) => answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0)
-                ).length;
+          {isMergedMode && subjectList.length > 1 && (
+            <div className="sticky top-16 z-20 bg-theme-bg/95 backdrop-blur-md pt-1 pb-2">
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {subjectList.map((s) => {
+                  const info = subjectGroups.get(s)!;
+                  const isCurrentSubject = currentQuestion?.subject === s;
+                  const answeredInSub = info.questions.filter(
+                    q => answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0)
+                  ).length;
 
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setCurrentIndex(info.startIndex)}
-                    className={cn(
-                      "px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 border shadow-sm",
-                      isCurrentSubject
-                        ? "bg-theme-accent text-white border-theme-accent shadow-md scale-102"
-                        : "bg-theme-card border-theme-border text-theme-muted hover:text-theme-text hover:bg-theme-bg"
-                    )}
-                  >
-                    <span>{s}</span>
-                    <span
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setCurrentIndex(info.startIndex)}
                       className={cn(
-                        "text-[10px] font-black px-2 py-0.5 rounded-full",
-                        isCurrentSubject ? "bg-white/20 text-white" : "bg-theme-bg text-theme-muted"
+                        "px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 border shadow-sm shrink-0",
+                        isCurrentSubject
+                          ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow-md scale-102"
+                          : "bg-theme-card border-theme-border text-theme-muted hover:text-theme-text hover:bg-theme-bg"
                       )}
                     >
-                      {answeredInSubject}/{info.questions.length}
-                    </span>
-                  </button>
-                );
-              })}
+                      <span>{s}</span>
+                      <span className={cn(
+                        "text-[10px] font-black px-2 py-0.5 rounded-full",
+                        isCurrentSubject ? "bg-slate-950/20 text-slate-950" : "bg-theme-bg text-theme-muted"
+                      )}>
+                        {answeredInSub}/{info.questions.length}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
+          {/* Primary Question Card */}
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-theme-card rounded-3xl p-8 shadow-sm border border-theme-border min-h-[400px] flex flex-col transition-colors duration-300"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15 }}
+            className="bg-theme-card rounded-3xl p-5 sm:p-8 shadow-sm border border-theme-border min-h-[380px] flex flex-col justify-between"
           >
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span className="inline-block px-3 py-1 bg-theme-bg text-theme-accent text-xs font-bold rounded-full uppercase tracking-wider border border-theme-border">
+            {/* Question Card Top Bar */}
+            <div className="space-y-4 mb-6">
+              <div className="flex items-center justify-between gap-2 border-b border-theme-border/60 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-theme-bg text-theme-accent text-xs font-black rounded-full uppercase tracking-wider border border-theme-border">
                     Question {currentIndex + 1}
                   </span>
                   {currentQuestion?.subject && (
-                    <span className="text-xs font-bold text-theme-muted">
+                    <span className="text-xs font-bold text-theme-muted truncate">
                       • {currentQuestion.subject}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-4">
+
+                <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={toggleFlag}
                     className={cn(
-                      "flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold transition-all",
+                      "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all border",
                       flaggedQuestions.has(currentQuestion.id)
-                        ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                        : "bg-theme-bg text-theme-muted hover:text-theme-text border border-theme-border"
+                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                        : "bg-theme-bg text-theme-muted hover:text-theme-text border-theme-border"
                     )}
                   >
-                    <Flag size={14} fill={flaggedQuestions.has(currentQuestion.id) ? "currentColor" : "none"} />
-                    {flaggedQuestions.has(currentQuestion.id) ? "Flagged" : "Flag for Review"}
+                    <Flag size={13} fill={flaggedQuestions.has(currentQuestion.id) ? "currentColor" : "none"} />
+                    <span className="hidden sm:inline">
+                      {flaggedQuestions.has(currentQuestion.id) ? "Flagged" : "Flag"}
+                    </span>
                   </button>
-                  {currentQuestion.section && (
-                    <span className="text-xs font-bold text-theme-muted uppercase tracking-widest">
+
+                  {currentQuestion?.section && (
+                    <span className="text-[10px] font-bold text-theme-muted uppercase tracking-wider bg-theme-bg px-2.5 py-1 rounded-full border border-theme-border hidden sm:inline">
                       {currentQuestion.section}
                     </span>
                   )}
                 </div>
               </div>
 
+              {/* Comprehension Passage Display */}
               {currentQuestion.passage && (
-                <div className="mb-6 p-6 bg-theme-bg border-l-4 border-theme-accent rounded-r-2xl">
-                  <h4 className="text-xs font-bold text-theme-accent mb-2 uppercase tracking-widest">Read the passage below:</h4>
-                  <div className="text-theme-text leading-relaxed italic opacity-90">
+                <div className="p-4 sm:p-5 bg-theme-bg border-l-4 border-amber-500 rounded-r-2xl max-h-60 overflow-y-auto pr-2 scrollbar-thin">
+                  <h4 className="text-[11px] font-black text-amber-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                    <Bookmark size={13} />
+                    <span>Read Comprehension Passage:</span>
+                  </h4>
+                  <div className="text-xs sm:text-sm text-theme-text/90 leading-relaxed italic">
                     <MathRenderer text={currentQuestion.passage} />
                   </div>
                 </div>
               )}
 
+              {/* Diagram / Supporting Image Display */}
               {currentQuestion.images && currentQuestion.images.length > 0 && (
-                <div className="mb-6 flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-3 my-3">
                   {currentQuestion.images.map((img, i) => img && (
                     <img 
                       key={i} 
                       src={img} 
                       alt={`Reference diagram ${i + 1}`} 
-                      className="max-h-64 rounded-xl border border-theme-border shadow-sm"
+                      className="max-h-60 sm:max-h-72 rounded-2xl border border-theme-border shadow-sm object-contain bg-white/5"
                       referrerPolicy="no-referrer"
                     />
                   ))}
                 </div>
               )}
 
-              <div className="text-xl md:text-2xl font-medium text-theme-text leading-relaxed transition-colors">
+              {/* Main Question Stem */}
+              <div className="text-base sm:text-lg md:text-xl font-medium text-theme-text leading-relaxed">
                 <MathRenderer text={currentQuestion.question} />
               </div>
             </div>
 
-            {/* Answer Mode: Theory/Essay Workspace OR Multiple Choice Options */}
+            {/* Answer Area: Theory Workspace OR Multiple Choice Options */}
             {isTheoryQuestion ? (
-              <div className="space-y-4 mt-auto">
-                <div className="flex items-center justify-between border-b border-theme-border/60 pb-2">
+              <div className="space-y-4 pt-4 border-t border-theme-border/60">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20">
-                      Theory / Essay Solution Area
+                      Theory / Essay Answer Area
                     </span>
                     {currentQuestion.marks && (
                       <span className="text-xs font-bold text-amber-400">
@@ -335,14 +401,14 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] text-theme-muted">
-                    {(theoryAnswers[currentQuestion.id] || '').length} characters typed
+                  <span className="text-[11px] text-theme-muted font-mono">
+                    {(theoryAnswers[currentQuestion.id] || '').length} chars
                   </span>
                 </div>
 
-                {/* Math helper shortcuts */}
+                {/* Math Symbol Toolbar */}
                 <div className="flex flex-wrap items-center gap-1.5 p-2 bg-theme-bg/60 rounded-xl border border-theme-border/60">
-                  <span className="text-[9px] font-bold uppercase text-theme-muted mr-1">Insert Symbol:</span>
+                  <span className="text-[9px] font-bold uppercase text-theme-muted mr-1">Insert Math:</span>
                   {[
                     { label: 'x²', val: '^{2}' },
                     { label: '√x', val: '\\sqrt{}' },
@@ -369,10 +435,10 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                 </div>
 
                 <textarea
-                  rows={8}
+                  rows={7}
                   value={theoryAnswers[currentQuestion.id] || ''}
                   onChange={(e) => setTheoryAnswers({ ...theoryAnswers, [currentQuestion.id]: e.target.value })}
-                  placeholder="Type your complete step-by-step mathematical proof, calculations, reasoning, or essay answer here..."
+                  placeholder="Type your complete step-by-step mathematical proof, reasoning, or essay solution here..."
                   className="w-full p-4 bg-theme-bg border-2 border-theme-border rounded-2xl text-sm font-sans focus:outline-none focus:border-theme-accent text-theme-text leading-relaxed"
                 />
 
@@ -384,189 +450,308 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                 )}
               </div>
             ) : (
-              <div className="grid gap-4 mt-auto">
-                {currentQuestion.options.map((option, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSelectAnswer(idx)}
-                    className={cn(
-                      "flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all group",
-                      answers[currentQuestion.id] === idx
-                        ? "border-theme-accent bg-theme-accent/5"
-                        : "border-theme-border hover:border-theme-accent/30 hover:bg-theme-bg"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold shrink-0 transition-all",
-                      answers[currentQuestion.id] === idx
-                        ? "bg-theme-accent border-theme-accent text-white"
-                        : "border-theme-border text-theme-muted group-hover:border-theme-accent/50"
-                    )}>
-                      {String.fromCharCode(65 + idx)}
-                    </div>
-                    <span className={cn(
-                      "text-lg transition-colors",
-                      answers[currentQuestion.id] === idx ? "text-theme-text font-medium" : "text-theme-text/80"
-                    )}>
-                      <MathRenderer text={option} />
-                    </span>
-                  </button>
-                ))}
+              <div className="grid gap-2.5 sm:gap-3.5 pt-2">
+                {currentQuestion.options.map((option, idx) => {
+                  const isSelected = answers[currentQuestion.id] === idx;
+                  const letter = String.fromCharCode(65 + idx);
+
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectAnswer(idx)}
+                      className={cn(
+                        "flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl border-2 text-left transition-all group relative active:scale-99",
+                        isSelected
+                          ? "border-theme-accent bg-theme-accent/10 ring-2 ring-theme-accent/20 shadow-sm"
+                          : "border-theme-border hover:border-theme-accent/40 bg-theme-card hover:bg-theme-bg"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-8 h-8 rounded-full border-2 flex items-center justify-center font-black text-xs shrink-0 transition-all",
+                        isSelected
+                          ? "bg-theme-accent border-theme-accent text-white"
+                          : "border-theme-border text-theme-muted group-hover:border-theme-accent/60"
+                      )}>
+                        {letter}
+                      </div>
+
+                      <div className={cn(
+                        "text-sm sm:text-base leading-relaxed transition-colors flex-1",
+                        isSelected ? "text-theme-text font-bold" : "text-theme-text/90"
+                      )}>
+                        <MathRenderer text={option} />
+                      </div>
+
+                      {isSelected && (
+                        <CheckCircle2 size={18} className="text-theme-accent shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </motion.div>
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between">
+          {/* Desktop Navigation Row (Previous & Next) */}
+          <div className="hidden sm:flex items-center justify-between pt-2">
             <button
               disabled={currentIndex === 0}
               onClick={() => setCurrentIndex(prev => prev - 1)}
-              className="flex items-center gap-2 px-6 py-3 bg-theme-card border border-theme-border rounded-xl font-bold text-theme-muted hover:bg-theme-bg disabled:opacity-30 transition-all"
+              className="flex items-center gap-2 px-6 py-3 bg-theme-card border border-theme-border rounded-2xl font-bold text-sm text-theme-text hover:bg-theme-bg disabled:opacity-30 transition-all active:scale-95 shadow-sm"
             >
-              <ChevronLeft size={20} />
-              Previous
+              <ChevronLeft size={18} />
+              <span>Previous Question</span>
             </button>
-            
-            <div className="hidden sm:flex gap-2">
-              {questions.map((_, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    "w-2 h-2 rounded-full transition-all",
-                    idx === currentIndex 
-                      ? "w-8 bg-theme-accent" 
-                      : answers[questions[idx].id] !== undefined 
-                        ? "bg-theme-accent/30" 
-                        : "bg-theme-border"
-                  )}
-                />
-              ))}
-            </div>
+
+            <span className="text-xs text-theme-muted font-bold">
+              Question {currentIndex + 1} of {questions.length}
+            </span>
 
             <button
               disabled={currentIndex === questions.length - 1}
               onClick={() => setCurrentIndex(prev => prev + 1)}
-              className="flex items-center gap-2 px-6 py-3 bg-theme-card border border-theme-border rounded-xl font-bold text-theme-muted hover:bg-theme-bg disabled:opacity-30 transition-all"
+              className="flex items-center gap-2 px-6 py-3 bg-theme-accent hover:opacity-90 text-white rounded-2xl font-bold text-sm disabled:opacity-30 transition-all active:scale-95 shadow-md shadow-theme-accent/20"
             >
-              Next
-              <ChevronRight size={20} />
+              <span>Next Question</span>
+              <ChevronRight size={18} />
             </button>
           </div>
         </div>
 
-        {/* Question Navigator Sidebar */}
-        <div className="hidden lg:block space-y-6">
-          <div className="bg-theme-card rounded-3xl p-6 shadow-sm border border-theme-border sticky top-28 transition-colors duration-300">
-            <h3 className="font-bold text-theme-text mb-4 flex items-center justify-between">
-              Question Map
-              <span className="text-xs font-normal text-theme-muted">
-                {Object.keys(answers).length} / {questions.length} Answered
-              </span>
-            </h3>
-            <div className="grid grid-cols-5 gap-2">
-              {questions.map((q, idx) => {
-                const isAnswered = answers[q.id] !== undefined;
-                const isFlagged = flaggedQuestions.has(q.id);
-                const isVisited = visitedQuestions.has(q.id);
-                const isSkipped = isVisited && !isAnswered;
+        {/* Right 1 Column (Desktop Question Map Navigator) */}
+        <aside className="hidden lg:block space-y-4">
+          <div className="bg-theme-card rounded-3xl p-5 border border-theme-border shadow-sm sticky top-20 max-h-[calc(100vh-120px)] flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-3 border-b border-theme-border/60">
+                <h3 className="font-black text-sm text-theme-text flex items-center gap-2">
+                  <span>Question Map</span>
+                </h3>
+                <span className="text-xs font-bold text-theme-muted">
+                  {totalAnsweredCount} / {questions.length}
+                </span>
+              </div>
 
-                return (
+              {/* Merged Subject Filter in Map */}
+              {isMergedMode && subjectList.length > 1 && (
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                   <button
-                    key={q.id}
-                    onClick={() => setCurrentIndex(idx)}
+                    type="button"
+                    onClick={() => setActiveNavigatorSubject('all')}
                     className={cn(
-                      "w-full aspect-square rounded-lg text-xs font-bold flex items-center justify-center transition-all relative",
-                      idx === currentIndex 
-                        ? "bg-theme-accent text-white ring-4 ring-theme-accent/20" 
-                        : isFlagged 
-                          ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                          : isSkipped
-                            ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
-                            : isAnswered 
-                              ? "bg-theme-accent/10 text-theme-accent border border-theme-accent/20" 
-                              : "bg-theme-bg text-theme-muted hover:bg-theme-border border border-theme-border"
+                      "px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border transition-all",
+                      activeNavigatorSubject === 'all'
+                        ? "bg-theme-accent text-white border-theme-accent"
+                        : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
                     )}
                   >
-                    {idx + 1}
-                    {isFlagged && (
-                      <div className="absolute -top-1 -right-1">
-                        <Flag size={10} fill="currentColor" className="text-amber-500" />
-                      </div>
-                    )}
+                    All
                   </button>
-                );
-              })}
-            </div>
+                  {subjectList.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setActiveNavigatorSubject(s)}
+                      className={cn(
+                        "px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border transition-all truncate max-w-[80px]",
+                        activeNavigatorSubject === s
+                          ? "bg-amber-500 text-slate-950 border-amber-500"
+                          : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
+                      )}
+                    >
+                      {s.slice(0, 4)}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-            <div className="mt-8 pt-6 border-t border-theme-border space-y-2">
-              <div className="flex items-center gap-2 text-xs text-theme-muted">
-                <div className="w-3 h-3 bg-theme-accent rounded-sm" /> Current
+              {/* Scrollable Questions Grid */}
+              <div className="grid grid-cols-5 gap-1.5 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
+                {questions.map((q, idx) => {
+                  if (activeNavigatorSubject !== 'all' && q.subject !== activeNavigatorSubject) {
+                    return null;
+                  }
+
+                  const isAnswered = answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0);
+                  const isFlagged = flaggedQuestions.has(q.id);
+                  const isVisited = visitedQuestions.has(q.id);
+                  const isSkipped = isVisited && !isAnswered;
+
+                  return (
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => setCurrentIndex(idx)}
+                      className={cn(
+                        "w-full aspect-square rounded-xl text-xs font-black flex items-center justify-center transition-all relative border",
+                        idx === currentIndex
+                          ? "bg-theme-accent text-white border-theme-accent ring-2 ring-theme-accent/40 shadow-sm"
+                          : isFlagged
+                            ? "bg-amber-500/20 text-amber-400 border-amber-500/50"
+                            : isAnswered
+                              ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                              : isSkipped
+                                ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
+                                : "bg-theme-bg text-theme-muted border-theme-border hover:bg-theme-card"
+                      )}
+                    >
+                      {idx + 1}
+                      {isFlagged && (
+                        <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="flex items-center gap-2 text-xs text-theme-muted">
-                <div className="w-3 h-3 bg-theme-accent/30 rounded-sm border border-theme-accent/40" /> Answered
-              </div>
-              <div className="flex items-center gap-2 text-xs text-theme-muted">
-                <div className="w-3 h-3 bg-rose-500/10 border border-rose-500/20 rounded-sm" /> Skipped
-              </div>
-              <div className="flex items-center gap-2 text-xs text-theme-muted">
-                <div className="w-3 h-3 bg-amber-500/10 border border-amber-500/20 rounded-sm" /> Flagged
-              </div>
-              <div className="flex items-center gap-2 text-xs text-theme-muted">
-                <div className="w-3 h-3 bg-theme-bg border border-theme-border rounded-sm" /> Untouched
+
+              {/* Map Legend */}
+              <div className="pt-3 border-t border-theme-border/60 grid grid-cols-2 gap-2 text-[10px] text-theme-muted">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-sm bg-theme-accent" />
+                  <span>Current</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-sm bg-emerald-500/40 border border-emerald-500" />
+                  <span>Answered</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-sm bg-amber-500/40 border border-amber-500" />
+                  <span>Flagged</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-sm bg-rose-500/30 border border-rose-500" />
+                  <span>Skipped</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </aside>
       </main>
 
-      {/* Submit Confirmation Modal */}
+      {/* Mobile Fixed Bottom Navigation Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-theme-card/95 backdrop-blur-md border-t border-theme-border px-3 py-2.5 flex items-center justify-between shadow-lg">
+        <button
+          disabled={currentIndex === 0}
+          onClick={() => setCurrentIndex(prev => prev - 1)}
+          className="flex items-center gap-1 px-3 py-2 bg-theme-bg border border-theme-border rounded-xl text-xs font-bold text-theme-text disabled:opacity-30"
+        >
+          <ChevronLeft size={16} />
+          <span>Prev</span>
+        </button>
+
+        <button
+          onClick={toggleFlag}
+          className={cn(
+            "p-2 rounded-xl border text-xs font-bold flex items-center gap-1",
+            flaggedQuestions.has(currentQuestion.id)
+              ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
+              : "bg-theme-bg text-theme-muted border-theme-border"
+          )}
+        >
+          <Flag size={14} fill={flaggedQuestions.has(currentQuestion.id) ? "currentColor" : "none"} />
+          <span>{flaggedQuestions.has(currentQuestion.id) ? 'Flagged' : 'Flag'}</span>
+        </button>
+
+        <span className="text-[11px] font-bold text-theme-muted">
+          {currentIndex + 1}/{questions.length}
+        </span>
+
+        <button
+          disabled={currentIndex === questions.length - 1}
+          onClick={() => setCurrentIndex(prev => prev + 1)}
+          className="flex items-center gap-1 px-4 py-2 bg-theme-accent text-white rounded-xl text-xs font-bold shadow-sm disabled:opacity-30"
+        >
+          <span>Next</span>
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      {/* Mobile / Drawer Question Navigator Modal */}
       <AnimatePresence>
-        {showSubmitConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {showQuestionNav && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowSubmitConfirm(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-theme-card rounded-3xl p-8 max-w-md w-full shadow-2xl border border-theme-border"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="bg-theme-card border border-theme-border rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl"
             >
-              <div className="w-16 h-16 bg-theme-accent/10 text-theme-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                <AlertCircle size={32} />
-              </div>
-              <h3 className="text-2xl font-bold text-theme-text text-center mb-2">
-                {isContinuationSection && continuationPart === 1
-                  ? "Finish Part 1 & Start Break?"
-                  : "Submit Examination?"}
-              </h3>
-              <p className="text-theme-muted text-center mb-8 text-xs leading-relaxed">
-                {isContinuationSection && continuationPart === 1
-                  ? `You have answered ${Object.keys(answers).length + Object.keys(theoryAnswers).filter(k => theoryAnswers[k]?.trim()).length} out of ${questions.length} questions. You will now transition to the 15-minute intermission countdown break before beginning ${nextPartTitle || 'Part 2'}.`
-                  : `You have answered ${Object.keys(answers).length + Object.keys(theoryAnswers).filter(k => theoryAnswers[k]?.trim()).length} out of ${questions.length} questions. Are you sure you want to end the exam?`}
-              </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center justify-between pb-3 border-b border-theme-border">
+                <div>
+                  <h3 className="text-base font-black text-theme-text">Question Navigator Map</h3>
+                  <p className="text-xs text-theme-muted">
+                    {totalAnsweredCount} of {questions.length} questions answered
+                  </p>
+                </div>
                 <button
-                  onClick={() => setShowSubmitConfirm(false)}
-                  className="py-3 px-6 border border-theme-border rounded-xl font-bold text-theme-muted hover:bg-theme-bg transition-all"
+                  type="button"
+                  onClick={() => setShowQuestionNav(false)}
+                  className="p-2 rounded-xl bg-theme-bg text-theme-muted hover:text-theme-text border border-theme-border"
                 >
-                  Cancel
+                  <X size={18} />
                 </button>
+              </div>
+
+              {/* Merged Subject Tabs inside Modal */}
+              {isMergedMode && subjectList.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {subjectList.map(s => {
+                    const info = subjectGroups.get(s)!;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => {
+                          setCurrentIndex(info.startIndex);
+                          setShowQuestionNav(false);
+                        }}
+                        className="px-3 py-1.5 rounded-xl text-xs font-bold bg-theme-bg border border-theme-border text-theme-text whitespace-nowrap hover:border-amber-500"
+                      >
+                        {s} ({info.questions.length})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Grid of All Questions */}
+              <div className="grid grid-cols-6 sm:grid-cols-8 gap-2 max-h-72 overflow-y-auto p-1 scrollbar-thin">
+                {questions.map((q, idx) => {
+                  const isAnswered = answers[q.id] !== undefined || (theoryAnswers[q.id] && theoryAnswers[q.id].trim().length > 0);
+                  const isFlagged = flaggedQuestions.has(q.id);
+
+                  return (
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => {
+                        setCurrentIndex(idx);
+                        setShowQuestionNav(false);
+                      }}
+                      className={cn(
+                        "w-full aspect-square rounded-xl text-xs font-black flex items-center justify-center transition-all relative border",
+                        idx === currentIndex
+                          ? "bg-theme-accent text-white border-theme-accent ring-2 ring-theme-accent/40"
+                          : isFlagged
+                            ? "bg-amber-500/20 text-amber-400 border-amber-500/50"
+                            : isAnswered
+                              ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                              : "bg-theme-bg text-theme-muted border-theme-border"
+                      )}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="pt-2">
                 <button
-                  disabled={isSubmitting}
-                  onClick={handleSubmit}
-                  className="py-3 px-4 bg-theme-accent text-white rounded-xl font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-xs uppercase tracking-wider whitespace-nowrap"
+                  type="button"
+                  onClick={() => setShowQuestionNav(false)}
+                  className="w-full py-3 bg-theme-bg hover:bg-theme-card border border-theme-border rounded-xl font-bold text-xs uppercase tracking-wider text-theme-text"
                 >
-                  {isSubmitting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  {isSubmitting
-                    ? 'Submitting...'
-                    : isContinuationSection && continuationPart === 1
-                      ? 'Finish & Take Break'
-                      : 'Yes, Submit'}
+                  Close Navigator
                 </button>
               </div>
             </motion.div>
@@ -575,163 +760,63 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
       </AnimatePresence>
 
       {/* Calculator Modal */}
-      <AnimatePresence>
-        {showCalculator && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowCalculator(false);
-              }}
-              className="absolute inset-0 bg-black/80 backdrop-grayscale-[0.5]"
-            />
-            <div className="relative z-[70]">
-              <Calculator onClose={() => setShowCalculator(false)} />
-            </div>
-          </div>
-        )}
-      </AnimatePresence>
+      {showCalculator && (
+        <Calculator onClose={() => setShowCalculator(false)} />
+      )}
 
-      {/* Question Navigator Modal (Mobile/Tablet) */}
+      {/* Final Submit Confirmation Modal */}
       <AnimatePresence>
-        {showQuestionNav && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {showSubmitConfirm && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowQuestionNav(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-theme-card rounded-3xl p-6 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh] border border-theme-border"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-theme-card border border-theme-border rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 shadow-2xl"
             >
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-bold text-theme-text">Question Map</h3>
-                  <p className="text-sm text-theme-muted">
-                    {Object.keys(answers).length} of {questions.length} Answered
+              <div className="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mx-auto border border-amber-500/20">
+                <AlertCircle size={28} />
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-xl font-black text-theme-text">Confirm Exam Submission</h3>
+                <p className="text-xs text-theme-muted">
+                  You have answered <strong className="text-emerald-500">{totalAnsweredCount}</strong> of{' '}
+                  <strong className="text-theme-text">{questions.length}</strong> questions.
+                </p>
+                {questions.length - totalAnsweredCount > 0 && (
+                  <p className="text-xs text-rose-400 font-bold bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20">
+                    ⚠️ You have {questions.length - totalAnsweredCount} unanswered questions remaining.
                   </p>
-                </div>
-                <button 
-                  onClick={() => setShowQuestionNav(false)}
-                  className="p-2 hover:bg-theme-bg rounded-full transition-colors text-theme-muted"
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSubmitConfirm(false)}
+                  className="flex-1 py-3 bg-theme-bg hover:bg-theme-card text-theme-muted hover:text-theme-text border border-theme-border rounded-2xl font-bold text-xs uppercase tracking-wider transition-all"
                 >
-                  <X size={24} />
+                  Return to Test
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => {
+                    setShowSubmitConfirm(false);
+                    handleSubmit();
+                  }}
+                  className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-2xl text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95"
+                >
+                  Yes, Submit Now
                 </button>
               </div>
-
-              <div className="overflow-y-auto pr-2 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 content-start">
-                {questions.map((q, idx) => {
-                  const isAnswered = answers[q.id] !== undefined;
-                  const isFlagged = flaggedQuestions.has(q.id);
-                  const isVisited = visitedQuestions.has(q.id);
-                  const isSkipped = isVisited && !isAnswered;
-
-                  return (
-                    <button
-                      key={q.id}
-                      onClick={() => {
-                        setCurrentIndex(idx);
-                        setShowQuestionNav(false);
-                      }}
-                      className={cn(
-                        "aspect-square rounded-xl text-sm font-bold flex flex-col items-center justify-center transition-all gap-1 relative",
-                        idx === currentIndex 
-                          ? "bg-theme-accent text-white ring-4 ring-theme-accent/10 shadow-lg shadow-theme-accent/20" 
-                          : isFlagged 
-                            ? "bg-amber-500 text-white border border-amber-600 shadow-sm"
-                            : isSkipped
-                              ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
-                              : isAnswered 
-                                ? "bg-theme-accent/20 text-theme-accent border border-theme-accent/30" 
-                                : "bg-theme-bg text-theme-muted border border-theme-border hover:border-theme-muted"
-                      )}
-                    >
-                      <span>{idx + 1}</span>
-                      <div className={cn(
-                        "w-1.5 h-1.5 rounded-full",
-                        idx === currentIndex 
-                          ? "bg-white/50" 
-                          : isFlagged
-                            ? "bg-amber-400"
-                            : isSkipped
-                              ? "bg-rose-500/40"
-                              : isAnswered 
-                                ? "bg-theme-accent/50" 
-                                : "bg-theme-muted/30"
-                      )} />
-                      {isFlagged && (
-                        <div className="absolute top-1 right-1">
-                          <Flag size={8} fill="currentColor" className="text-amber-500" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-theme-border grid grid-cols-2 sm:grid-cols-5 gap-3">
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-8 h-8 bg-theme-accent rounded-lg" />
-                  <span className="text-[10px] font-bold text-theme-muted uppercase tracking-widest">Current</span>
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-8 h-8 bg-theme-accent/20 border border-theme-accent/30 rounded-lg" />
-                  <span className="text-[10px] font-bold text-theme-muted uppercase tracking-widest">Answered</span>
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-8 h-8 bg-rose-500/10 border border-rose-500/20 rounded-lg" />
-                  <span className="text-[10px] font-bold text-theme-muted uppercase tracking-widest">Skipped</span>
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-8 h-8 bg-amber-500 border border-amber-600 rounded-lg" />
-                  <span className="text-[10px] font-bold text-theme-muted uppercase tracking-widest">Flagged</span>
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-8 h-8 bg-theme-bg border border-theme-border rounded-lg" />
-                  <span className="text-[10px] font-bold text-theme-muted uppercase tracking-widest">Untouched</span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setShowQuestionNav(false)}
-                className="mt-6 w-full py-4 bg-theme-accent text-white rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg shadow-theme-accent/20"
-              >
-                Back to Exam
-              </button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* In-Exam Contextual JeeRaf AI Guidance Modal */}
-      {showAiModal && currentQuestion && (
-        <CBTQuestionAISolutionModal
-          isOpen={showAiModal}
-          onClose={() => setShowAiModal(false)}
-          question={currentQuestion}
-          questionIndex={currentIndex}
-          userAnswer={{
-            selectedAnswer: answers[currentQuestion.id] ?? null
-          }}
-          subject={subject}
-          examType={examType}
-          user={user}
-          profile={profile}
-          onOpenFullScreenAI={() => {
-            setShowAiModal(false);
-            if (onNavigateTo) onNavigateTo('system_ai');
-          }}
-        />
-      )}
     </div>
   );
 };

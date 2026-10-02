@@ -10,6 +10,7 @@ import { ExamTypeSelection } from './components/ExamTypeSelection';
 import { PersonalCBTReady } from './components/PersonalCBTReady';
 import { Dashboard } from './components/Dashboard';
 import { CBTInterface } from './components/CBTInterface';
+import { CBTExamConfigPage } from './components/CBTExamConfigPage';
 import { ExamIntermissionBreak } from './components/ExamIntermissionBreak';
 import { ResultDashboard } from './components/ResultDashboard';
 import { ProgressTracker } from './components/ProgressTracker';
@@ -43,6 +44,7 @@ export type AppState =
   | 'welcome' 
   | 'auth' 
   | 'exam_select' 
+  | 'cbt_config'
   | 'cbt_subjects'
   | 'personal_ready' 
   | 'dashboard' 
@@ -59,7 +61,8 @@ export type AppState =
 export const getPathFromState = (s: AppState): string => {
   switch (s) {
     case 'dashboard': return '/';
-    case 'exam_select':
+    case 'exam_select': return '/cbt/select';
+    case 'cbt_config': return '/cbt/config';
     case 'cbt_subjects': return '/cbt';
     case 'personal_ready': return '/cbt/ready';
     case 'cbt': return '/cbt/exam';
@@ -78,8 +81,9 @@ export const getPathFromState = (s: AppState): string => {
 export const getStateFromPath = (path: string): AppState | null => {
   const clean = path.replace(/\/+$/, '') || '/';
   if (clean === '' || clean === '/') return 'dashboard';
-  if (clean === '/cbt' || clean === '/cbt/select') return 'exam_select';
-  if (clean === '/cbt/practice' || clean === '/cbt/subjects') return 'cbt_subjects';
+  if (clean === '/cbt/select') return 'exam_select';
+  if (clean === '/cbt/config' || clean === '/cbt/setup') return 'cbt_config';
+  if (clean === '/cbt' || clean === '/cbt/practice' || clean === '/cbt/subjects') return 'cbt_subjects';
   if (clean === '/cbt/ready') return 'personal_ready';
   if (clean === '/cbt/exam') return 'cbt';
   if (clean === '/cbt/break') return 'exam_intermission';
@@ -424,7 +428,7 @@ export default function App() {
     if (type === 'Personal CBT') {
       setState('personal_ready');
     } else {
-      setState('cbt_subjects');
+      setState('cbt_config');
     }
   };
 
@@ -457,10 +461,15 @@ export default function App() {
       return filtered;
     };
 
+    // Reorder subjects in merged mode so candidate's chosen startingSubject is first
+    const orderedSubjects = (config.timingMode === 'merged' && config.startingSubject && config.subjects.includes(config.startingSubject))
+      ? [config.startingSubject, ...config.subjects.filter(s => s !== config.startingSubject)]
+      : config.subjects;
+
     if (config.paperFormat === 'both_continuation') {
-      // Gather questions across the selected subjects
+      // Gather questions across the selected subjects in proper starting order
       let allSelectedQuestions: Question[] = [];
-      config.subjects.forEach(subj => {
+      orderedSubjects.forEach(subj => {
         allSelectedQuestions.push(...getQuestionsForSubject(subj));
       });
 
@@ -475,7 +484,7 @@ export default function App() {
 
       // If theory questions are scarce, create syllabus-grounded theory questions for the subjects
       if (theoryQuestions.length === 0) {
-        theoryQuestions = config.subjects.map((subj, idx) => ({
+        theoryQuestions = orderedSubjects.map((subj, idx) => ({
           id: `gen-theory-${subj}-${Date.now()}-${idx}`,
           subject: subj,
           examType: config.examType,
@@ -507,7 +516,7 @@ export default function App() {
       setNextPaperTitle(nextTitle);
       setIntermissionBreakMinutes(Math.max(15, config.breakDurationMinutes || 15));
 
-      setCurrentSubject(config.subjects[0]);
+      setCurrentSubject(orderedSubjects[0]);
       setCurrentQuestions(part1);
       // Half time for Part 1
       setCurrentDuration(Math.max(15, Math.round(config.durationMinutes / 2)));
@@ -518,8 +527,8 @@ export default function App() {
     // Single format: Objectives Only or Theory Only
     let collectedQuestions: Question[] = [];
     if (config.timingMode === 'merged') {
-      // Merged national mode: all selected subjects under one unified timer
-      config.subjects.forEach(subj => {
+      // Merged national mode: all selected subjects under one unified timer with chosen starting subject first
+      orderedSubjects.forEach(subj => {
         let qs = getQuestionsForSubject(subj);
         if (config.paperFormat === 'theory') {
           qs = qs.filter(q => q.type === 'theory' || q.section === 'Theory');
@@ -545,7 +554,7 @@ export default function App() {
       return;
     }
 
-    setCurrentSubject(config.subjects[0]);
+    setCurrentSubject(orderedSubjects[0] || config.subjects[0]);
     setCurrentQuestions(collectedQuestions);
     setCurrentDuration(config.durationMinutes);
     navigateToState('cbt');
@@ -897,6 +906,21 @@ export default function App() {
               navigateToState('exam_select');
             }
           }}
+        />
+      )}
+
+      {state === 'cbt_config' && user && (
+        <CBTExamConfigPage
+          examType={selectedExamType || 'JAMB'}
+          availableSubjects={['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'Geography', 'Commerce', 'Accounting', 'Agricultural Science', 'Civic Education', 'Further Mathematics', 'History', 'CRK', 'IRK']}
+          initialSubject={currentSubject || undefined}
+          availableYears={[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018]}
+          user={user}
+          profile={profile}
+          onLogout={handleLogout}
+          onNavigateTo={handleNavigateTo}
+          onBack={() => navigateToState('exam_select')}
+          onStartExam={handleStartAdvancedExam}
         />
       )}
 

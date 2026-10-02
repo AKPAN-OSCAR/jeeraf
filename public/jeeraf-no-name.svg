@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="100%" height="100%" fill="none">
+  <!-- 
+    REPLACE THIS CONTENT WITH YOUR ORIGINAL jeeraf_noname_clean_master.svg CODE IN VS CODE
+    All components (AI Avatars, Spinner, Dashboard Cards, and Header Icons) automatically link to this file.
+  -->
+  <g id="jeeraf-no-name-master">
+    <!-- Placeholder until you paste your SVG in VS Code -->
+    <circle cx="500" cy="500" r="420" stroke="#f59e0b" stroke-width="20" stroke-dasharray="24 12" fill="none" opacity="0.4" />
+    <text x="500" y="505" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" font-weight="800" fill="#f59e0b" letter-spacing="4">JEERAF EMBLEM</text>
+  </g>
+</svg>

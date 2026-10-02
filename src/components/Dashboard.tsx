@@ -27,7 +27,7 @@ interface DashboardProps {
   onStartAdvanced?: (config: ExamSessionConfig) => void;
   onLogout: () => void;
   onViewProgress: () => void;
-  onNavigateTo: (target: 'dashboard' | 'textbooks' | 'exam_select' | 'progress' | 'admin_console' | 'subscription_portal' | 'fun' | 'blog' | 'awards' | 'system_ai' | 'browser') => void;
+  onNavigateTo: (target: 'dashboard' | 'textbooks' | 'exam_select' | 'cbt_config' | 'progress' | 'admin_console' | 'subscription_portal' | 'fun' | 'blog' | 'awards' | 'system_ai' | 'browser') => void;
   onChangeExamType: () => void;
 }
 
@@ -300,7 +300,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
 
                   <button
                     type="button"
-                    onClick={() => setIsSetupModalOpen(true)}
+                    onClick={() => onNavigateTo('cbt_config')}
                     className="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-all shrink-0 active:scale-95"
                   >
                     <span>Configure Merged / Continuation Exam</span>
@@ -558,10 +558,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
 
                     <button
                       type="button"
-                      onClick={() => setIsSetupModalOpen(true)}
+                      onClick={() => onNavigateTo('cbt_config')}
                       className="px-6 py-5 bg-theme-bg hover:bg-theme-card border-2 border-theme-border hover:border-theme-accent text-theme-text rounded-[2rem] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
                     >
-                      <span>Merged / Theory Break Setup</span>
+                      <span>Configure Full Exam & Merged Timing</span>
                       <ArrowRight size={16} />
                     </button>
                   </div>

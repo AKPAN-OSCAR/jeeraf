@@ -34,6 +34,7 @@ export interface ExamSessionConfig {
   examType: ExamType;
   timingMode: ExamTimingMode;
   subjects: Subject[];
+  startingSubject?: Subject; // For Merged mode: which subject starts first
   paperFormat: ExamPaperFormat;
   continuationOrder?: ContinuationOrder;
   breakDurationMinutes?: number; // Minimum 15 minutes as per Pomofocus rule
