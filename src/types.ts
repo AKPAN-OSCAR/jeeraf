@@ -90,6 +90,7 @@ export interface Question {
   modelAnswer?: string; // Model answer for theory questions
   topic?: string;
   images?: string[]; // Supporting diagrams/images
+  imageUrl?: string; // Supporting diagram image URL
   tags?: string[]; // Custom tags for filtering
 }
 

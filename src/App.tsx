@@ -676,6 +676,7 @@ export default function App() {
       allAnswers = { ...continuationPart1Answers, ...answers };
       allTheory = { ...continuationPart1TheoryAnswers, ...(theoryAnswers || {}) };
       totalTimeTaken = continuationPart1TimeTaken + timeTaken;
+      setCurrentQuestions(allSessionQuestions);
     }
 
     let score = 0;
@@ -717,24 +718,37 @@ export default function App() {
       timingMode: examSessionConfig?.timingMode || 'merged'
     };
 
-    // Transition immediately without any delay or blocking
+    // Transition immediately without any delay or blocking (Requirement 1 & 4)
     setLastResult(result);
     navigateToState('result');
 
     // Asynchronous background persistence (never blocks user screen transition)
-    if (db) {
-      try {
-        const resultsPath = 'sib_results';
-        const cleanPayload = JSON.parse(JSON.stringify(result));
-        addDoc(collection(db, resultsPath), {
-          ...cleanPayload,
-          savedAt: serverTimestamp()
-        }).catch(fsErr => {
-          console.warn("Background save note:", fsErr);
-        });
-      } catch (err) {
-        console.warn("Serialization note:", err);
-      }
+    if (db && user?.uid) {
+      setTimeout(() => {
+        try {
+          const resultsPath = 'sib_results';
+          const cleanAnswers = (result.answers || []).map(a => ({
+            questionId: a.questionId,
+            selectedAnswer: a.selectedAnswer,
+            isCorrect: a.isCorrect,
+            theoryAnswer: typeof a.theoryAnswer === 'string' && a.theoryAnswer.length > 3000 
+              ? a.theoryAnswer.slice(0, 3000) 
+              : a.theoryAnswer || ''
+          }));
+          const cleanPayload = {
+            ...result,
+            answers: cleanAnswers
+          };
+          addDoc(collection(db, resultsPath), {
+            ...cleanPayload,
+            savedAt: serverTimestamp()
+          }).catch(fsErr => {
+            console.warn("Background save note:", fsErr);
+          });
+        } catch (err) {
+          console.warn("Serialization note:", err);
+        }
+      }, 0);
     }
   };
 
@@ -1003,7 +1017,7 @@ export default function App() {
         />
       )}
 
-      {state === 'exam_intermission' && user && (
+      {state === 'exam_intermission' && (
         <ExamIntermissionBreak
           examType={selectedExamType || 'WAEC'}
           subjects={examSessionConfig?.subjects || (currentSubject ? [currentSubject] : ['Mathematics'])}
@@ -1014,9 +1028,9 @@ export default function App() {
         />
       )}
       
-      {state === 'cbt' && currentSubject && (
+      {state === 'cbt' && (
         <CBTInterface
-          subject={currentSubject}
+          subject={currentSubject || examSessionConfig?.subjects?.[0] || 'General'}
           subjects={examSessionConfig?.subjects}
           isMergedMode={examSessionConfig?.timingMode === 'merged' && (examSessionConfig?.subjects?.length || 0) > 1}
           isContinuationSection={examSessionConfig?.paperFormat === 'both_continuation'}
