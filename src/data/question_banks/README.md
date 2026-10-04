@@ -2,6 +2,8 @@
 
 This guide explains how past questions are organized, the exact JSON structure required, the prompt to give external AI tools when extracting questions from images, and how to register new subjects and years into the CBT system.
 
+> 📖 **TypeScript Registry Deep-Dive:** For complete code recipes and syntax rules on wiring `index.ts` files, see the [TypeScript Registry Guide](./REGISTRY_GUIDE.md).
+
 ---
 
 ## 1. Directory Structure

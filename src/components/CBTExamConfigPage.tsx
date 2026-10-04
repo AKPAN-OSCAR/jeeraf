@@ -10,7 +10,7 @@ import {
   Subject, ExamType, ExamTimingMode, 
   ExamPaperFormat, ContinuationOrder, ExamSessionConfig 
 } from '../types';
-import { cn } from '../data/lib/utils';
+import { cn, STANDARD_NATIONAL_EXAM_YEARS } from '../data/lib/utils';
 import { SidebarMenu } from './SidebarMenu';
 
 interface CBTExamConfigPageProps {
@@ -37,7 +37,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
   examType,
   availableSubjects = [],
   initialSubject,
-  availableYears = [2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010],
+  availableYears = STANDARD_NATIONAL_EXAM_YEARS,
   user,
   profile,
   onLogout,
@@ -840,7 +840,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
                   <span className="text-[11px] font-black uppercase tracking-wider text-amber-500 block">
                     Select Exam Year:
                   </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
                     {availableYears.map(yr => (
                       <button
                         key={yr}

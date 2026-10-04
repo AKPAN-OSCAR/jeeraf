@@ -8,7 +8,7 @@ import {
   Calendar, Sliders
 } from 'lucide-react';
 import { Subject, ExamType, Question, ExamSessionConfig } from '../types';
-import { cn, getStandardLimit } from '../data/lib/utils';
+import { cn, getStandardLimit, STANDARD_NATIONAL_EXAM_YEARS } from '../data/lib/utils';
 import { SidebarMenu } from './SidebarMenu';
 import { SubjectGuide } from './SubjectGuide';
 import { ExamSetupModal } from './ExamSetupModal';
@@ -74,22 +74,38 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
   const summaryRef = useRef<HTMLDivElement>(null);
 
   // Dynamically extract available years for the selected subject and examType
-  const availableYears = React.useMemo(() => {
-    if (!selectedSubject || !examType) return [];
+  const subjectQuestionsForYears = React.useMemo(() => {
+    const set = new Set<number>();
+    if (!selectedSubject || !examType) return set;
     const combined = [...staticQuestions, ...adminQuestions];
-    const subjectQs = combined.filter(q => q.subject === selectedSubject && q.examType === examType);
-    const years = Array.from(new Set(subjectQs.map(q => q.year).filter(Boolean))) as number[];
-    return years.sort((a, b) => b - a); // Sort years in descending order
+    combined.forEach(q => {
+      if (q.subject === selectedSubject && q.examType === examType && q.year) {
+        set.add(q.year);
+      }
+    });
+    return set;
+  }, [selectedSubject, examType, adminQuestions]);
+
+  const availableYears = React.useMemo(() => {
+    const combined = [...staticQuestions, ...adminQuestions];
+    const subjectQs = selectedSubject && examType 
+      ? combined.filter(q => q.subject === selectedSubject && q.examType === examType)
+      : [];
+    const loadedYears = Array.from(new Set(subjectQs.map(q => q.year).filter(Boolean))) as number[];
+    const allYears = Array.from(new Set([...loadedYears, ...STANDARD_NATIONAL_EXAM_YEARS]));
+    return allYears.sort((a, b) => b - a); // Sort years in descending order
   }, [selectedSubject, examType, adminQuestions]);
 
   // Sync default selected year
   useEffect(() => {
     if (availableYears.length > 0) {
-      setSelectedYear(availableYears[0]);
+      // Prioritize the latest loaded year if one exists, otherwise top year
+      const firstLoaded = availableYears.find(y => subjectQuestionsForYears.has(y));
+      setSelectedYear(firstLoaded || availableYears[0]);
     } else {
       setSelectedYear(null);
     }
-  }, [availableYears]);
+  }, [availableYears, subjectQuestionsForYears]);
 
   const handleSubjectSelect = (subject: Subject) => {
     setSelectedSubject(subject);
@@ -518,22 +534,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
                                 Select Past Year Exam
                               </h4>
                               {availableYears.length > 0 ? (
-                                <div className="grid grid-cols-3 gap-2">
-                                  {availableYears.map((year) => (
-                                    <button
-                                      key={year}
-                                      type="button"
-                                      onClick={() => setSelectedYear(year)}
-                                      className={cn(
-                                        "py-2.5 px-2 rounded-xl border-2 font-black transition-all text-center text-sm",
-                                        selectedYear === year
-                                          ? "border-theme-accent bg-theme-accent text-white"
-                                          : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-border"
-                                      )}
-                                    >
-                                      {year}
-                                    </button>
-                                  ))}
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
+                                  {availableYears.map((year) => {
+                                    const isReady = subjectQuestionsForYears.has(year);
+                                    return (
+                                      <button
+                                        key={year}
+                                        type="button"
+                                        onClick={() => setSelectedYear(year)}
+                                        className={cn(
+                                          "py-2.5 px-2 rounded-xl border-2 font-black transition-all text-center text-xs sm:text-sm flex flex-col items-center justify-center gap-0.5",
+                                          selectedYear === year
+                                            ? "border-theme-accent bg-theme-accent text-white shadow-sm"
+                                            : "border-theme-border bg-theme-bg text-theme-muted hover:border-theme-muted hover:text-theme-text"
+                                        )}
+                                      >
+                                        <span>{year}</span>
+                                        {isReady && (
+                                          <span className={cn(
+                                            "text-[9px] px-1.5 py-0.2 rounded-full font-bold",
+                                            selectedYear === year ? "bg-white/20 text-white" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                          )}>
+                                            Ready
+                                          </span>
+                                        )}
+                                      </button>
+                                    );
+                                  })}
                                 </div>
                               ) : (
                                 <div className="p-4 rounded-2xl border border-dashed border-theme-border text-center text-xs text-theme-muted font-bold bg-theme-bg/30">

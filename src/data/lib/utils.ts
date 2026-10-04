@@ -19,3 +19,12 @@ export const getStandardLimit = (examType: ExamType | null | undefined, subject:
   
   return 50; // Default fallback
 };
+
+/**
+ * Standard National CBT Historical Examination Years
+ * Full archive from 2025 down to 1990 (36 continuous exam years)
+ */
+export const STANDARD_NATIONAL_EXAM_YEARS: number[] = Array.from(
+  { length: 36 },
+  (_, i) => 2025 - i
+);

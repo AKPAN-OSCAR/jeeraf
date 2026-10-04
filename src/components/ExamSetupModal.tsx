@@ -8,7 +8,7 @@ import {
   Subject, ExamType, ExamTimingMode, 
   ExamPaperFormat, ContinuationOrder, ExamSessionConfig 
 } from '../types';
-import { cn } from '../data/lib/utils';
+import { cn, STANDARD_NATIONAL_EXAM_YEARS } from '../data/lib/utils';
 
 interface ExamSetupModalProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export const ExamSetupModal: React.FC<ExamSetupModalProps> = ({
   examType,
   availableSubjects,
   initialSubject,
-  availableYears = [],
+  availableYears = STANDARD_NATIONAL_EXAM_YEARS,
   onStartExam
 }) => {
   if (!isOpen) return null;
@@ -397,6 +397,32 @@ export const ExamSetupModal: React.FC<ExamSetupModalProps> = ({
                 Past Year
               </button>
             </div>
+
+            {/* Past Year Selection Pills */}
+            {practiceMode === 'yearly' && (
+              <div className="pt-2 space-y-2">
+                <span className="text-[11px] font-black uppercase tracking-wider text-theme-accent block">
+                  Select Exam Year:
+                </span>
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
+                  {(availableYears && availableYears.length > 0 ? availableYears : STANDARD_NATIONAL_EXAM_YEARS).map(yr => (
+                    <button
+                      key={yr}
+                      type="button"
+                      onClick={() => setSelectedYear(yr)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-xs font-bold border transition-all active:scale-95",
+                        selectedYear === yr
+                          ? "bg-theme-accent text-white border-theme-accent shadow-sm"
+                          : "bg-theme-bg border-theme-border text-theme-muted hover:text-theme-text"
+                      )}
+                    >
+                      {yr}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

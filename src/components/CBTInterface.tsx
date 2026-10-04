@@ -517,7 +517,13 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               <MathRenderer text={currentQuestion?.question || 'Question content loading...'} />
             </div>
 
-            {/* Question Diagram / Image if present */}
+            {/* Question Diagram / SVG / Image if present */}
+            {currentQuestion?.diagram && (
+              <div 
+                className="my-4 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-theme-border max-w-md mx-auto overflow-hidden flex items-center justify-center text-slate-900 dark:text-slate-100 shadow-sm"
+                dangerouslySetInnerHTML={{ __html: currentQuestion.diagram }}
+              />
+            )}
             {currentQuestion?.imageUrl && (
               <div className="my-4 p-2 bg-theme-bg rounded-2xl border border-theme-border max-w-md mx-auto">
                 <img 
@@ -534,6 +540,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                 {currentQuestion.options.map((option, idx) => {
                   const isSelected = answers[currentQuestion.id] === idx;
                   const optionLabel = String.fromCharCode(65 + idx);
+                  const isSvgOption = typeof option === 'string' && option.trim().startsWith('<svg');
 
                   return (
                     <button
@@ -556,8 +563,15 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                         {optionLabel}
                       </div>
 
-                      <div className="flex-1 text-xs sm:text-sm text-theme-text pt-0.5 leading-relaxed">
-                        <MathRenderer text={option} />
+                      <div className="flex-1 text-xs sm:text-sm text-theme-text pt-0.5 leading-relaxed overflow-x-auto">
+                        {isSvgOption ? (
+                          <div 
+                            className="p-2 bg-white dark:bg-slate-900 rounded-xl inline-block max-w-full overflow-hidden text-slate-800 dark:text-slate-200 border border-theme-border" 
+                            dangerouslySetInnerHTML={{ __html: option }} 
+                          />
+                        ) : (
+                          <MathRenderer text={option} />
+                        )}
                       </div>
                     </button>
                   );

@@ -493,7 +493,13 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                   </div>
                 )}
 
-                {/* Diagram */}
+                {/* Diagram / SVG */}
+                {currentSolutionQuestion.diagram && (
+                  <div 
+                    className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-theme-border max-w-md overflow-hidden flex items-center justify-center text-slate-900 dark:text-slate-100 shadow-sm"
+                    dangerouslySetInnerHTML={{ __html: currentSolutionQuestion.diagram }}
+                  />
+                )}
                 {currentSolutionQuestion.images && currentSolutionQuestion.images.length > 0 && (
                   <div className="flex flex-wrap gap-3">
                     {currentSolutionQuestion.images.map((img, i) => img && (
@@ -571,9 +577,16 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                             )}>
                               {String.fromCharCode(65 + optIdx)}
                             </div>
-                            <span>
-                              <MathRenderer text={opt} />
-                            </span>
+                            <div className="flex-1 overflow-x-auto">
+                              {typeof opt === 'string' && opt.trim().startsWith('<svg') ? (
+                                <div 
+                                  className="p-2 bg-white dark:bg-slate-900 rounded-xl inline-block max-w-full overflow-hidden text-slate-800 dark:text-slate-200 border border-theme-border" 
+                                  dangerouslySetInnerHTML={{ __html: opt }} 
+                                />
+                              ) : (
+                                <MathRenderer text={opt} />
+                              )}
+                            </div>
                           </div>
 
                           <div>
@@ -607,6 +620,12 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                   <div className="text-xs sm:text-sm text-theme-text leading-relaxed whitespace-pre-line">
                     <MathRenderer text={currentSolutionQuestion.explanation} />
                   </div>
+
+                  {currentSolutionQuestion.solutionDiagram && (
+                    <div className="mt-3 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-theme-border max-w-md mx-auto overflow-hidden flex items-center justify-center text-slate-900 dark:text-slate-100 shadow-sm">
+                      <div dangerouslySetInnerHTML={{ __html: currentSolutionQuestion.solutionDiagram }} />
+                    </div>
+                  )}
 
                   {/* Ask JeeRaf AI Solver Drawer on Solution Screen */}
                   <div className="pt-3 border-t border-theme-border/60 flex flex-wrap items-center justify-between gap-2">

@@ -91,6 +91,8 @@ export interface Question {
   topic?: string;
   images?: string[]; // Supporting diagrams/images
   imageUrl?: string; // Supporting diagram image URL
+  diagram?: string | null; // Supporting SVG or HTML diagram
+  solutionDiagram?: string | null; // Supporting SVG solution diagram
   tags?: string[]; // Custom tags for filtering
 }
 

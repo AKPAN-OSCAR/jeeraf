@@ -17,7 +17,7 @@ import { ProgressTracker } from './components/ProgressTracker';
 import { questions as allQuestions } from './data/questions';
 import { Subject, Question, QuizResult, ExamType, ExamSessionConfig } from './types';
 import { auth, db } from './firebase';
-import { getStandardLimit } from './data/lib/utils';
+import { getStandardLimit, STANDARD_NATIONAL_EXAM_YEARS } from './data/lib/utils';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp, query, where, onSnapshot, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { SubscriptionLock } from './components/SubscriptionLock';
@@ -909,7 +909,7 @@ export default function App() {
           examType={selectedExamType || 'JAMB'}
           availableSubjects={['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'Geography', 'Commerce', 'Accounting', 'Agricultural Science', 'Civic Education', 'Further Mathematics', 'History', 'CRK', 'IRK']}
           initialSubject={currentSubject || undefined}
-          availableYears={[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010]}
+          availableYears={STANDARD_NATIONAL_EXAM_YEARS}
           user={user}
           profile={profile}
           onLogout={handleLogout}
