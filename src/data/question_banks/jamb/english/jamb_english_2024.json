@@ -1,0 +1,41 @@
+[
+  {
+    "id": "jamb-eng-2024-q1",
+    "subject": "English",
+    "examType": "JAMB",
+    "set": 1,
+    "year": 2024,
+    "difficulty": "Medium",
+    "question": "Choose the option nearest in meaning to the underlined word: The minister decided to <u>repeal</u> the controversial edict.",
+    "options": ["Abrogate", "Enforce", "Amend", "Prolong"],
+    "correctAnswer": 0,
+    "explanation": "Step 1: Understand the definition of \"repeal\": To formally revoke or annul a law or congressional decree.\nStep 2: Evaluate synonym candidates:\n   - \"Abrogate\": To repeal or do away with a formal law (Exact synonym).\n   - \"Enforce\": To compel observance.\n   - \"Amend\": To modify without revoking.\nResult: \"Abrogate\" is the nearest in meaning.",
+    "topic": "Synonyms"
+  },
+  {
+    "id": "jamb-eng-2024-q2",
+    "subject": "English",
+    "examType": "JAMB",
+    "set": 1,
+    "year": 2024,
+    "difficulty": "Medium",
+    "question": "Choose the option opposite in meaning to the underlined word: The witness gave a <u>lucid</u> account of what transpired at the scene.",
+    "options": ["Obscure", "Clear", "Coherent", "Intelligible"],
+    "correctAnswer": 0,
+    "explanation": "Step 1: Define the target word \"lucid\": Clear, easy to understand, transparent.\nStep 2: Identify the direct antonym:\n   - \"Obscure\": Unclear, vague, difficult to perceive or understand.\nResult: \"Obscure\" is opposite in meaning to \"lucid\".",
+    "topic": "Antonyms"
+  },
+  {
+    "id": "jamb-eng-2024-q3",
+    "subject": "English",
+    "examType": "JAMB",
+    "set": 1,
+    "year": 2024,
+    "difficulty": "Easy",
+    "question": "Fill in the blank with the most appropriate option: Neither the teacher nor the students ______ present at the assembly yesterday.",
+    "options": ["were", "was", "is", "are"],
+    "correctAnswer": 0,
+    "explanation": "Step 1: Apply the grammatical Rule of Proximity for correlative conjunctions (\"Neither ... nor\"):\n   - The verb agrees in number with the subject closer to it.\nStep 2: Here, the closer subject is \"the students\" (plural).\nStep 3: Past tense plural requires \"were\".\nResult: \"were\".",
+    "topic": "Concord & Grammar"
+  }
+]

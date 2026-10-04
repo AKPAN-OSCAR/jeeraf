@@ -1,0 +1,15 @@
+[
+  {
+    "id": "neco-gce-math-2024-q1",
+    "subject": "Mathematics",
+    "examType": "NECO GCE",
+    "set": 1,
+    "year": 2024,
+    "difficulty": "Medium",
+    "question": "Factorize completely: $6x^2 - 11x - 10$.",
+    "options": ["$(2x - 5)(3x + 2)$", "$(2x + 5)(3x - 2)$", "$(6x - 5)(x + 2)$", "$(3x - 5)(2x + 2)$"],
+    "correctAnswer": 0,
+    "explanation": "Step 1: Product of $a$ and $c = 6 \\times (-10) = -60$.\nStep 2: Find factors of $-60$ whose sum is $-11$: $-15$ and $+4$.\nStep 3: Split the middle term:\n   $6x^2 - 15x + 4x - 10$\n   $= 3x(2x - 5) + 2(2x - 5) = (2x - 5)(3x + 2)$.\nResult: $(2x - 5)(3x + 2)$.",
+    "topic": "Quadratic Expressions"
+  }
+]

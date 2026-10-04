@@ -454,9 +454,9 @@ export default function App() {
         q.examType === config.examType &&
         (config.practiceMode === 'yearly' && config.selectedYear ? q.year === config.selectedYear : true)
       );
-      if (filtered.length === 0) {
-        // Fallback to any questions for this subject
-        filtered = combinedQuestions.filter(q => q.subject === subj);
+      if (filtered.length === 0 && config.practiceMode === 'random') {
+        // Fallback to any questions for this subject only during random practice mode
+        filtered = combinedQuestions.filter(q => q.subject === subj && q.examType === config.examType);
       }
       return filtered;
     };
@@ -804,37 +804,12 @@ export default function App() {
 
   if (splashStage !== 'done') {
     return (
-      <div className="fixed inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden select-none z-50 p-6 md:p-12">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.05 }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="relative flex flex-col items-center justify-center w-full h-full max-w-4xl"
-        >
-          {/* Ambient luminous glow */}
-          <div className="absolute inset-0 bg-amber-500/10 blur-[120px] rounded-full scale-125 pointer-events-none" />
-          
-          <div className="flex-1 w-full flex items-center justify-center p-4">
-            <img 
-              src="/jeeraf-with-name.svg" 
-              alt="JeeRaf CBT System" 
-              className="max-w-full max-h-[75vh] w-auto h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.9)]"
-            />
-          </div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex items-center gap-3 pb-8 shrink-0"
-          >
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-            <p className="text-amber-200/90 text-sm md:text-base font-black uppercase tracking-[0.3em]">
-              Initializing JeeRaf System...
-            </p>
-          </motion.div>
-        </motion.div>
+      <div className="fixed inset-0 w-screen h-screen bg-slate-950 flex items-center justify-center overflow-hidden select-none z-[99999] p-0 m-0 border-0 rounded-none outline-none">
+        <img 
+          src="/jeeraf-with-name.svg" 
+          alt="JeeRaf CBT System" 
+          className="w-full h-full object-cover sm:object-contain p-0 m-0 border-0 rounded-none outline-none select-none block"
+        />
       </div>
     );
   }
@@ -934,7 +909,7 @@ export default function App() {
           examType={selectedExamType || 'JAMB'}
           availableSubjects={['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'Geography', 'Commerce', 'Accounting', 'Agricultural Science', 'Civic Education', 'Further Mathematics', 'History', 'CRK', 'IRK']}
           initialSubject={currentSubject || undefined}
-          availableYears={[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018]}
+          availableYears={[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010]}
           user={user}
           profile={profile}
           onLogout={handleLogout}

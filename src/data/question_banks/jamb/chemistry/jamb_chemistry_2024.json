@@ -1,0 +1,15 @@
+[
+  {
+    "id": "jamb-chm-2024-q1",
+    "subject": "Chemistry",
+    "examType": "JAMB",
+    "set": 1,
+    "year": 2024,
+    "difficulty": "Medium",
+    "question": "What volume of oxygen gas measured at s.t.p is required to completely burn $50\\text{ cm}^3$ of methane ($\\text{CH}_4$)?",
+    "options": ["$100\\text{ cm}^3$", "$50\\text{ cm}^3$", "$150\\text{ cm}^3$", "$200\\text{ cm}^3$"],
+    "correctAnswer": 0,
+    "explanation": "Step 1: Write the balanced chemical equation:\n   $\\text{CH}_4 + 2\\text{O}_2 \\rightarrow \\text{CO}_2 + 2\\text{H}_2\\text{O}$.\nStep 2: By Gay-Lussac's law of combining volumes:\n   $1\\text{ volume of } \\text{CH}_4 \\text{ requires } 2\\text{ volumes of } \\text{O}_2$.\nStep 3: $50\\text{ cm}^3 \\times 2 = 100\\text{ cm}^3$.\nResult: $100\\text{ cm}^3$.",
+    "topic": "Stoichiometry"
+  }
+]

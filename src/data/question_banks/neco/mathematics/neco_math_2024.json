@@ -1,0 +1,15 @@
+[
+  {
+    "id": "neco-math-2024-q1",
+    "subject": "Mathematics",
+    "examType": "NECO",
+    "set": 1,
+    "year": 2024,
+    "difficulty": "Medium",
+    "question": "Solve the simultaneous equations: $2x + y = 7$ and $3x - 2y = 7$.",
+    "options": ["$x = 3, y = 1$", "$x = 2, y = 3$", "$x = 1, y = 5$", "$x = 4, y = -1$"],
+    "correctAnswer": 0,
+    "explanation": "Step 1: From the first equation, $y = 7 - 2x$.\nStep 2: Substitute into the second equation:\n   $3x - 2(7 - 2x) = 7$\n   $3x - 14 + 4x = 7$\n   $7x = 21 \\implies x = 3$.\nStep 3: $y = 7 - 2(3) = 1$.\nResult: $x = 3, y = 1$.",
+    "topic": "Algebra"
+  }
+]

@@ -1,0 +1,93 @@
+[
+  {
+    "id": "waec-math-2015-q1",
+    "subject": "Mathematics",
+    "examType": "WAEC",
+    "year": 2015,
+    "section": "General",
+    "type": "objective",
+    "question": "Evaluate: $\\frac{1\\frac{1}{4} + \\frac{7}{8}}{1\\frac{3}{4} - \\frac{3}{8}}$, leaving your answer in simple fraction.",
+    "options": [
+      "$\\frac{17}{11}$",
+      "$\\frac{11}{17}$",
+      "$\\frac{34}{11}$",
+      "$\\frac{11}{34}$"
+    ],
+    "correctAnswer": 0,
+    "explanation": "**Step 1:** Convert mixed fractions to improper fractions:\nNumerator $= \\frac{5}{4} + \\frac{7}{8} = \\frac{10 + 7}{8} = \\frac{17}{8}$.\n\n**Step 2:** Simplify denominator:\nDenominator $= \\frac{7}{4} - \\frac{3}{8} = \\frac{14 - 3}{8} = \\frac{11}{8}$.\n\n**Step 3:** Divide numerator by denominator:\n$\\frac{17}{8} \\div \\frac{11}{8} = \\frac{17}{8} \\times \\frac{8}{11} = \\frac{17}{11}$.\n\n**Correct Answer:** Option A ($\\frac{17}{11}$).",
+    "topic": "Number and Numeration - Fractions",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "waec-math-2015-q2",
+    "subject": "Mathematics",
+    "examType": "WAEC",
+    "year": 2015,
+    "section": "General",
+    "type": "objective",
+    "question": "Solve the equation for $x$: $2^{(2x + 1)} - 9(2^x) + 4 = 0$.",
+    "options": [
+      "$x = -1$ or $x = 2$",
+      "$x = 1$ or $x = -2$",
+      "$x = 0$ or $x = 2$",
+      "$x = -1$ or $x = -2$"
+    ],
+    "correctAnswer": 0,
+    "explanation": "**Step 1:** Apply law of indices: $2^{(2x+1)} = 2 \\cdot (2^x)^2$.\nLet $y = 2^x$.\nThe equation becomes: $2y^2 - 9y + 4 = 0$.\n\n**Step 2:** Factorize the quadratic:\n$2y^2 - 8y - y + 4 = 0$\n$2y(y - 4) - 1(y - 4) = 0$\n$(2y - 1)(y - 4) = 0 \\implies y = \\frac{1}{2}$ or $y = 4$.\n\n**Step 3:** Substitute back $y = 2^x$:\n$2^x = \\frac{1}{2} = 2^{-1} \\implies x = -1$.\n$2^x = 4 = 2^2 \\implies x = 2$.\n\n**Correct Answer:** Option A ($x = -1$ or $x = 2$).",
+    "topic": "Indices and Logarithms",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "waec-math-2015-q3",
+    "subject": "Mathematics",
+    "examType": "WAEC",
+    "year": 2015,
+    "section": "General",
+    "type": "objective",
+    "question": "If $\\log_{10} 2 = 0.3010$ and $\\log_{10} 3 = 0.4771$, evaluate $\\log_{10} 18$ without using mathematical tables.",
+    "options": [
+      "$1.2552$",
+      "$1.0791$",
+      "$0.9542$",
+      "$1.3801$"
+    ],
+    "correctAnswer": 0,
+    "explanation": "**Step 1:** Express $18$ in prime factors:\n$18 = 2 \\times 3^2$.\n\n**Step 2:** Apply properties of logarithms:\n$\\log_{10} 18 = \\log_{10} 2 + \\log_{10}(3^2) = \\log_{10} 2 + 2\\log_{10} 3$.\n\n**Step 3:** Substitute the given values:\n$\\log_{10} 18 = 0.3010 + 2(0.4771) = 0.3010 + 0.9542 = 1.2552$.\n\n**Correct Answer:** Option A ($1.2552$).",
+    "topic": "Logarithms",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "waec-math-2015-q4",
+    "subject": "Mathematics",
+    "examType": "WAEC",
+    "year": 2015,
+    "section": "General",
+    "type": "objective",
+    "question": "In the figure below, $O$ is the center of the circle. Line $PT$ is a tangent to the circle at $T$, and $OPT$ is a straight line triangle. If $\\angle POT = 58^\\circ$, calculate $\\angle TPO$.\n\n<svg viewBox=\"0 0 240 160\" width=\"100%\" height=\"160\" style=\"max-width:240px;margin:auto;display:block;\">\n  <circle cx=\"80\" cy=\"80\" r=\"60\" fill=\"none\" stroke=\"#f59e0b\" stroke-width=\"2.5\"/>\n  <circle cx=\"80\" cy=\"80\" r=\"3\" fill=\"#f59e0b\"/>\n  <text x=\"85\" y=\"75\" fill=\"#f59e0b\" font-size=\"12\" font-weight=\"bold\">O</text>\n  <line x1=\"80\" y1=\"80\" x2=\"132\" y2=\"44\" stroke=\"#e2e8f0\" stroke-width=\"2\"/>\n  <line x1=\"132\" y1=\"44\" x2=\"210\" y2=\"135\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n  <line x1=\"80\" y1=\"80\" x2=\"210\" y2=\"135\" stroke=\"#e2e8f0\" stroke-width=\"2\" stroke-dasharray=\"4\"/>\n  <text x=\"135\" y=\"38\" fill=\"#e2e8f0\" font-size=\"12\" font-weight=\"bold\">T</text>\n  <text x=\"215\" y=\"145\" fill=\"#e2e8f0\" font-size=\"12\" font-weight=\"bold\">P</text>\n  <rect x=\"126\" y=\"44\" width=\"8\" height=\"8\" fill=\"none\" stroke=\"#38bdf8\" stroke-width=\"1.5\" transform=\"rotate(37 132 44)\"/>\n</svg>",
+    "options": [
+      "$32^\\circ$",
+      "$42^\\circ$",
+      "$58^\\circ$",
+      "$90^\\circ$"
+    ],
+    "correctAnswer": 0,
+    "explanation": "**Step 1:** By Circle Theorem, a tangent to a circle is perpendicular to the radius at the point of contact.\nTherefore, $\\angle OTP = 90^\\circ$.\n\n**Step 2:** The sum of angles in $\\triangle OPT$ is $180^\\circ$:\n$\\angle TPO + \\angle POT + \\angle OTP = 180^\\circ$\n$\\angle TPO + 58^\\circ + 90^\\circ = 180^\\circ$\n$\\angle TPO + 148^\\circ = 180^\\circ \\implies \\angle TPO = 32^\\circ$.\n\n**Correct Answer:** Option A ($32^\\circ$).",
+    "topic": "Geometry - Circle Theorems",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "waec-math-2015-q5",
+    "subject": "Mathematics",
+    "examType": "WAEC",
+    "year": 2015,
+    "section": "Theory",
+    "type": "theory",
+    "marks": 12,
+    "question": "**WAEC 2015 Paper 2: Theory & Essay Question 1**\n\n(a) Without using mathematical tables or calculators, simplify:\n$$\\frac{\\sqrt{75} + \\sqrt{108} - \\sqrt{27}}{\\sqrt{48}}$$\n\n(b) A trader bought $80$ oranges at $5$ for $\\text{N}120.00$. If $10\\%$ of the oranges got spoiled and he sold the remaining at $4$ for $\\text{N}140.00$, calculate his percentage profit or loss to one decimal place.",
+    "options": [],
+    "correctAnswer": -1,
+    "explanation": "**Part (a) Solution:**\n1. Express each surd in terms of its simplest square factor:\n   - $\\sqrt{75} = \\sqrt{25 \\times 3} = 5\\sqrt{3}$\n   - $\\sqrt{108} = \\sqrt{36 \\times 3} = 6\\sqrt{3}$\n   - $\\sqrt{27} = \\sqrt{9 \\times 3} = 3\\sqrt{3}$\n   - $\\sqrt{48} = \\sqrt{16 \\times 3} = 4\\sqrt{3}$\n2. Simplify the numerator:\n   $5\\sqrt{3} + 6\\sqrt{3} - 3\\sqrt{3} = 8\\sqrt{3}$\n3. Divide by denominator:\n   $$\\frac{8\\sqrt{3}}{4\\sqrt{3}} = 2$$\n\n---\n\n**Part (b) Solution:**\n1. Cost Price (CP):\n   - Rate: $5$ oranges for $\\text{N}120.00 \\implies 1$ orange $= \\frac{120}{5} = \\text{N}24.00$.\n   - Total Cost Price for $80$ oranges $= 80 \\times 24 = \\text{N}1,920.00$.\n2. Spoiled Oranges:\n   - Spoiled $= 10\\% \\times 80 = 8$ oranges.\n   - Remaining good oranges $= 80 - 8 = 72$ oranges.\n3. Selling Price (SP):\n   - Rate: $4$ oranges for $\\text{N}140.00 \\implies 1$ orange $= \\frac{140}{4} = \\text{N}35.00$.\n   - Total Selling Price $= 72 \\times 35 = \\text{N}2,520.00$.\n4. Profit & Percentage Profit:\n   - $\\text{Profit} = \\text{SP} - \\text{CP} = 2,520 - 1,920 = \\text{N}600.00$.\n   - $\\text{Percentage Profit} = \\left(\\frac{600}{1,920}\\right) \\times 100\\% = 31.25\\% \\approx 31.3\\%$.",
+    "topic": "Surds and Commercial Mathematics",
+    "difficulty": "Hard"
+  }
+]

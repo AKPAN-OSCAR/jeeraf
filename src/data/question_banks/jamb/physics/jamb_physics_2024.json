@@ -1,0 +1,15 @@
+[
+  {
+    "id": "jamb-phy-2024-q1",
+    "subject": "Physics",
+    "examType": "JAMB",
+    "set": 1,
+    "year": 2024,
+    "difficulty": "Medium",
+    "question": "A body of mass $5\\text{ kg}$ is pulled along a smooth horizontal surface by a force of $20\\text{ N}$ inclined at $60^\\circ$ to the horizontal. Calculate the acceleration of the body.",
+    "options": ["$2.0\\text{ m/s}^2$", "$4.0\\text{ m/s}^2$", "$1.73\\text{ m/s}^2$", "$10.0\\text{ m/s}^2$"],
+    "correctAnswer": 0,
+    "explanation": "Step 1: Resolve the pulling force along the horizontal:\n   $F_x = F \\cos 60^\\circ = 20 \\times 0.5 = 10\\text{ N}$.\nStep 2: Apply Newton's second law: $F_x = ma \\implies a = \\frac{F_x}{m}$.\nStep 3: $a = \\frac{10}{5} = 2.0\\text{ m/s}^2$.\nResult: $2.0\\text{ m/s}^2$.",
+    "topic": "Mechanics"
+  }
+]

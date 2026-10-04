@@ -1,0 +1,15 @@
+[
+  {
+    "id": "jamb-bio-2024-q1",
+    "subject": "Biology",
+    "examType": "JAMB",
+    "set": 1,
+    "year": 2024,
+    "difficulty": "Medium",
+    "question": "Which of the following cellular organelles is primarily responsible for the synthesis of adenosine triphosphate (ATP)?",
+    "options": ["Mitochondria", "Ribosomes", "Golgi apparatus", "Endoplasmic reticulum"],
+    "correctAnswer": 0,
+    "explanation": "Step 1: Recall the function of each organelle:\n   - Mitochondria: Powerhouse of the cell, conducts cellular respiration generating ATP.\n   - Ribosomes: Protein synthesis.\n   - Golgi apparatus: Packaging and processing of proteins.\n   - Endoplasmic reticulum: Transport of synthesized materials.\nResult: Mitochondria.",
+    "topic": "Cell Biology"
+  }
+]
