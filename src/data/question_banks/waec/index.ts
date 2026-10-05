@@ -11,3 +11,19 @@ export const waecQuestions: Question[] = Object.values(jsonModules).flatMap(mod 
   const data = mod.default;
   return Array.isArray(data) ? data : [data];
 });
+
+
+
+import { Question } from '../../../types';
+
+// 1. Import your JSON files
+import waecMath2015 from './mathematics/waec_math_2015.json';
+import waecMath2012 from './mathematics/waec_math_2012.json'; // <--- NEW IMPORT
+
+/**
+ * WAEC Question Bank Registry
+ */
+export const waecQuestions: Question[] = [
+  ...(waecMath2015 as unknown as Question[]),
+  ...(waecMath2012 as unknown as Question[])                  // <--- NEW SPREAD
+];
