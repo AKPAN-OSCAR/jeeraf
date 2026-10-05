@@ -8,8 +8,6 @@ import {
 import { Question, Subject, ExamType } from '../types';
 import { MathRenderer } from './MathRenderer';
 import { JeeRafGoldIcon } from './AIAvatar';
-import { GoogleGenAI } from '@google/genai';
-import { getActiveApiKey, logTokenUsage } from '../services/aiQuestions';
 import { cn } from '../data/lib/utils';
 
 interface CBTQuestionAISolutionModalProps {
@@ -105,17 +103,22 @@ INSTRUCTIONS FOR YOUR EXPLANATION:
 4. Keep the explanation engaging, concise, and easy to grasp in under 2 minutes of reading.`;
 
     try {
-      const activeKey = getActiveApiKey('ibom_ai');
-      let responseText = '';
+      const res = await fetch('/api/ai/exam-tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question,
+          questionIndex,
+          userAnswer,
+          subject,
+          examType
+        })
+      });
 
-      if (activeKey) {
-        const ai = new GoogleGenAI({ apiKey: activeKey });
-        const res = await ai.models.generateContent({
-          model: 'gemini-2.0-flash',
-          contents: [{ role: 'user', parts: [{ text: initialAiPrompt }] }]
-        });
-        responseText = res.text || '';
-        await logTokenUsage(initialAiPrompt.length, responseText.length);
+      let responseText = '';
+      if (res.ok) {
+        const data = await res.json();
+        responseText = data.text;
       }
 
       if (!responseText) {
@@ -174,38 +177,28 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
     setIsLoading(true);
 
     try {
-      const activeKey = getActiveApiKey('ibom_ai');
+      const res = await fetch('/api/ai/exam-tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question,
+          questionIndex,
+          userAnswer,
+          subject,
+          examType,
+          customPrompt: query,
+          chatHistory: messages
+        })
+      });
+
       let reply = '';
-
-      const followUpPrompt = `You are JeeRaf AI assisting a student reviewing Question ${questionIndex + 1} in ${subject}.
-QUESTION: "${question.question}"
-CORRECT ANSWER: Option ${correctLetter} ("${correctText}")
-STUDENT'S ANSWER: Option ${userSelectedLetter} ("${userSelectedText}")
-
-CONVERSATION SO FAR:
-${messages.map(m => `${m.sender === 'user' ? 'Student' : 'JeeRaf AI'}: ${m.text}`).join('\n\n')}
-
-STUDENT'S FOLLOW-UP QUERY:
-"${query}"
-
-INSTRUCTIONS:
-- Directly answer the student's question about this problem.
-- Be articulate, highly educational, and show mathematical/scientific steps if requested.
-- Use bold section titles, no markdown hashtags.
-- Support LaTeX math formulas where appropriate.`;
-
-      if (activeKey) {
-        const ai = new GoogleGenAI({ apiKey: activeKey });
-        const res = await ai.models.generateContent({
-          model: 'gemini-2.0-flash',
-          contents: [{ role: 'user', parts: [{ text: followUpPrompt }] }]
-        });
-        reply = res.text || '';
-        await logTokenUsage(followUpPrompt.length, reply.length);
+      if (res.ok) {
+        const data = await res.json();
+        reply = data.text;
       }
 
       if (!reply) {
-        reply = `Regarding **"${query}"**:\n\nIn this ${subject} problem, the critical key is that Option ${correctLetter} adheres to the fundamental principle stated in the syllabus. If you'd like to work through another problem of this type, let me know!`;
+        reply = `Regarding **"${query}"**:\n\nIn this ${subject} problem, the critical key is that Option ${correctLetter} adheres to the fundamental principle stated in the syllabus: ${question.explanation}`;
       }
 
       setMessages(prev => [

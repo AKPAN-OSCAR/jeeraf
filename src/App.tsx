@@ -229,49 +229,35 @@ export default function App() {
       const unsubscribe = onSnapshot(profileRef, (snapshot) => {
         if (snapshot.exists()) {
           const profileData = snapshot.data();
-          setProfile(profileData);
           
           // Check for admin email
           const emailClean = user.email?.toLowerCase().trim();
           const isAdminEmail = emailClean === 'eemmpatech@gmail.com' || emailClean === 'eemmpatec@gmail.com' || profileData.role === 'admin';
           
+          // Unblock all users per specification: free lifetime access to all platform and AI features
+          profileData.isPremium = true;
+          profileData.subscriptionStatus = 'paid';
+          profileData.plan = 'unlimited_pro';
           if (isAdminEmail) {
-            profileData.isPremium = true;
-            profileData.subscriptionStatus = 'paid';
-            profileData.plan = 'claxy_pro';
             profileData.role = 'admin';
-            setIsLocked(false);
-          } else if (!profileData.isPremium) {
-            const now = new Date();
-            const expiresAt = new Date(profileData.trialExpiresAt || 0);
-            if (now > expiresAt && profileData.trialExpiresAt) {
-              setIsLocked(true);
-            } else {
-              setIsLocked(false);
-            }
-          } else {
-            setIsLocked(false);
           }
+          setIsLocked(false);
           setProfile(profileData);
           setProfileLoading(false);
         } else {
-          // If no profile exists (legacy users), create one
+          // If no profile exists (legacy users), create one with full unlocked access
           const emailClean = user.email?.toLowerCase().trim();
           const isAdminEmail = emailClean === 'eemmpatech@gmail.com' || emailClean === 'eemmpatec@gmail.com';
-          const trialDays = 14;
-          const expiresAt = new Date();
-          expiresAt.setDate(expiresAt.getDate() + trialDays);
           
           setDoc(profileRef, {
             uid: user.uid,
             email: user.email,
-            subscriptionStatus: isAdminEmail ? 'paid' : 'free',
-            plan: isAdminEmail ? 'claxy_pro' : 'free',
-            isSubscribed: isAdminEmail,
-            isPremium: isAdminEmail,
+            subscriptionStatus: 'paid',
+            plan: 'unlimited_pro',
+            isSubscribed: true,
+            isPremium: true,
             role: isAdminEmail ? 'admin' : 'user',
             theme: 'white',
-            trialExpiresAt: expiresAt.toISOString(),
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           }, { merge: true }).catch((err) => {
@@ -804,11 +790,11 @@ export default function App() {
 
   if (splashStage !== 'done') {
     return (
-      <div className="fixed inset-0 w-screen h-screen bg-slate-950 flex items-center justify-center overflow-hidden select-none z-[99999] p-0 m-0 border-0 rounded-none outline-none">
+      <div className="fixed inset-0 w-screen h-screen bg-slate-950 flex items-center justify-center overflow-hidden select-none z-[99999] p-4 sm:p-8">
         <img 
           src="/jeeraf-with-name.svg" 
           alt="JeeRaf CBT System" 
-          className="w-full h-full object-cover sm:object-contain p-0 m-0 border-0 rounded-none outline-none select-none block"
+          className="w-full h-full max-w-[92vw] max-h-[92vh] object-contain select-none block drop-shadow-2xl"
         />
       </div>
     );
@@ -910,6 +896,7 @@ export default function App() {
           availableSubjects={['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'Geography', 'Commerce', 'Accounting', 'Agricultural Science', 'Civic Education', 'Further Mathematics', 'History', 'CRK', 'IRK']}
           initialSubject={currentSubject || undefined}
           availableYears={STANDARD_NATIONAL_EXAM_YEARS}
+          questions={[...allQuestions, ...adminQuestions]}
           user={user}
           profile={profile}
           onLogout={handleLogout}

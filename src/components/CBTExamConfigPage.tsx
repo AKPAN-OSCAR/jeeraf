@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronLeft, Clock, Layers, Sparkles, BookOpen, 
@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 import { 
   Subject, ExamType, ExamTimingMode, 
-  ExamPaperFormat, ContinuationOrder, ExamSessionConfig 
+  ExamPaperFormat, ContinuationOrder, ExamSessionConfig,
+  Question 
 } from '../types';
 import { cn, STANDARD_NATIONAL_EXAM_YEARS } from '../data/lib/utils';
 import { SidebarMenu } from './SidebarMenu';
@@ -18,6 +19,7 @@ interface CBTExamConfigPageProps {
   availableSubjects: Subject[];
   initialSubject?: Subject;
   availableYears?: number[];
+  questions?: Question[];
   user: any;
   profile?: any;
   onLogout: () => void;
@@ -38,6 +40,7 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
   availableSubjects = [],
   initialSubject,
   availableYears = STANDARD_NATIONAL_EXAM_YEARS,
+  questions = [],
   user,
   profile,
   onLogout,
@@ -101,9 +104,32 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
     return 60;
   });
 
+  // Dynamically derive loaded past exam years with actual questions from the database
+  const loadedExamYears = useMemo(() => {
+    if (!questions || questions.length === 0) return availableYears;
+    const targetSubjects = new Set(selectedSubjects.length > 0 ? selectedSubjects : (initialSubject ? [initialSubject] : []));
+    const yearCounts = new Map<number, number>();
+    
+    questions.forEach(q => {
+      if (q.examType === examType && q.year && (targetSubjects.size === 0 || (q.subject && targetSubjects.has(q.subject)))) {
+        yearCounts.set(q.year, (yearCounts.get(q.year) || 0) + 1);
+      }
+    });
+
+    const activeYears = Array.from(yearCounts.keys()).sort((a, b) => b - a);
+    return activeYears.length > 0 ? activeYears : availableYears;
+  }, [questions, examType, selectedSubjects, initialSubject, availableYears]);
+
   // State: Practice mode & Year
   const [practiceMode, setPracticeMode] = useState<'random' | 'yearly'>('random');
-  const [selectedYear, setSelectedYear] = useState<number | undefined>(availableYears[0] || 2024);
+  const [selectedYear, setSelectedYear] = useState<number | undefined>(() => loadedExamYears[0] || 2024);
+
+  // Keep selectedYear synced when loadedExamYears updates
+  useEffect(() => {
+    if (loadedExamYears.length > 0 && (!selectedYear || !loadedExamYears.includes(selectedYear))) {
+      setSelectedYear(loadedExamYears[0]);
+    }
+  }, [loadedExamYears]);
 
   // When switching timingMode, adjust default duration and selected subject
   const handleSelectTimingMode = (mode: ExamTimingMode) => {
@@ -841,21 +867,37 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
                     Select Exam Year:
                   </span>
                   <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
-                    {availableYears.map(yr => (
-                      <button
-                        key={yr}
-                        type="button"
-                        onClick={() => setSelectedYear(yr)}
-                        className={cn(
-                          "px-4 py-2 rounded-xl text-xs font-black border transition-all active:scale-95",
-                          selectedYear === yr
-                            ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
-                            : "bg-theme-card border-theme-border text-theme-muted hover:text-theme-text"
-                        )}
-                      >
-                        {yr}
-                      </button>
-                    ))}
+                    {loadedExamYears.map(yr => {
+                      const qsCount = questions ? questions.filter(q => 
+                        q.examType === examType && 
+                        q.year === yr && 
+                        (selectedSubjects.length === 0 || selectedSubjects.includes(q.subject))
+                      ).length : 0;
+
+                      return (
+                        <button
+                          key={yr}
+                          type="button"
+                          onClick={() => setSelectedYear(yr)}
+                          className={cn(
+                            "px-4 py-2 rounded-xl text-xs font-black border transition-all active:scale-95 flex items-center gap-1.5",
+                            selectedYear === yr
+                              ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
+                              : "bg-theme-card border-theme-border text-theme-muted hover:text-theme-text"
+                          )}
+                        >
+                          <span>{yr}</span>
+                          {qsCount > 0 && (
+                            <span className={cn(
+                              "text-[10px] px-1.5 py-0.5 rounded-full font-bold",
+                              selectedYear === yr ? "bg-slate-950/20 text-slate-950" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            )}>
+                              {qsCount} Qs
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </motion.div>
               )}

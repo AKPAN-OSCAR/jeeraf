@@ -88,12 +88,15 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
   const [showAudio, setShowAudio] = useState(false);
   const [showAllExams, setShowAllExams] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState<'reading' | 'analyzing' | 'generating' | 'finalizing'>('reading');
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [questionCount, setQuestionCount] = useState(20);
   const [duration, setDuration] = useState(30);
   const [topics, setTopics] = useState('');
+  const [difficulty, setDifficulty] = useState<'Mixed' | 'Easy' | 'Medium' | 'Hard'>('Mixed');
+  const [selectedSubject, setSelectedSubject] = useState<string>('General');
 
   // Check active CBT Category Mode
   const cbtCategory = profile?.cbtCategory || 'national_exams';
@@ -109,8 +112,20 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
     if (selectedFile) {
       setFile(selectedFile);
       setUploadError(null);
-      setIsGenerating(false); // Reset generating state if they pick a new file
+      setIsGenerating(false);
+
+      if (selectedFile.type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'webp'].includes(selectedFile.name.split('.').pop()?.toLowerCase() || '')) {
+        setImagePreviewUrl(URL.createObjectURL(selectedFile));
+      } else {
+        setImagePreviewUrl(null);
+      }
     }
+  };
+
+  const handleClearFile = () => {
+    setFile(null);
+    setImagePreviewUrl(null);
+    setUploadError(null);
   };
 
   const extractTextFromPDF = async (arrayBuffer: ArrayBuffer): Promise<string> => {
@@ -131,7 +146,6 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
       return fullText;
     } catch (err) {
       console.error('PDF extraction failed:', err);
-      // If it's a worker error, try one last attempt with a simpler setup
       if (err instanceof Error && err.message.includes('worker')) {
         throw new Error('PDF worker failed to load. Please refresh the page and try again, or use a .txt file.');
       }
@@ -140,39 +154,52 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
   };
 
   const handleGenerateQuestions = async () => {
-    if (!file) return;
+    if (!file && !topics.trim()) return;
     
     setIsGenerating(true);
     setUploadError(null);
-    setGenerationStep('reading');
     
     try {
       let text = '';
-      const fileType = file.name.split('.').pop()?.toLowerCase();
+      let imageBase64Data: string | null = null;
+      let imageMimeType: string | null = null;
 
-      // Support massive files up to 100MB
-      if (file.size > 100 * 1024 * 1024) {
-        throw new Error('File is too large. Please upload files smaller than 100MB.');
-      }
+      if (file) {
+        setGenerationStep('reading');
+        const fileType = file.name.split('.').pop()?.toLowerCase();
+        const isImage = file.type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(fileType || '');
 
-      if (fileType === 'pdf') {
-        const arrayBuffer = await file.arrayBuffer();
-        text = await extractTextFromPDF(arrayBuffer);
-      } else if (fileType === 'docx' || fileType === 'doc') {
-        const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        text = result.value;
-      } else {
-        const reader = new FileReader();
-        text = await new Promise<string>((resolve, reject) => {
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsText(file);
-        });
-      }
+        // Support massive files up to 100MB
+        if (file.size > 100 * 1024 * 1024) {
+          throw new Error('File is too large. Please upload files smaller than 100MB.');
+        }
 
-      if (!text || text.trim().length < 50) {
-        throw new Error('Content extraction failed. Please ensure the file contains searchable text.');
+        if (isImage) {
+          imageMimeType = file.type || 'image/jpeg';
+          const reader = new FileReader();
+          imageBase64Data = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => {
+              const res = reader.result as string;
+              resolve(res.includes(',') ? res.split(',')[1] : res);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        } else if (fileType === 'pdf') {
+          const arrayBuffer = await file.arrayBuffer();
+          text = await extractTextFromPDF(arrayBuffer);
+        } else if (fileType === 'docx' || fileType === 'doc') {
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          text = result.value;
+        } else {
+          const reader = new FileReader();
+          text = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsText(file);
+          });
+        }
       }
 
       setGenerationStep('analyzing');
@@ -180,7 +207,6 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
       // Smart sampling for massive text to avoid API payload limits
       let sampledText = text;
       if (text.length > 200000) {
-        // Take samples from start, middle, and end for better coverage
         const partSize = 60000;
         const start = text.slice(0, partSize);
         const middle = text.slice(Math.floor(text.length / 2) - partSize / 2, Math.floor(text.length / 2) + partSize / 2);
@@ -189,19 +215,60 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
       }
 
       setGenerationStep('generating');
-      const generated = await generateQuestionsFromText(sampledText, 'Personal CBT', questionCount, topics);
+      let generated: any[] = [];
+
+      // Primary: Call server-side Personal CBT AI generator with Gemini 3.1 Pro / 3.8 Flash
+      try {
+        const res = await fetch('/api/ai/personal-cbt/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subject: selectedSubject,
+            topics: topics.trim(),
+            difficulty,
+            questionCount,
+            documentText: sampledText,
+            imageBase64: imageBase64Data,
+            mimeType: imageMimeType,
+            examType: 'Personal CBT'
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.questions) && data.questions.length > 0) {
+            generated = data.questions;
+          }
+        }
+      } catch (serverErr) {
+        console.warn('Server personal CBT call failed, trying client fallback:', serverErr);
+      }
+
+      // Fallback if server call returned empty
+      if (generated.length === 0) {
+        if (imageBase64Data) {
+          generated = await extractQuestionsWithAI(
+            { base64: imageBase64Data, mimeType: imageMimeType || 'image/jpeg' },
+            selectedSubject as any,
+            'Personal CBT',
+            topics
+          );
+        } else {
+          generated = await generateQuestionsFromText(sampledText || topics, 'Personal CBT', questionCount, topics);
+        }
+      }
       
       if (generated.length === 0) {
-        throw new Error('No questions could be generated. Try a document with clearer educational text.');
+        throw new Error('No questions could be generated. Try specifying clearer educational topics or uploading a clearer document/image.');
       }
 
       setGenerationStep('finalizing');
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 400));
 
       onSelect('Personal CBT', generated, duration);
     } catch (error) {
       console.error(error);
-      setUploadError(error instanceof Error ? error.message : 'Failed to process document.');
+      setUploadError(error instanceof Error ? error.message : 'Failed to generate questions.');
     } finally {
       setIsGenerating(false);
     }
@@ -560,30 +627,75 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                       </div>
                     </div>
 
+                    {/* Subject Selector */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-theme-muted uppercase tracking-widest pl-1">
+                        Select Subject
+                      </label>
+                      <select
+                        value={selectedSubject}
+                        onChange={(e) => setSelectedSubject(e.target.value)}
+                        className="w-full bg-theme-card border border-theme-border rounded-xl px-4 py-2.5 text-xs font-bold text-theme-text outline-none focus:border-theme-accent transition-all cursor-pointer"
+                      >
+                        {['General', 'Mathematics', 'English', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'Geography', 'Commerce', 'Accounting', 'Computer Science'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Target Difficulty Selector */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black text-theme-muted uppercase tracking-widest pl-1">
+                          Target Difficulty
+                        </label>
+                        <span className="text-[10px] font-bold text-amber-500">
+                          {difficulty === 'Mixed' ? 'Curriculum Balanced' : `${difficulty} Focus`}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        {(['Mixed', 'Easy', 'Medium', 'Hard'] as const).map(diff => (
+                          <button
+                            key={diff}
+                            type="button"
+                            onClick={() => setDifficulty(diff)}
+                            className={cn(
+                              "py-2 rounded-xl text-xs font-black border transition-all active:scale-95 text-center",
+                              difficulty === diff 
+                                ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
+                                : "bg-theme-card border-theme-border text-theme-muted hover:text-theme-text"
+                            )}
+                          >
+                            {diff === 'Mixed' ? 'Mixed' : diff}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="space-y-3">
                       <label className="text-[10px] font-black text-theme-muted uppercase tracking-widest pl-1">
-                        Priority Focus (Optional)
+                        Priority Focus / Topics
                       </label>
                       <div className="relative">
                         <textarea 
-                          placeholder="e.g. Photosynthesis, Algebra..."
+                          placeholder="e.g. Quadratic Equations, Photosynthesis, Organic Chemistry, Mechanics..."
                           value={topics}
                           onChange={(e) => setTopics(e.target.value)}
-                          className="w-full bg-theme-card border border-theme-border rounded-2xl px-5 py-4 text-sm focus:ring-4 focus:ring-theme-accent/10 focus:border-theme-accent transition-all outline-none resize-none h-24 shadow-sm text-theme-text"
+                          className="w-full bg-theme-card border border-theme-border rounded-2xl px-5 py-4 text-sm focus:ring-4 focus:ring-theme-accent/10 focus:border-theme-accent transition-all outline-none resize-none h-20 shadow-sm text-theme-text"
                         />
                         <div className="absolute right-4 bottom-4">
                           <Sparkles size={16} className="text-theme-accent animate-pulse" />
                         </div>
                       </div>
                       <p className="text-[9px] text-theme-muted font-medium italic pl-1 leading-tight">
-                        AI will prioritize these topics if mentioned, otherwise it generates a general test.
+                        AI will generate questions strictly calibrated to your chosen topics and difficulty.
                       </p>
                     </div>
                   </div>
 
                   <div 
                     className={cn(
-                      "border-2 border-dashed rounded-[2rem] p-10 text-center transition-all cursor-pointer relative overflow-hidden group",
+                      "border-2 border-dashed rounded-[2rem] p-6 text-center transition-all cursor-pointer relative overflow-hidden group",
                       file ? "border-theme-accent bg-theme-accent/5 shadow-inner" : "border-theme-border hover:border-theme-muted bg-theme-bg/50"
                     )}
                     onClick={() => document.getElementById('file-upload')?.click()}
@@ -593,26 +705,53 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                       type="file"
                       className="hidden"
                       onChange={handleFileUpload}
-                      accept=".txt,.pdf,.docx,.doc"
+                      accept=".txt,.pdf,.docx,.doc,.jpg,.jpeg,.png,.webp,image/*"
                     />
                     {file ? (
                       <div className="flex flex-col items-center justify-center gap-3">
-                        <div className="w-16 h-16 bg-theme-accent/20 rounded-2xl flex items-center justify-center text-theme-accent shadow-md transform rotate-3 transition-transform group-hover:rotate-0">
-                          <FileText size={32} />
-                        </div>
-                        <div className="flex flex-col">
+                        {imagePreviewUrl ? (
+                          <div className="relative w-28 h-28 rounded-2xl overflow-hidden border-2 border-theme-accent shadow-md mx-auto group/thumb">
+                            <img 
+                              src={imagePreviewUrl} 
+                              alt="Upload preview" 
+                              className="w-full h-full object-cover" 
+                            />
+                            <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold">
+                              Change Image
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-14 h-14 bg-theme-accent/20 rounded-2xl flex items-center justify-center text-theme-accent shadow-md transform rotate-3 transition-transform group-hover:rotate-0">
+                            <FileText size={28} />
+                          </div>
+                        )}
+                        <div className="flex flex-col items-center">
                           <span className="font-bold text-theme-text truncate max-w-[280px]">{file.name}</span>
-                          <span className="text-[10px] font-black text-theme-accent uppercase tracking-widest mt-1">Ready to Generate</span>
+                          <span className="text-[10px] font-black text-theme-accent uppercase tracking-widest mt-0.5">
+                            {imagePreviewUrl ? 'Image Ready for AI Analysis' : 'Document Ready to Generate'}
+                          </span>
                         </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleClearFile();
+                          }}
+                          className="px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors"
+                        >
+                          Remove File
+                        </button>
                       </div>
                     ) : (
-                      <div className="space-y-4 py-4">
-                        <div className="w-16 h-16 bg-theme-card rounded-3xl flex items-center justify-center mx-auto shadow-xl text-theme-muted group-hover:text-theme-accent group-hover:scale-110 transition-all border border-theme-border">
-                          <Upload size={32} />
+                      <div className="space-y-3 py-2">
+                        <div className="w-14 h-14 bg-theme-card rounded-2xl flex items-center justify-center mx-auto shadow-md text-theme-muted group-hover:text-theme-accent group-hover:scale-105 transition-all border border-theme-border">
+                          <Upload size={28} />
                         </div>
                         <div>
-                          <p className="text-theme-text font-bold">Select Material</p>
-                          <p className="text-[10px] text-theme-muted font-bold uppercase tracking-widest mt-1">PDF, DOCX, TXT</p>
+                          <p className="text-theme-text font-bold text-sm">Upload Study Material, Notes, or Photo</p>
+                          <p className="text-[10px] text-theme-muted font-bold uppercase tracking-widest mt-0.5">
+                            PDF, Word (DOCX), TXT, or Image (PNG, JPG, Camera Photo)
+                          </p>
                         </div>
                       </div>
                     )}
@@ -626,9 +765,9 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                   )}
 
                   <button
-                    disabled={!file || isGenerating}
+                    disabled={(!file && !topics.trim()) || isGenerating}
                     onClick={handleGenerateQuestions}
-                    className="w-full bg-theme-accent text-white rounded-xl py-4 font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-theme-accent/20"
+                    className="w-full bg-theme-accent text-white rounded-xl py-4 font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-theme-accent/20 active:scale-98"
                   >
                     {isGenerating ? (
                       <>
@@ -636,7 +775,7 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                         {getStepMessage()}
                       </>
                     ) : (
-                      'Generate Practice Test'
+                      <span>Generate {difficulty === 'Mixed' ? '' : difficulty} Practice Test</span>
                     )}
                   </button>
                 </div>

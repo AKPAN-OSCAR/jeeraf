@@ -1117,8 +1117,8 @@ FORMATTING INSTRUCTIONS:
           }
         }
 
-        const preferredModel = (typeof localStorage !== 'undefined' ? localStorage.getItem('sib_ibom_ai_model') : null) || 'gemini-2.0-flash';
-        const candidateModels = Array.from(new Set([preferredModel, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']));
+        const preferredModel = (typeof localStorage !== 'undefined' ? localStorage.getItem('sib_ibom_ai_model') : null) || 'gemini-3.8-flash';
+        const candidateModels = Array.from(new Set([preferredModel, 'gemini-3.8-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite']));
 
         let lastModelErr: any = null;
         for (const modelName of candidateModels) {

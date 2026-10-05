@@ -32,9 +32,9 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   nonSubscriberMode: 'without_tokens',
   totalTokensUsed: 154200,
   totalTokensBudget: 5000000,
-  aiModelName: 'gemini-2.0-flash',
-  ibomAiModel: 'gemini-2.0-flash',
-  adminAiModel: 'gemini-2.0-flash',
+  aiModelName: 'gemini-3.8-flash',
+  ibomAiModel: 'gemini-3.8-flash',
+  adminAiModel: 'gemini-3.1-pro-preview',
   ibomAiApiKey: '',
   adminAiApiKey: '',
   apiKeysList: [],
@@ -127,36 +127,8 @@ export async function isUserPremiumDirectly(): Promise<boolean> {
 
 export async function determineOperatingMode(): Promise<{ mode: 'tokens' | 'without_tokens'; settings: SystemSettings }> {
   const settings = await getSystemSettings();
-  
-  if (settings.totalTokensUsed >= settings.totalTokensBudget) {
-    console.warn("[Mode Check] Token budget exceeded! Falling back to 'without_tokens' mode.");
-    return { mode: 'without_tokens', settings };
-  }
-
-  let isPremium = false;
-  let forcedAiMode: 'tokens' | 'without_tokens' | 'default' = 'default';
-
-  if (auth?.currentUser && db) {
-    try {
-      const profileRef = doc(db, 'sib_profiles', auth.currentUser.uid);
-      const profileSnap = await getDoc(profileRef);
-      if (profileSnap.exists()) {
-        const pData = profileSnap.data();
-        isPremium = !!pData.isPremium;
-        if (pData.forcedAiMode === 'tokens' || pData.forcedAiMode === 'without_tokens' || pData.forcedAiMode === 'default') {
-          forcedAiMode = pData.forcedAiMode || 'default';
-        }
-      }
-    } catch (err) {
-      console.error("Error reading profile details inside determineOperatingMode:", err);
-    }
-  }
-
-  const mode = forcedAiMode !== 'default' && forcedAiMode 
-    ? forcedAiMode 
-    : (isPremium ? settings.subscriberMode : settings.nonSubscriberMode);
-
-  return { mode, settings };
+  // All features unlocked for all users per product specification
+  return { mode: 'tokens', settings };
 }
 
 export function guessSubject(text: string): Subject {
@@ -267,11 +239,39 @@ async function generateBatch(
   topics: string | undefined,
   batchIndex: number
 ): Promise<Question[]> {
-  const maxRetries = 4;
+  // First, attempt to call the secure server-side AI orchestrator proxy
+  try {
+    const res = await fetch('/api/ai/personal-cbt/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject: guessSubject(text),
+        topics: topics || '',
+        difficulty: 'Mixed',
+        questionCount: count,
+        documentText: text,
+        examType
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.questions) && data.questions.length > 0) {
+        return data.questions.map((q: any, idx: number) => ({
+          ...q,
+          id: q.id || `ai-${Date.now()}-${batchIndex}-${idx}`,
+          examType: q.examType || examType
+        }));
+      }
+    }
+  } catch (proxyErr) {
+    console.warn('[AI Question Generator] Server proxy call failed, falling back to direct GenAI client:', proxyErr);
+  }
+
+  const maxRetries = 3;
   let attempt = 0;
   const ai = getAI();
-  // Using gemini-2.0-flash as recommended primary
-  let currentModel = "gemini-2.0-flash"; 
+  // Using gemini-3.1-pro-preview for deep academic reasoning, falling back to gemini-3.8-flash
+  let currentModel = "gemini-3.1-pro-preview"; 
 
   while (attempt <= maxRetries) {
     try {
@@ -342,12 +342,12 @@ async function generateBatch(
       
       console.error(`Batch ${batchIndex}, Attempt ${attempt} failed (${currentModel}):`, errorMessage);
       
-      // Fallback logic for rate limits/high demand or permission errors
-      if (isRateLimit || errorMessage.includes('403') || errorMessage.includes('permission') || errorMessage.includes('not found')) {
-        if (currentModel === "gemini-2.0-flash") {
-          currentModel = "gemini-1.5-flash";
-        } else if (currentModel === "gemini-1.5-flash") {
-          currentModel = "gemini-1.5-pro";
+      // Fallback logic for rate limits/high demand or model availability
+      if (isRateLimit || errorMessage.includes('403') || errorMessage.includes('not found') || errorMessage.includes('deprecated')) {
+        if (currentModel === "gemini-3.1-pro-preview") {
+          currentModel = "gemini-3.8-flash";
+        } else if (currentModel === "gemini-3.8-flash") {
+          currentModel = "gemini-3.1-flash-lite";
         }
       }
 
@@ -385,16 +385,33 @@ export async function generateQuestionsFromAudio(
   count: number = 20,
   topics?: string
 ): Promise<Question[]> {
-  const { mode, settings } = await determineOperatingMode();
-  if (mode === 'without_tokens') {
-    console.log("[System Mode] Operating in 'without_tokens' mode. Executing custom local JS engine for audio study fallback.");
-    return executeLocalJsEngine(settings.localJsEngineCode, 'General', count);
+  // First attempt: Call secure server-side AI orchestrator proxy
+  try {
+    const res = await fetch('/api/ai/audio-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        audioBase64,
+        mimeType,
+        questionCount: count,
+        topics: topics || '',
+        examType
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.questions) && data.questions.length > 0) {
+        return data.questions;
+      }
+    }
+  } catch (proxyErr) {
+    console.warn('[Audio Generator] Server proxy failed, trying direct GenAI:', proxyErr);
   }
 
   const maxRetries = 3;
   let attempt = 0;
   const ai = getAI();
-  const model = "gemini-2.0-flash"; 
+  const model = "gemini-3.8-flash"; 
 
   while (attempt <= maxRetries) {
     try {
@@ -488,24 +505,30 @@ export async function getAudioExplanation(
   audioBase64: string,
   mimeType: string
 ): Promise<string> {
-  const { mode, settings } = await determineOperatingMode();
-  if (mode === 'without_tokens') {
-    return `### 🌟 Local Study Session Overview (Offline Mode)
-    
-You are currently operating in **Without Tokens Mode**. The system is running offline local calculations to process your materials.
-
-#### 📝 Key Highlights
-- **Local Engine Active**: A pre-saved client-side logic script has compiled fallback practice guides.
-- **Save Budget**: 0 API tokens consumed!
-- **Study Tip**: When the system is in Tokens Mode, this workstation compiles vocal streams into deep structured outlines.
-
-Please continue with your mock practices or ask the administrator to re-enable premium AI tokens.`;
+  // First attempt: Call secure server-side AI orchestrator proxy
+  try {
+    const res = await fetch('/api/ai/audio-explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        audioBase64,
+        mimeType
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.text) {
+        return data.text;
+      }
+    }
+  } catch (proxyErr) {
+    console.warn('[Audio Explanation] Server proxy failed, trying direct GenAI:', proxyErr);
   }
 
   const maxRetries = 3;
   let attempt = 0;
   const ai = getAI();
-  const model = "gemini-2.0-flash";
+  const model = "gemini-3.8-flash";
 
   while (attempt <= maxRetries) {
     try {
@@ -519,7 +542,7 @@ Please continue with your mock practices or ask the administrator to re-enable p
             }
           },
           {
-            text: `Please listen to this audio and provide an extremely detailed, comprehensive explanation of everything spoken. 
+            text: `Please listen to this audio lecture or study recording and provide an extremely detailed, comprehensive explanation of everything spoken. 
             Structure your output as follows:
             1. **Title**: A descriptive title for the session.
             2. **Overview**: A high-level summary of the main subject.
@@ -626,7 +649,7 @@ export async function extractQuestionsWithAI(
   }
 
   const ai = getAI();
-  const model = "gemini-2.0-flash";
+  const model = "gemini-3.1-pro-preview";
 
   const contents: any[] = [];
 
@@ -725,7 +748,7 @@ export async function chatWithAIQuestionsAgent(
   }
 
   const ai = getAI();
-  const model = "gemini-2.0-flash";
+  const model = "gemini-3.1-pro-preview";
 
   const prompt = `You are an expert AI Exam Assistant helping an administrator manage examination questions.
   The administrator is currently working on:
@@ -823,7 +846,7 @@ export async function chatWithPublicAI(
   }
 
   const ai = getAI();
-  const model = "gemini-2.0-flash";
+  const model = "gemini-3.8-flash";
 
   const contents = [
     {

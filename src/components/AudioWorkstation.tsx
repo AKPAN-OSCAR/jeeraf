@@ -625,129 +625,228 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="max-w-4xl mx-auto space-y-12"
+                className="max-w-4xl mx-auto space-y-10"
               >
-                {/* 1. STUDIO CONTROLS FIRST (Recording Studio) */}
-                <div className="space-y-6">
+                {/* 1. STUDIO HEADER & ON-AIR BADGE */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-theme-border/60 pb-6">
                   <div className="flex items-center gap-4">
-                    <button onClick={() => setViewMode('selection')} className="p-3 bg-theme-card border border-theme-border rounded-xl text-theme-muted hover:text-rose-500 transition-all">
+                    <button 
+                      onClick={() => setViewMode('selection')} 
+                      className="p-3 bg-theme-card border border-theme-border rounded-2xl text-theme-muted hover:text-rose-500 hover:border-rose-500/30 transition-all active:scale-95 shadow-xs"
+                      title="Back to Station Modes"
+                    >
                       <ArrowLeft size={18} />
                     </button>
                     <div>
-                      <h3 className="text-3xl font-black text-theme-text uppercase tracking-tight text-left">Recording Studio</h3>
-                      <p className="text-theme-muted text-sm border-l-2 border-rose-500 pl-3 text-left">Microphone optimized for speech clarity.</p>
+                      <div className="flex items-center gap-2.5">
+                        <h3 className="text-2xl sm:text-3xl font-black text-theme-text uppercase tracking-tight">Audio Studio & Lecture Lab</h3>
+                      </div>
+                      <p className="text-theme-muted text-xs sm:text-sm border-l-2 border-rose-500 pl-3 mt-1">
+                        High-fidelity acoustic speech-to-test processor with real-time AI derivations.
+                      </p>
                     </div>
                   </div>
 
+                  {/* Studio Broadcast Indicator (ON AIR) */}
                   <div className={cn(
-                    "bg-theme-bg rounded-[4rem] p-12 border border-theme-border flex flex-col items-center text-center relative overflow-hidden transition-all duration-700 shadow-inner",
-                    recordingStatus === 'recording' ? "border-rose-500/40 bg-rose-500/[0.02]" : "ring-0 shadow-lg"
+                    "px-4 py-2 rounded-2xl border flex items-center gap-2.5 font-black uppercase text-xs tracking-widest shadow-md transition-all",
+                    recordingStatus === 'recording'
+                      ? "bg-rose-500/10 border-rose-500 text-rose-500 animate-pulse shadow-rose-500/20"
+                      : recordingStatus === 'paused'
+                      ? "bg-amber-500/10 border-amber-500 text-amber-500"
+                      : recordingStatus === 'stopped'
+                      ? "bg-emerald-500/10 border-emerald-500 text-emerald-400"
+                      : "bg-theme-bg border-theme-border text-theme-muted"
                   )}>
-                    {(recordingStatus === 'recording' || recordingStatus === 'paused') && (
-                      <div className="absolute top-0 inset-x-0 h-1.5 bg-rose-500/10 overflow-hidden">
-                        <motion.div className="h-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" animate={{ x: ['-100%', '100%'] }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }} />
-                      </div>
-                    )}
+                    <span className={cn(
+                      "w-2.5 h-2.5 rounded-full",
+                      recordingStatus === 'recording' ? "bg-rose-500 animate-ping" : 
+                      recordingStatus === 'paused' ? "bg-amber-500" :
+                      recordingStatus === 'stopped' ? "bg-emerald-400" : "bg-theme-muted"
+                    )} />
+                    <span>
+                      {recordingStatus === 'recording' ? '● ON AIR • REC' :
+                       recordingStatus === 'paused' ? 'PAUSED' :
+                       recordingStatus === 'stopped' ? 'TAPE READY' : 'STUDIO READY'}
+                    </span>
+                  </div>
+                </div>
 
-                    <div className="w-full flex flex-col items-center">
+                {/* 2. RECORDING CONSOLE */}
+                <div className={cn(
+                  "bg-gradient-to-b from-theme-card/90 to-theme-bg rounded-[3rem] p-8 sm:p-12 border-2 flex flex-col items-center text-center relative overflow-hidden transition-all duration-700 shadow-2xl",
+                  recordingStatus === 'recording' 
+                    ? "border-rose-500/60 shadow-rose-500/10" 
+                    : "border-theme-border shadow-xl"
+                )}>
+                  {/* Studio Ceiling Status Light Strip */}
+                  <div className="absolute top-0 inset-x-0 h-1.5 bg-theme-border/40 overflow-hidden">
+                    {recordingStatus === 'recording' && (
+                      <motion.div 
+                        className="h-full bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.8)]" 
+                        animate={{ x: ['-100%', '100%'] }} 
+                        transition={{ duration: 2.2, repeat: Infinity, ease: 'linear' }} 
+                      />
+                    )}
+                  </div>
+
+                  <div className="w-full flex flex-col items-center">
+                    {/* Central Studio Mic / Visualizer Ring */}
+                    <div className="relative mb-8">
                       <div className={cn(
-                        "w-40 h-40 rounded-full flex items-center justify-center mb-10 relative z-10 transition-all duration-500 shadow-2xl",
-                        recordingStatus === 'recording' ? "bg-rose-500 scale-110 shadow-rose-500/40" : "bg-theme-card border-4 border-theme-border"
+                        "w-36 h-36 sm:w-44 sm:h-44 rounded-full flex items-center justify-center relative z-10 transition-all duration-500 shadow-2xl",
+                        recordingStatus === 'recording' 
+                          ? "bg-rose-500 scale-105 shadow-rose-500/40 ring-8 ring-rose-500/20" 
+                          : "bg-theme-card border-4 border-theme-border hover:border-rose-500/40"
                       )}>
+                        {/* Audio Waveform Bars Inside Ring */}
                         {recordingStatus === 'recording' && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            {Array.from({ length: 12 }).map((_, i) => {
-                              const value = visualData[i * 4] || 0;
-                              const height = (value / 255) * 40 + 10;
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            {Array.from({ length: 16 }).map((_, i) => {
+                              const value = visualData[i * 3] || 0;
+                              const height = Math.max(8, (value / 255) * 48);
                               return (
                                 <motion.div 
                                   key={i}
-                                  className="w-1.5 mx-0.5 bg-white/40 rounded-full"
+                                  className="w-1.5 mx-0.5 bg-white/50 rounded-full"
                                   animate={{ height }}
+                                  transition={{ duration: 0.08 }}
                                 />
                               );
                             })}
                           </div>
                         )}
+
                         {recordingStatus === 'recording' ? (
-                          <Square className="text-white fill-white cursor-pointer relative z-20" size={48} onClick={stopRecording} />
+                          <Square className="text-white fill-white cursor-pointer relative z-20 hover:scale-110 transition-transform" size={44} onClick={stopRecording} />
                         ) : recordingStatus === 'paused' ? (
-                          <Play className="text-rose-500 fill-rose-500 ml-1 cursor-pointer" size={48} onClick={resumeRecording} />
+                          <Play className="text-rose-500 fill-rose-500 ml-1 cursor-pointer hover:scale-110 transition-transform" size={44} onClick={resumeRecording} />
                         ) : (
-                          <Mic className="text-rose-500 cursor-pointer" size={48} onClick={startRecording} />
+                          <Mic className="text-rose-500 cursor-pointer hover:scale-110 transition-transform" size={48} onClick={startRecording} />
                         )}
                       </div>
 
-                      <div className="space-y-3 z-10">
-                        <h3 className="text-3xl font-black text-theme-text uppercase tracking-tight">
-                          {recordingStatus === 'idle' ? 'Ready to Start' : 
-                           recordingStatus === 'recording' ? 'Acquiring Samples' :
-                           recordingStatus === 'paused' ? 'Audio Suspended' : 'Input Stabilized'}
-                        </h3>
-                        <div className="flex items-center justify-center gap-4">
-                          <div className={cn("w-3 h-3 rounded-full", recordingStatus === 'recording' ? "bg-rose-500 animate-pulse" : "bg-theme-muted")} />
-                          <p className={cn("font-mono text-7xl font-black tracking-tighter", recordingStatus === 'recording' ? "text-rose-500 drop-shadow-[0_0_12px_rgba(244,63,94,0.4)]" : "text-theme-muted")}>
-                            {formatTime(recordingTime)}
-                          </p>
-                        </div>
-                      </div>
+                      {/* Studio VU Meter Ambient Halo */}
+                      {recordingStatus === 'recording' && (
+                        <div className="absolute inset-0 -m-3 rounded-full border-2 border-rose-500/30 animate-ping pointer-events-none" />
+                      )}
+                    </div>
 
-                      <div className="flex flex-wrap items-center justify-center gap-6 mt-12 z-10">
-                        {recordingStatus === 'idle' && (
-                          <button onClick={startRecording} className="px-14 py-6 bg-rose-500 text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-rose-500/40 hover:bg-rose-600 transition-all active:scale-95 flex items-center gap-4">
-                            <Mic size={32} /> Initialize Mic
+                    {/* Studio Console Timecode */}
+                    <div className="space-y-2 z-10">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">
+                          Studio Timecode
+                        </span>
+                      </div>
+                      <p className={cn(
+                        "font-mono text-6xl sm:text-7xl font-black tracking-tighter drop-shadow-md",
+                        recordingStatus === 'recording' ? "text-rose-500" : "text-theme-muted"
+                      )}>
+                        {formatTime(recordingTime)}
+                      </p>
+                    </div>
+
+                    {/* Studio VU Meter Strip */}
+                    <div className="my-6 w-full max-w-xs flex items-center justify-center gap-1.5 p-2 rounded-xl bg-theme-bg/80 border border-theme-border/70">
+                      {Array.from({ length: 14 }).map((_, i) => {
+                        const val = visualData[i * 3] || 0;
+                        const isHot = i > 11;
+                        const isWarm = i > 8 && i <= 11;
+                        const isActive = recordingStatus === 'recording' && val > (i * 18);
+                        return (
+                          <div 
+                            key={i} 
+                            className={cn(
+                              "flex-1 h-3 rounded-xs transition-all duration-75",
+                              isActive
+                                ? isHot ? "bg-rose-500 shadow-xs shadow-rose-500" : isWarm ? "bg-amber-400" : "bg-emerald-400"
+                                : "bg-theme-border/40"
+                            )} 
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Primary Studio Action Controls */}
+                    <div className="flex flex-wrap items-center justify-center gap-4 mt-4 z-10">
+                      {recordingStatus === 'idle' && (
+                        <button 
+                          onClick={startRecording} 
+                          className="px-12 py-5 bg-rose-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-rose-500/30 hover:bg-rose-600 transition-all active:scale-95 flex items-center gap-3"
+                        >
+                          <Mic size={24} /> Initialize Studio Mic
+                        </button>
+                      )}
+                      {recordingStatus === 'recording' && (
+                        <div className="flex items-center gap-4">
+                          <button 
+                            onClick={pauseRecording} 
+                            className="px-6 py-4 bg-theme-card border border-theme-border rounded-2xl flex items-center gap-2 text-theme-muted hover:text-amber-500 hover:border-amber-500/40 transition-all font-bold text-sm"
+                          >
+                            <Pause size={18} /> Pause Take
                           </button>
-                        )}
-                        {recordingStatus === 'recording' && (
-                          <div className="flex items-center gap-6">
-                            <button onClick={pauseRecording} className="w-24 h-24 bg-theme-card border-2 border-theme-border rounded-[2.5rem] flex items-center justify-center text-theme-muted hover:text-rose-500 transition-all hover:border-rose-500/30 group">
-                              <Pause size={40} className="group-hover:scale-110 transition-transform" />
+                          <button 
+                            onClick={stopRecording} 
+                            className="px-10 py-4 bg-rose-500 text-white rounded-2xl font-black text-base shadow-xl shadow-rose-500/30 hover:bg-rose-600 transition-all flex items-center gap-3 active:scale-95"
+                          >
+                            <Square size={20} fill="white" /> Cut & Process Take
+                          </button>
+                        </div>
+                      )}
+                      {recordingStatus === 'paused' && (
+                        <div className="flex items-center gap-4">
+                          <button 
+                            onClick={resumeRecording} 
+                            className="px-8 py-4 bg-rose-500 text-white rounded-2xl font-black text-base shadow-xl shadow-rose-500/30 hover:bg-rose-600 transition-all flex items-center gap-2 active:scale-95"
+                          >
+                            <Play size={20} fill="white" /> Resume Take
+                          </button>
+                          <button 
+                            onClick={stopRecording} 
+                            className="px-6 py-4 bg-theme-card border border-theme-border rounded-2xl font-bold text-sm text-theme-text hover:bg-theme-bg transition-all"
+                          >
+                            Finalize Recording
+                          </button>
+                        </div>
+                      )}
+                      {recordingStatus === 'stopped' && (
+                        <div className="flex flex-col items-center gap-6 w-full max-w-xl">
+                          <div className="w-full p-5 bg-theme-card border border-theme-border rounded-2xl shadow-sm space-y-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted block text-left">
+                              Studio Tape Playback
+                            </span>
+                            {audioUrl && (
+                              <audio 
+                                key={audioUrl}
+                                src={audioUrl} 
+                                controls 
+                                preload="auto"
+                                className="w-full h-11 accent-rose-500 rounded-lg" 
+                              />
+                            )}
+                          </div>
+                          <div className="flex flex-wrap justify-center gap-3">
+                            <button 
+                              onClick={resetRecording} 
+                              className="px-6 py-3 bg-theme-card border border-theme-border rounded-xl text-theme-muted hover:text-rose-500 transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-wider"
+                            >
+                              <RotateCcw size={16} /> Record New Take
                             </button>
-                            <button onClick={stopRecording} className="px-14 py-6 bg-rose-500 text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-rose-500/40 hover:bg-rose-600 transition-all flex items-center gap-4">
-                              Stop & Process
+                            <button 
+                              onClick={() => saveToHistory('recording')} 
+                              className="px-6 py-3 bg-theme-card border border-theme-border rounded-xl font-bold text-xs uppercase tracking-wider text-theme-text hover:border-theme-muted transition-all flex items-center gap-2"
+                            >
+                              <Save size={16} /> Save to Tape Vault
                             </button>
                           </div>
-                        )}
-                        {recordingStatus === 'paused' && (
-                          <div className="flex items-center gap-6">
-                            <button onClick={resumeRecording} className="px-14 py-6 bg-rose-500 text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-rose-500/40 hover:bg-rose-600 transition-all flex items-center gap-4">
-                              <Play size={32} fill="white" /> Resume Input
-                            </button>
-                            <button onClick={stopRecording} className="px-12 py-6 bg-slate-800 text-white/[0.6] hover:text-white rounded-[2.5rem] font-black text-xl transition-all">
-                              Finalize
-                            </button>
-                          </div>
-                        )}
-                        {recordingStatus === 'stopped' && (
-                          <div className="flex flex-col items-center gap-8 w-full max-w-xl">
-                            <div className="w-full p-8 bg-theme-card border-2 border-theme-border rounded-[3rem] shadow-2xl">
-                              <h4 className="text-[10px] font-black uppercase tracking-widest text-theme-muted mb-6 text-left pl-2">Neural Playback Unit</h4>
-                              {audioUrl && (
-                                <audio 
-                                  key={audioUrl}
-                                  src={audioUrl} 
-                                  controls 
-                                  preload="auto"
-                                  className="w-full h-14 opacity-90 accent-rose-500 shadow-inner rounded-xl" 
-                                />
-                              )}
-                            </div>
-                            <div className="flex flex-wrap justify-center gap-4">
-                              <button onClick={resetRecording} className="px-10 py-5 bg-theme-card border-2 border-theme-border rounded-3xl text-theme-muted hover:text-rose-500 transition-all flex items-center gap-3 font-black uppercase text-xs tracking-widest">
-                                <RotateCcw size={20} /> Reset Studio
-                              </button>
-                              <button onClick={() => saveToHistory('recording')} className="px-10 py-5 bg-rose-500 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-rose-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
-                                <Save size={20} /> Archive Record
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* 2. SETTINGS BELOW RECORDING */}
+                {/* 3. SETTINGS & AI EXECUTION BELOW RECORDING */}
                 <div className="grid lg:grid-cols-2 gap-8">
                   <div className="bg-theme-card rounded-[3.5rem] p-10 border border-theme-border space-y-10 shadow-xl">
                     <div className="flex items-center justify-between">

@@ -1,6 +1,6 @@
 {
   "name": "JeeRaf CBT system",
-  "description": "A professional JAMB-style Computer Based Test (CBT) system for English, Mathematics, Physics, and Chemistry.",
+  "description": "Nigeria's premier national Computer-Based Testing (CBT) platform for WAEC, JAMB, NECO, and GCE. Features official multi-year past questions, step-by-step verified solutions, interactive KaTeX math, diagrams, tables, and AI-powered performance diagnostics.",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

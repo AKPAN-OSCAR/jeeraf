@@ -92,8 +92,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
       ? combined.filter(q => q.subject === selectedSubject && q.examType === examType)
       : [];
     const loadedYears = Array.from(new Set(subjectQs.map(q => q.year).filter(Boolean))) as number[];
-    const allYears = Array.from(new Set([...loadedYears, ...STANDARD_NATIONAL_EXAM_YEARS]));
-    return allYears.sort((a, b) => b - a); // Sort years in descending order
+    if (loadedYears.length > 0) {
+      return loadedYears.sort((a, b) => b - a); // Return only years with real questions
+    }
+    // If no specific past year is loaded for this subject, provide default fallback
+    return [];
   }, [selectedSubject, examType, adminQuestions]);
 
   // Sync default selected year

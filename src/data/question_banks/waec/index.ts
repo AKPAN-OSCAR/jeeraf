@@ -1,10 +1,13 @@
 import { Question } from '../../../types';
-import waecMath2015Json from './mathematics/waec_math_2015.json';
 
 /**
  * WAEC Question Bank Registry
- * Imports structured JSON question files directly without requiring manual TypeScript conversions.
+ * Automatically imports and registers all JSON question files placed inside this directory.
+ * When you add a new year (e.g. waec_math_2016.json), it is automatically discovered and loaded!
  */
-export const waecQuestions: Question[] = [
-  ...(waecMath2015Json as unknown as Question[])
-];
+const jsonModules = import.meta.glob<{ default: Question[] | Question }>('./**/*.json', { eager: true });
+
+export const waecQuestions: Question[] = Object.values(jsonModules).flatMap(mod => {
+  const data = mod.default;
+  return Array.isArray(data) ? data : [data];
+});

@@ -7,15 +7,108 @@ interface MathRendererProps {
   className?: string;
 }
 
+interface TableBlock {
+  type: 'table';
+  headers: string[];
+  rows: string[][];
+}
+
+interface NormalBlock {
+  type: 'line';
+  line: string;
+  lineIdx: number;
+}
+
+type ContentBlock = TableBlock | NormalBlock;
+
 export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = '' }) => {
   if (!text) return null;
 
-  // Split by double newlines or single newlines to process paragraphs and lines
   const lines = text.split('\n');
+  const blocks: ContentBlock[] = [];
+  let currentTableLines: string[] = [];
+
+  const flushTable = () => {
+    if (currentTableLines.length === 0) return;
+
+    const parsedTable = parseMarkdownTable(currentTableLines);
+    if (parsedTable) {
+      blocks.push(parsedTable);
+    } else {
+      // If table parsing failed, push as normal lines
+      currentTableLines.forEach((l, idx) => {
+        blocks.push({ type: 'line', line: l, lineIdx: idx });
+      });
+    }
+    currentTableLines = [];
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Check if this line looks like part of a markdown table (e.g., contains |)
+    const isTableRow = trimmed.length > 0 && (
+      (trimmed.startsWith('|') && trimmed.endsWith('|')) ||
+      (trimmed.split('|').length >= 3)
+    );
+
+    if (isTableRow) {
+      currentTableLines.push(trimmed);
+    } else {
+      flushTable();
+      blocks.push({ type: 'line', line, lineIdx: i });
+    }
+  }
+  flushTable();
 
   return (
     <div className={`space-y-1.5 ${className}`}>
-      {lines.map((line, lineIdx) => {
+      {blocks.map((block, blockIdx) => {
+        if (block.type === 'table') {
+          return (
+            <div 
+              key={`tbl-${blockIdx}`} 
+              className="overflow-x-auto my-3.5 p-1 rounded-2xl border border-theme-border bg-theme-card/60 shadow-sm max-w-full"
+            >
+              <table className="min-w-full divide-y divide-theme-border text-xs sm:text-sm text-left border-collapse">
+                {block.headers.length > 0 && (
+                  <thead className="bg-theme-bg/90">
+                    <tr>
+                      {block.headers.map((head, hIdx) => (
+                        <th 
+                          key={hIdx} 
+                          className="px-3.5 py-2.5 text-xs font-black uppercase tracking-wider text-theme-text border-b border-theme-border text-center sm:text-left"
+                        >
+                          {parseInlineContent(head)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                )}
+                <tbody className="divide-y divide-theme-border/60">
+                  {block.rows.map((row, rIdx) => (
+                    <tr 
+                      key={rIdx} 
+                      className="hover:bg-theme-bg/50 transition-colors odd:bg-theme-bg/20"
+                    >
+                      {row.map((cell, cIdx) => (
+                        <td 
+                          key={cIdx} 
+                          className="px-3.5 py-2.5 text-theme-text font-medium text-center sm:text-left whitespace-nowrap"
+                        >
+                          {parseInlineContent(cell)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        const { line, lineIdx } = block;
         const trimmed = line.trim();
         if (!trimmed) return <div key={lineIdx} className="h-2" />;
 
@@ -58,14 +151,14 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
 
         if (headingLevel === 1) {
           return (
-            <h1 key={lineIdx} className="text-2xl sm:text-3xl font-black mt-4 mb-2 tracking-tight">
+            <h1 key={lineIdx} className="text-2xl sm:text-3xl font-black mt-4 mb-2 tracking-tight text-theme-text">
               {inlineParsed}
             </h1>
           );
         }
         if (headingLevel === 2) {
           return (
-            <h2 key={lineIdx} className="text-xl sm:text-2xl font-extrabold mt-3 mb-2 tracking-tight">
+            <h2 key={lineIdx} className="text-xl sm:text-2xl font-extrabold mt-3 mb-2 tracking-tight text-theme-text">
               {inlineParsed}
             </h2>
           );
@@ -79,7 +172,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
         }
         if (headingLevel === 4) {
           return (
-            <h4 key={lineIdx} className="text-base font-bold mt-2 mb-1">
+            <h4 key={lineIdx} className="text-base font-bold mt-2 mb-1 text-theme-text">
               {inlineParsed}
             </h4>
           );
@@ -89,7 +182,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
           return (
             <div key={lineIdx} className="flex items-start gap-2.5 my-1 pl-2">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
-              <div className="flex-1">{inlineParsed}</div>
+              <div className="flex-1 text-theme-text leading-relaxed">{inlineParsed}</div>
             </div>
           );
         }
@@ -98,13 +191,13 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
           return (
             <div key={lineIdx} className="flex items-start gap-2.5 my-1 pl-2">
               <span className="font-bold text-amber-500 text-sm shrink-0">{listPrefix}</span>
-              <div className="flex-1">{inlineParsed}</div>
+              <div className="flex-1 text-theme-text leading-relaxed">{inlineParsed}</div>
             </div>
           );
         }
 
         return (
-          <div key={lineIdx} className="leading-relaxed">
+          <div key={lineIdx} className="leading-relaxed text-theme-text">
             {inlineParsed}
           </div>
         );
@@ -112,6 +205,50 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
     </div>
   );
 };
+
+// Helper function to split a markdown row by pipe while respecting escaping
+function splitTableRow(rowStr: string): string[] {
+  let cleaned = rowStr.trim();
+  if (cleaned.startsWith('|')) cleaned = cleaned.substring(1);
+  if (cleaned.endsWith('|')) cleaned = cleaned.substring(0, cleaned.length - 1);
+  return cleaned.split('|').map(cell => cell.trim());
+}
+
+// Parses raw consecutive lines into a TableBlock if valid
+function parseMarkdownTable(tableLines: string[]): TableBlock | null {
+  if (tableLines.length < 1) return null;
+
+  // Check if second line is a separator like |---|---|
+  const isSeparatorLine = (str: string) => {
+    return /^\|?\s*:?-+:?\s*(\|:?-+:?\s*)+\|?$/.test(str.trim());
+  };
+
+  if (tableLines.length >= 2 && isSeparatorLine(tableLines[1])) {
+    const headers = splitTableRow(tableLines[0]);
+    const dataRows = tableLines.slice(2).map(splitTableRow);
+    return {
+      type: 'table',
+      headers,
+      rows: dataRows
+    };
+  }
+
+  // If there's no separator, but multiple lines with same column count
+  if (tableLines.length >= 2) {
+    const parsedRows = tableLines.map(splitTableRow);
+    const colCount = parsedRows[0].length;
+    const isConsistent = parsedRows.every(r => Math.abs(r.length - colCount) <= 1);
+    if (isConsistent && colCount >= 2) {
+      return {
+        type: 'table',
+        headers: parsedRows[0],
+        rows: parsedRows.slice(1)
+      };
+    }
+  }
+
+  return null;
+}
 
 // Helper function to parse inline text, math ($...$ and $$...$$), bold (**...**), italics (*...*), and LaTeX symbols
 function parseInlineContent(str: string): React.ReactNode[] {
@@ -181,4 +318,3 @@ function parseFormattedText(text: string): React.ReactNode[] {
     });
   });
 }
-

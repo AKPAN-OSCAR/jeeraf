@@ -1,6 +1,9 @@
 import { Question } from '../../../types';
-import necoMath2024Json from './mathematics/neco_math_2024.json';
 
-export const necoQuestions: Question[] = [
-  ...(necoMath2024Json as unknown as Question[])
-];
+const jsonModules = import.meta.glob<{ default: Question[] | Question }>('./**/*.json', { eager: true });
+
+export const necoQuestions: Question[] = Object.values(jsonModules).flatMap(mod => {
+  const data = mod.default;
+  return Array.isArray(data) ? data : [data];
+});
+

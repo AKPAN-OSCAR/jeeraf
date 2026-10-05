@@ -485,9 +485,11 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
                 {/* Comprehension Passage */}
                 {currentSolutionQuestion.passage && (
-                  <div className="p-4 bg-theme-bg border-l-4 border-amber-500 rounded-r-2xl max-h-56 overflow-y-auto pr-2 scrollbar-thin">
-                    <h4 className="text-[11px] font-black text-amber-500 uppercase tracking-widest mb-1">Passage Reference:</h4>
-                    <div className="text-xs text-theme-text/90 italic leading-relaxed">
+                  <div className="p-4 bg-theme-bg/90 border-l-4 border-amber-500 rounded-r-2xl max-h-72 overflow-y-auto pr-2 custom-scrollbar shadow-xs">
+                    <h4 className="text-[11px] font-black text-amber-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                      <span>Section A: Reading Passage Reference</span>
+                    </h4>
+                    <div className="text-xs sm:text-sm text-theme-text/95 font-serif leading-relaxed">
                       <MathRenderer text={currentSolutionQuestion.passage} />
                     </div>
                   </div>

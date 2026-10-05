@@ -1,6 +1,9 @@
 import { Question } from '../../../types';
-import waecGceMath2024Json from './mathematics/waec_gce_math_2024.json';
 
-export const waecGceQuestions: Question[] = [
-  ...(waecGceMath2024Json as unknown as Question[])
-];
+const jsonModules = import.meta.glob<{ default: Question[] | Question }>('./**/*.json', { eager: true });
+
+export const waecGceQuestions: Question[] = Object.values(jsonModules).flatMap(mod => {
+  const data = mod.default;
+  return Array.isArray(data) ? data : [data];
+});
+

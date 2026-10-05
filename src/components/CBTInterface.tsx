@@ -123,6 +123,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
   const navDragControls = useDragControls();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPassageExpanded, setIsPassageExpanded] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [visitedQuestions, setVisitedQuestions] = useState<Set<string>>(new Set([currentQuestion?.id].filter(Boolean)));
 
@@ -501,12 +502,26 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
 
             {/* Comprehension Passage if present */}
             {currentQuestion?.passage && (
-              <div className="p-4 sm:p-5 bg-theme-bg rounded-2xl border border-theme-border space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-500 uppercase tracking-wider">
-                  <Bookmark size={14} />
-                  <span>Reading Passage:</span>
+              <div className="p-4 sm:p-5 bg-theme-bg/80 rounded-2xl border border-theme-border/90 space-y-2.5 shadow-xs">
+                <div className="flex items-center justify-between gap-2 border-b border-theme-border/60 pb-2">
+                  <div className="flex items-center gap-2 text-xs font-black text-amber-500 uppercase tracking-wider">
+                    <Bookmark size={15} />
+                    <span>Section A: Reading Passage / Comprehension</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsPassageExpanded(!isPassageExpanded)}
+                    className="text-[11px] font-bold text-theme-accent hover:underline flex items-center gap-1 active:scale-95"
+                  >
+                    <span>{isPassageExpanded ? 'Collapse' : 'Expand Full'}</span>
+                  </button>
                 </div>
-                <div className="text-xs sm:text-sm text-theme-text leading-relaxed font-serif max-h-56 overflow-y-auto pr-2 scrollbar-thin">
+                <div 
+                  className={cn(
+                    "text-xs sm:text-sm text-theme-text leading-relaxed font-serif pr-2 custom-scrollbar overflow-y-auto transition-all duration-300",
+                    isPassageExpanded ? "max-h-[550px]" : "max-h-64 sm:max-h-80"
+                  )}
+                >
                   <MathRenderer text={currentQuestion.passage} />
                 </div>
               </div>
