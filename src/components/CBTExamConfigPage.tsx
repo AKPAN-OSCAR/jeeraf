@@ -107,12 +107,23 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
   // Dynamically derive loaded past exam years with actual questions from the database
   const loadedExamYears = useMemo(() => {
     if (!questions || questions.length === 0) return availableYears;
-    const targetSubjects = new Set(selectedSubjects.length > 0 ? selectedSubjects : (initialSubject ? [initialSubject] : []));
+    const targetSubjects = new Set(
+      (selectedSubjects.length > 0 ? selectedSubjects : (initialSubject ? [initialSubject] : []))
+        .map(s => String(s).trim().toLowerCase())
+    );
+    const targetExam = String(examType || '').trim().toUpperCase();
     const yearCounts = new Map<number, number>();
     
     questions.forEach(q => {
-      if (q.examType === examType && q.year && (targetSubjects.size === 0 || (q.subject && targetSubjects.has(q.subject)))) {
-        yearCounts.set(q.year, (yearCounts.get(q.year) || 0) + 1);
+      const qExam = String(q.examType || '').trim().toUpperCase();
+      const qYear = Number(q.year);
+      const qSubj = String(q.subject || '').trim().toLowerCase();
+
+      const examMatch = qExam === targetExam;
+      const subjMatch = targetSubjects.size === 0 || targetSubjects.has(qSubj);
+
+      if (examMatch && !isNaN(qYear) && qYear > 1900 && subjMatch) {
+        yearCounts.set(qYear, (yearCounts.get(qYear) || 0) + 1);
       }
     });
 

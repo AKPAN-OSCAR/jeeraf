@@ -78,26 +78,47 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
     const set = new Set<number>();
     if (!selectedSubject || !examType) return set;
     const combined = [...staticQuestions, ...adminQuestions];
+    const targetSubj = String(selectedSubject).trim().toLowerCase();
+    const targetExam = String(examType).trim().toUpperCase();
+
     combined.forEach(q => {
-      if (q.subject === selectedSubject && q.examType === examType && q.year) {
-        set.add(q.year);
+      const qSubj = String(q.subject || '').trim().toLowerCase();
+      const qExam = String(q.examType || '').trim().toUpperCase();
+      const qYear = Number(q.year);
+
+      if (qSubj === targetSubj && qExam === targetExam && !isNaN(qYear) && qYear > 1900) {
+        set.add(qYear);
       }
     });
     return set;
-  }, [selectedSubject, examType, adminQuestions]);
+  }, [selectedSubject, examType, adminQuestions, staticQuestions]);
 
   const availableYears = React.useMemo(() => {
     const combined = [...staticQuestions, ...adminQuestions];
-    const subjectQs = selectedSubject && examType 
-      ? combined.filter(q => q.subject === selectedSubject && q.examType === examType)
+    const targetSubj = selectedSubject ? String(selectedSubject).trim().toLowerCase() : '';
+    const targetExam = examType ? String(examType).trim().toUpperCase() : '';
+
+    const subjectQs = targetSubj && targetExam 
+      ? combined.filter(q => {
+          const qSubj = String(q.subject || '').trim().toLowerCase();
+          const qExam = String(q.examType || '').trim().toUpperCase();
+          return qSubj === targetSubj && qExam === targetExam;
+        })
       : [];
-    const loadedYears = Array.from(new Set(subjectQs.map(q => q.year).filter(Boolean))) as number[];
+
+    const loadedYears = Array.from(
+      new Set(
+        subjectQs
+          .map(q => Number(q.year))
+          .filter(y => !isNaN(y) && y > 1900)
+      )
+    );
+
     if (loadedYears.length > 0) {
-      return loadedYears.sort((a, b) => b - a); // Return only years with real questions
+      return loadedYears.sort((a, b) => b - a);
     }
-    // If no specific past year is loaded for this subject, provide default fallback
     return [];
-  }, [selectedSubject, examType, adminQuestions]);
+  }, [selectedSubject, examType, adminQuestions, staticQuestions]);
 
   // Sync default selected year
   useEffect(() => {

@@ -435,14 +435,28 @@ export default function App() {
     
     // Helper to get questions for a given subject
     const getQuestionsForSubject = (subj: Subject) => {
-      let filtered = combinedQuestions.filter(q =>
-        q.subject === subj &&
-        q.examType === config.examType &&
-        (config.practiceMode === 'yearly' && config.selectedYear ? q.year === config.selectedYear : true)
-      );
+      const targetSubj = String(subj || '').trim().toLowerCase();
+      const targetExam = String(config.examType || '').trim().toUpperCase();
+      const targetYear = config.selectedYear ? Number(config.selectedYear) : null;
+
+      let filtered = combinedQuestions.filter(q => {
+        const qSubj = String(q.subject || '').trim().toLowerCase();
+        const qExam = String(q.examType || '').trim().toUpperCase();
+        const qYear = Number(q.year);
+
+        const subjMatch = qSubj === targetSubj;
+        const examMatch = qExam === targetExam;
+        const yearMatch = config.practiceMode === 'yearly' && targetYear ? qYear === targetYear : true;
+
+        return subjMatch && examMatch && yearMatch;
+      });
+
       if (filtered.length === 0 && config.practiceMode === 'random') {
-        // Fallback to any questions for this subject only during random practice mode
-        filtered = combinedQuestions.filter(q => q.subject === subj && q.examType === config.examType);
+        filtered = combinedQuestions.filter(q => {
+          const qSubj = String(q.subject || '').trim().toLowerCase();
+          const qExam = String(q.examType || '').trim().toUpperCase();
+          return qSubj === targetSubj && qExam === targetExam;
+        });
       }
       return filtered;
     };
@@ -574,11 +588,21 @@ export default function App() {
     if (selectedExamType === 'Personal CBT') {
       subjectQuestions = [...customQuestions];
     } else {
-      subjectQuestions = combinedQuestions.filter(q => 
-        q.subject === subject && 
-        q.examType === selectedExamType &&
-        (practiceMode === 'yearly' && selectedYear ? q.year === selectedYear : true)
-      );
+      const targetSubj = String(subject || '').trim().toLowerCase();
+      const targetExam = String(selectedExamType || '').trim().toUpperCase();
+      const targetYear = selectedYear ? Number(selectedYear) : null;
+
+      subjectQuestions = combinedQuestions.filter(q => {
+        const qSubj = String(q.subject || '').trim().toLowerCase();
+        const qExam = String(q.examType || '').trim().toUpperCase();
+        const qYear = Number(q.year);
+
+        const subjMatch = qSubj === targetSubj;
+        const examMatch = qExam === targetExam;
+        const yearMatch = practiceMode === 'yearly' && targetYear ? qYear === targetYear : true;
+
+        return subjMatch && examMatch && yearMatch;
+      });
     }
     
     if (subjectQuestions.length === 0) {
@@ -790,11 +814,11 @@ export default function App() {
 
   if (splashStage !== 'done') {
     return (
-      <div className="fixed inset-0 w-screen h-screen bg-slate-950 flex items-center justify-center overflow-hidden select-none z-[99999] p-4 sm:p-8">
+      <div className="fixed inset-0 w-screen h-screen bg-slate-950 flex items-center justify-center overflow-hidden select-none z-[99999] p-0 m-0 border-0 rounded-none">
         <img 
           src="/jeeraf-with-name.svg" 
           alt="JeeRaf CBT System" 
-          className="w-full h-full max-w-[92vw] max-h-[92vh] object-contain select-none block drop-shadow-2xl"
+          className="w-full h-full object-contain select-none block p-0 m-0 border-0 rounded-none"
         />
       </div>
     );

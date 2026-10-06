@@ -70,9 +70,9 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
         uid: firebaseUser.uid,
         email: firebaseUser.email,
         role: effectiveRole,
-        subscriptionStatus: (effectiveRole === 'admin') ? 'paid' : 'free',
-        plan: (effectiveRole === 'admin') ? 'claxy_pro' : 'free',
-        isPremium: (effectiveRole === 'admin'),
+        subscriptionStatus: 'paid',
+        plan: 'claxy_pro',
+        isPremium: true,
         trialExpiresAt: trialExpiresAt.toISOString(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()

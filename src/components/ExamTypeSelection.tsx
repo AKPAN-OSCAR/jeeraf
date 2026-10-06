@@ -5,7 +5,7 @@ import { SidebarMenu } from './SidebarMenu';
 import { AudioWorkstation } from './AudioWorkstation';
 import { ExamType, Question } from '../types';
 import { cn } from '../data/lib/utils';
-import { generateQuestionsFromText } from '../services/aiQuestions';
+import { generateQuestionsFromText, extractQuestionsWithAI } from '../services/aiQuestions';
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 

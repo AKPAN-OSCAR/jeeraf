@@ -28,6 +28,12 @@ function getAI(): GoogleGenAI {
 // Multi-model fallback sequence: prioritize gemini-3.1-pro-preview for deep academic reasoning, then fast flash
 const CANDIDATE_MODELS = ['gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-3.1-flash-lite'];
 
+function stripDataUrl(base64Str?: string): string {
+  if (!base64Str || typeof base64Str !== 'string') return '';
+  const idx = base64Str.indexOf(',');
+  return (idx !== -1 ? base64Str.slice(idx + 1) : base64Str).trim();
+}
+
 async function generateWithFallback(params: {
   contents: any[];
   config?: any;
@@ -218,11 +224,12 @@ STRICT QUESTION CONSTRUCTION CRITERIA:
 6. Use inline LaTeX $math$ for all mathematical expressions and formulas.`;
 
     const userParts: any[] = [];
-    if (imageBase64) {
+    const cleanImage = stripDataUrl(imageBase64);
+    if (cleanImage) {
       userParts.push({
         inlineData: {
           mimeType: mimeType || 'image/jpeg',
-          data: imageBase64
+          data: cleanImage
         }
       });
       userParts.push({
@@ -303,7 +310,8 @@ STRICT QUESTION CONSTRUCTION CRITERIA:
 app.post('/api/ai/audio-explain', async (req, res) => {
   try {
     const { audioBase64, mimeType = 'audio/webm', customPrompt } = req.body;
-    if (!audioBase64) {
+    const cleanAudio = stripDataUrl(audioBase64);
+    if (!cleanAudio) {
       return res.status(400).json({ error: 'Audio data is required' });
     }
 
@@ -325,7 +333,7 @@ Highlight key terms in **bold** and format formulas using LaTeX ($E = mc^2$, $\\
             {
               inlineData: {
                 mimeType,
-                data: audioBase64
+                data: cleanAudio
               }
             },
             { text: promptText }
@@ -350,7 +358,8 @@ Highlight key terms in **bold** and format formulas using LaTeX ($E = mc^2$, $\\
 app.post('/api/ai/audio-questions', async (req, res) => {
   try {
     const { audioBase64, mimeType = 'audio/webm', questionCount = 10, topics = '', examType = 'Personal CBT' } = req.body;
-    if (!audioBase64) {
+    const cleanAudio = stripDataUrl(audioBase64);
+    if (!cleanAudio) {
       return res.status(400).json({ error: 'Audio data is required' });
     }
 
@@ -373,7 +382,7 @@ STRICT CRITERIA:
             {
               inlineData: {
                 mimeType,
-                data: audioBase64
+                data: cleanAudio
               }
             },
             { text: prompt }
@@ -487,7 +496,9 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[JeeRaf Engine] Server running on port ${PORT} (${isProd ? 'production' : 'development'})`);
+    console.log(`\n  \x1b[32m➜\x1b[0m  \x1b[1mLocal:\x1b[0m   \x1b[36mhttp://localhost:${PORT}/\x1b[0m`);
+    console.log(`  \x1b[32m➜\x1b[0m  \x1b[1mNetwork:\x1b[0m \x1b[36mhttp://0.0.0.0:${PORT}/\x1b[0m`);
+    console.log(`  \x1b[33m➜\x1b[0m  Mode:    ${isProd ? 'production' : 'development'}\n`);
   });
 }
 
