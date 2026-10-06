@@ -3,6 +3,8 @@ import { Question } from '../../../types';
 import { normalizeQuestion } from '../../lib/utils';
 import waecMath2015Json from './mathematics/waec_math_2015.json';
 import waecMath2012Json from './mathematics/waec_math_2012.json';
+import waecMath2013Json from './mathematics/waec_math_2012.json';
+
 
 /**
  * WAEC Question Bank Dual Registry (Automatic + Manual)
@@ -34,7 +36,8 @@ const autoQuestions: Question[] = Object.values(jsonModules).flatMap((mod: any) 
  */
 export const manualQuestions: Question[] = [
   ...(waecMath2015Json as unknown as Question[]),
-  ...(waecMath2012Json as unknown as Question[])
+  ...(waecMath2012Json as unknown as Question[]),
+  ...(waecMath2013Json as unknown as Question[])
 ];
 
 // Merge both sources and deduplicate by question ID
