@@ -45,10 +45,34 @@ export function normalizeSubject(raw: any): Subject {
   return SUBJECT_MAP[clean] || (raw as Subject);
 }
 
+export function sanitizeMathText(text?: string | null): string {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    .replace(/\x0crac/g, '\\frac')
+    .replace(/\x0c/g, '\\')
+    .replace(/\x07pprox/g, '\\approx')
+    .replace(/\x07ngle/g, '\\angle')
+    .replace(/\x07/g, '')
+    .replace(/\times/g, '\\times')
+    .replace(/\t([a-zA-Z])/g, (_, ch) => (ch === 'i' ? '\\times' : ch === 'e' ? '\\text' : ch === 'r' ? '\\triangle' : ' ' + ch))
+    .replace(/(?<=\s|\$|\(|\{|\[)ngle\s+([A-Za-z0-9])/g, '\\angle $1')
+    .replace(/\\?ngle\s+([A-Z]{2,4})/g, '\\angle $1')
+    .replace(/riangle\s+([A-Z]{3})/g, '\\triangle $1')
+    .replace(/ight\)/g, '\\right)')
+    .replace(/ight\]/g, '\\right]')
+    .replace(/ight\}/g, '\\right}')
+    .replace(/ight\|/g, '\\right|')
+    .replace(/ight\./g, '\\right.');
+}
+
 export function normalizeQuestion(q: any): Question {
   if (!q) return q;
   return {
     ...q,
+    question: sanitizeMathText(q.question),
+    options: Array.isArray(q.options) ? q.options.map((opt: string) => sanitizeMathText(opt)) : [],
+    explanation: sanitizeMathText(q.explanation),
+    passage: q.passage ? sanitizeMathText(q.passage) : null,
     subject: normalizeSubject(q.subject),
     year: Number(q.year) || q.year,
     examType: String(q.examType || '').trim().toUpperCase() as ExamType

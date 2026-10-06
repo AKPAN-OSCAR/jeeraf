@@ -73,10 +73,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
 
-  // Dynamically extract available years for the selected subject and examType
-  const subjectQuestionsForYears = React.useMemo(() => {
-    const set = new Set<number>();
-    if (!selectedSubject || !examType) return set;
+  // Dynamically extract available years and question counts for the selected subject and examType
+  const subjectQuestionCountByYear = React.useMemo(() => {
+    const counts: Record<number, number> = {};
+    if (!selectedSubject || !examType) return counts;
     const combined = [...staticQuestions, ...adminQuestions];
     const targetSubj = String(selectedSubject).trim().toLowerCase();
     const targetExam = String(examType).trim().toUpperCase();
@@ -87,11 +87,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
       const qYear = Number(q.year);
 
       if (qSubj === targetSubj && qExam === targetExam && !isNaN(qYear) && qYear > 1900) {
-        set.add(qYear);
+        counts[qYear] = (counts[qYear] || 0) + 1;
       }
     });
-    return set;
+    return counts;
   }, [selectedSubject, examType, adminQuestions, staticQuestions]);
+
+  const subjectQuestionsForYears = React.useMemo(() => {
+    return new Set<number>(Object.keys(subjectQuestionCountByYear).map(Number));
+  }, [subjectQuestionCountByYear]);
 
   const availableYears = React.useMemo(() => {
     const combined = [...staticQuestions, ...adminQuestions];
@@ -570,6 +574,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
                                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
                                   {availableYears.map((year) => {
                                     const isReady = subjectQuestionsForYears.has(year);
+                                    const qsCount = subjectQuestionCountByYear[year] || 0;
                                     return (
                                       <button
                                         key={year}
@@ -585,10 +590,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
                                         <span>{year}</span>
                                         {isReady && (
                                           <span className={cn(
-                                            "text-[9px] px-1.5 py-0.2 rounded-full font-bold",
+                                            "text-[9px] px-1.5 py-0.5 rounded-full font-bold",
                                             selectedYear === year ? "bg-white/20 text-white" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                                           )}>
-                                            Ready
+                                            {qsCount > 0 ? `${qsCount} Qs` : 'Ready'}
                                           </span>
                                         )}
                                       </button>
