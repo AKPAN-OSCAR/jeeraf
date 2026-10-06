@@ -7,7 +7,7 @@ import {
   LayoutGrid, ChevronDown, ChevronUp, Upload, Camera, HelpCircle
 } from 'lucide-react';
 import { Subject, Question, ExamType } from '../types';
-import { cn } from '../data/lib/utils';
+import { cn, normalizeSubject } from '../data/lib/utils';
 import { MathRenderer } from './MathRenderer';
 import { Calculator } from './Calculator';
 
@@ -61,20 +61,23 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
     const map = new Map<Subject, Question[]>();
 
     if (subjects && subjects.length > 0) {
-      subjects.forEach(s => map.set(s, []));
+      subjects.forEach(s => map.set(normalizeSubject(s), []));
     }
 
     questions.forEach((q) => {
-      const s = q.subject || subject;
+      const s = normalizeSubject(q.subject || subject);
       if (!map.has(s)) {
         map.set(s, []);
       }
-      map.get(s)!.push(q);
+      map.get(s)!.push({
+        ...q,
+        subject: s
+      });
     });
 
     // Prune subjects that ended up empty unless passed in subjects
     for (const [key, val] of Array.from(map.entries())) {
-      if (val.length === 0 && (!subjects || !subjects.includes(key))) {
+      if (val.length === 0 && (!subjects || !subjects.map(normalizeSubject).includes(key))) {
         map.delete(key);
       }
     }
@@ -86,8 +89,9 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
 
   // Current Active Subject (defaults to initial subject or first in list)
   const [activeSubject, setActiveSubject] = useState<Subject>(() => {
-    if (subject && subjectList.includes(subject)) return subject;
-    return subjectList[0] || subject;
+    const normSubj = normalizeSubject(subject);
+    if (normSubj && subjectList.includes(normSubj)) return normSubj;
+    return subjectList[0] || normSubj;
   });
 
   // Track current question index inside each subject independently

@@ -165,9 +165,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, profile, examType, d
       'History', 'CRK', 'IRK', 'Yoruba', 'Hausa', 'Igbo', 'French'
     ];
 
+    const targetExam = String(examType).trim().toUpperCase();
+
     return allSubjects.map(name => {
-      const staticCount = staticQuestions.filter(q => q.subject === name && q.examType === examType).length;
-      const dynamicCount = adminQuestions.filter(q => q.subject === name && q.examType === examType).length;
+      const targetName = String(name).trim().toLowerCase();
+      const staticCount = staticQuestions.filter(q => 
+        String(q.subject || '').trim().toLowerCase() === targetName && 
+        String(q.examType || '').trim().toUpperCase() === targetExam
+      ).length;
+      const dynamicCount = adminQuestions.filter(q => 
+        String(q.subject || '').trim().toLowerCase() === targetName && 
+        String(q.examType || '').trim().toUpperCase() === targetExam
+      ).length;
       return {
         name,
         ...(subjectMeta[name] || subjectMeta['General']),

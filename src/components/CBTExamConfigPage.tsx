@@ -879,11 +879,17 @@ export const CBTExamConfigPage: React.FC<CBTExamConfigPageProps> = ({
                   </span>
                   <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
                     {loadedExamYears.map(yr => {
-                      const qsCount = questions ? questions.filter(q => 
-                        q.examType === examType && 
-                        q.year === yr && 
-                        (selectedSubjects.length === 0 || selectedSubjects.includes(q.subject))
-                      ).length : 0;
+                      const qsCount = questions ? questions.filter(q => {
+                        const qExam = String(q.examType || '').trim().toUpperCase();
+                        const targetExam = String(examType || '').trim().toUpperCase();
+                        const qYear = Number(q.year);
+                        const targetYear = Number(yr);
+                        const qSubj = String(q.subject || '').trim().toLowerCase();
+                        const subjMatch = selectedSubjects.length === 0 || 
+                          selectedSubjects.some(s => String(s).trim().toLowerCase() === qSubj);
+
+                        return qExam === targetExam && qYear === targetYear && subjMatch;
+                      }).length : 0;
 
                       return (
                         <button

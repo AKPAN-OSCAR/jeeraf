@@ -17,7 +17,7 @@ import { ProgressTracker } from './components/ProgressTracker';
 import { questions as allQuestions } from './data/questions';
 import { Subject, Question, QuizResult, ExamType, ExamSessionConfig } from './types';
 import { auth, db } from './firebase';
-import { getStandardLimit, STANDARD_NATIONAL_EXAM_YEARS } from './data/lib/utils';
+import { getStandardLimit, STANDARD_NATIONAL_EXAM_YEARS, normalizeQuestion } from './data/lib/utils';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp, query, where, onSnapshot, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { SubscriptionLock } from './components/SubscriptionLock';
@@ -458,7 +458,7 @@ export default function App() {
           return qSubj === targetSubj && qExam === targetExam;
         });
       }
-      return filtered;
+      return filtered.map(normalizeQuestion);
     };
 
     // Reorder subjects in merged mode so candidate's chosen startingSubject is first
@@ -603,6 +603,7 @@ export default function App() {
 
         return subjMatch && examMatch && yearMatch;
       });
+      subjectQuestions = subjectQuestions.map(normalizeQuestion);
     }
     
     if (subjectQuestions.length === 0) {
@@ -818,7 +819,7 @@ export default function App() {
         <img 
           src="/jeeraf-with-name.svg" 
           alt="JeeRaf CBT System" 
-          className="w-full h-full object-contain select-none block p-0 m-0 border-0 rounded-none"
+          className="w-screen h-screen object-cover select-none block p-0 m-0 border-0 rounded-none"
         />
       </div>
     );

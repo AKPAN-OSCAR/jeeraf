@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import { Question } from '../../../types';
+import { normalizeQuestion } from '../../lib/utils';
 import necoMath2024Json from './mathematics/neco_math_2024.json';
 
 /**
@@ -26,8 +27,9 @@ export const manualQuestions: Question[] = [
 ];
 
 const questionMap = new Map<string, Question>();
-for (const q of [...autoQuestions, ...manualQuestions]) {
-  if (q && q.id) {
+for (const rawQ of [...autoQuestions, ...manualQuestions]) {
+  if (rawQ && rawQ.id) {
+    const q = normalizeQuestion(rawQ);
     questionMap.set(String(q.id), q);
   }
 }

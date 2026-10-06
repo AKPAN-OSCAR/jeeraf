@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import { Question } from '../../../types';
+import { normalizeQuestion } from '../../lib/utils';
 import jambMath2024Json from './mathematics/jamb_math_2024.json';
 import jambEnglish2024Json from './english/jamb_english_2024.json';
 import jambPhysics2024Json from './physics/jamb_physics_2024.json';
@@ -38,8 +39,9 @@ export const manualQuestions: Question[] = [
 ];
 
 const questionMap = new Map<string, Question>();
-for (const q of [...autoQuestions, ...manualQuestions]) {
-  if (q && q.id) {
+for (const rawQ of [...autoQuestions, ...manualQuestions]) {
+  if (rawQ && rawQ.id) {
+    const q = normalizeQuestion(rawQ);
     questionMap.set(String(q.id), q);
   }
 }
