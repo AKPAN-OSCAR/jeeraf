@@ -1,6 +1,6 @@
 # JAMB (UTME) Past Questions Ingestion & AI Prompt Master Guide
 
-This guide contains the upgraded, production-grade vision AI extraction prompt designed specifically for **JAMB (Unified Tertiary Matriculation Examination)**.
+This guide contains the question ingestion standards and AI extraction prompts for **JAMB (Unified Tertiary Matriculation Examination)**.
 
 ---
 
@@ -20,22 +20,26 @@ src/data/question_banks/jamb/{subject_lowercase}/jamb_{subject_lowercase}_{year}
 
 ---
 
-## 2. Key JAMB-Specific Rules
+## 2. Key JAMB Ingestion Rules & Diagram Standards
 
-1. **Standard 4-Option Multiple Choice**:
-   - Every question has exactly 4 options: A, B, C, D (indices 0, 1, 2, 3).
-2. **Speed Tip & Fast Shortcut**:
-   - Because JAMB requires answering questions under tight time constraints (e.g. 40 questions in 40 minutes), every explanation must include a **JAMB Speed Tip** demonstrating how candidates can solve or eliminate answers in under 45 seconds.
-3. **Comprehension & Lexis/Structure (English)**:
-   - For English papers, passages for Reading Comprehension or Novel summaries must be placed in the `"passage"` property.
-4. **Tables and Matrices**:
-   - Format any frequency tables, coordinate tables, or schedules in Markdown tables (`| ... | ... |`).
+1. **Diagram Colors & Responsive SVG (Standard Specification)**:
+   - Geometry, axes, circuit lines: `#38bdf8` (cyan, `stroke-width="1.4"`)
+   - Highlights, angles, rays, vectors, curves: `#f59e0b` (amber, `stroke-width="1.2"`)
+   - Text, vertex labels ($A, B, C$, $P, Q, R$), angle measures: `#e2e8f0` (clean off-white, `font-size="8"` to `9`)
+   - Shaded regions (Venn intersections, histograms): `#38bdf8` with `fill-opacity="0.25"`
+   - ViewBox: `viewBox="0 0 240 160"` with `width="100%"`
+2. **Table Linings**:
+   - Every data table, frequency table, or schedule must be structured as standard Markdown tables (`| Col 1 | Col 2 |` and `|---|---|`). Numbers and mathematical symbols inside table cells must be wrapped in `$math$`.
+3. **Double Backslash Escape in JSON**:
+   - Always double-escape backslashes in JSON: `\\frac{a}{b}`, `\\times`, `\\sqrt{x}`, `\\approx`, `\\angle`, `\\triangle`, `\\pm`, `\\circ`, `\\text`.
+4. **JAMB Speed Tip**:
+   - Because JAMB requires answering 40 questions in tight exam timing, every solution must include a **JAMB Speed Tip** demonstrating how candidates can eliminate wrong options or calculate the answer in under 45 seconds.
 
 ---
 
-## 3. Master Vision AI Extraction Prompt for JAMB
+## 3. [ARCHIVED - OLD PROMPT] Historical JAMB Master Prompt (Kept for Reference Records)
 
-> **Instructions**: Copy the entire prompt block below, replace `[SUBJECT]` and `[YEAR]`, attach your scanned past question images, and send to ChatGPT (GPT-4o), Claude 3.5 Sonnet, or Gemini 2.0 Pro.
+> ⚠️ **NOTE**: This prompt was used historically. Kept strictly for audit and reference records. Use the active production prompt in Section 4 for all new extractions.
 
 ```markdown
 You are a senior Joint Admissions and Matriculation Board (JAMB) Chief Examiner and CBT Specialist.
@@ -48,32 +52,69 @@ Your task is to transcribe, mathematically verify, and output all questions and 
 - File Destination: src/data/question_banks/jamb/[subject_lowercase]/jamb_[subject_lowercase]_[year].json
 
 ### MANDATORY RULES:
-1. PURE JSON ONLY: Output ONLY a valid JSON array starting with `[` and ending with `]`. No conversational text, no markdown wrappers, no trailing notes.
-2. ZERO QUESTION DROPPING: Inspect every image from top to bottom. Do NOT omit any questions or options.
-3. TABLE FORMATTING: If any question contains a data table, frequency table, or matrix:
-   - Structure it as a standard Markdown table:
+1. PURE JSON ONLY: Output ONLY a valid JSON array starting with `[` and ending with `]`. No conversational text, no markdown wrappers.
+2. ZERO QUESTION DROPPING: Inspect every image from top to bottom.
+3. TABLE FORMATTING: Markdown table format with `$value$` in cells.
+4. FORMULA SIZING & LATEX: Inline LaTeX `$formula$`, double-escape backslashes: `\\frac{a}{b}`, `\\sqrt{x}`.
+5. DIAGRAMS & GRAPHS: Responsive SVG string inside `"diagram"`.
+6. VERIFIED SOLUTIONS + SPEED SHORTCUT: Step 1, Step 2, Step 3, JAMB Speed Tip, Correct Answer.
+```
+
+---
+
+## 4. [ACTIVE / CURRENT] Professional Grade-A JAMB AI Extraction Master Prompt (New Production Standard)
+
+> ⭐️ **USE THIS PROMPT FOR ALL NEW EXTRACTIONS**:
+> Copy the entire block below, replace `[SUBJECT]` (e.g. `Physics`) and `[YEAR]` (e.g. `2023`), attach your scanned past question sheets, and send to ChatGPT (GPT-4o), Claude 3.5 Sonnet, or Gemini 2.0 Pro.
+
+```markdown
+You are a Principal Joint Admissions and Matriculation Board (JAMB) Chief Examiner, Senior Science/Arts Fellow, and UTME CBT System Architect.
+
+Your mission is to transcribe, mathematically solve, and output every single question and solution from the attached JAMB exam paper images into a pure, valid, production-grade JSON array.
+
+### TARGET SPECIFICATIONS:
+- Examination Body: JAMB
+- Subject: [SUBJECT] (e.g. Mathematics, English Language, Physics, Chemistry, Biology, Economics, Government)
+- Year: [YEAR] (e.g. 2023)
+- Target File: src/data/question_banks/jamb/[subject_lowercase]/jamb_[subject_lowercase]_[year].json
+
+### MANDATORY PRODUCTION RULES:
+
+1. STRICT JSON STRING ESCAPING (CRITICAL):
+   - You MUST write DOUBLE BACKSLASHES for ALL LaTeX commands inside JSON string values:
+     Use `\\frac{a}{b}`, NOT `\frac{a}{b}` (single backslash corrupts to form-feed \f).
+     Use `\\times`, NOT `\times` (single backslash corrupts to tab \t).
+     Use `\\angle`, NOT `\angle` (single backslash corrupts to bell \a).
+     Use `\\approx`, NOT `\approx` (single backslash corrupts to bell \a).
+     Use `\\triangle`, NOT `\triangle`.
+     Use `\\sqrt{x}`, `\\pm`, `\\circ`, `\\le`, `\\ge`, `\\theta`, `\\pi`, `\\text{...}`.
+
+2. GENUINE STEP-BY-STEP EXPLANATIONS + UTME SPEED TIP:
+   - NEVER output dummy placeholder sentences. Every question must have genuine, pedagogical working:
+     **Step 1:** State the governing law, formula, or syllabus principle.
+     **Step 2:** Substitute given values with SI units.
+     **Step 3:** Step-by-step calculation or algebraic proof.
+     **JAMB Speed Tip:** Fast mental shortcut, dimensional check, or elimination technique to solve in 30 seconds.
+     **Correct Answer:** Option X ($value$).
+
+3. DIAGRAMS & GRAPHS (INLINE SVG):
+   - When a question includes a circuit, ray optics, vector diagram, Venn diagram, graph, or geometry, generate a responsive inline SVG inside `"diagram"`:
+     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="100%" style="max-width:240px;margin:auto;display:block;">...</svg>`
+   - Colors: `#38bdf8` for lines and shapes, `#f59e0b` for angles/arrows, `#e2e8f0` for text labels. If no diagram exists, set `"diagram": null`.
+
+4. TABLES:
+   - Format tables in standard Markdown with headers and cell values wrapped in `$math$`:
      | Header 1 | Header 2 |
      |---|---|
-     | Data 1 | Data 2 |
-   - Wrap all numbers/symbols inside cells with `$value$`. Never use plain slashes `/`.
-4. FORMULA SIZING & LATEX:
-   - Use inline LaTeX `$formula$` for all equations and expressions so font size matches body text.
-   - Double-escape backslashes: `\\frac{a}{b}`, `\\sqrt{x}`, `\\times`, `\\sin\\theta`, `^\\circ`.
-5. DIAGRAMS & GRAPHS (AUTOMATIC SVG GENERATION):
-   - DO NOT ASK IF DIAGRAMS SHOULD BE DRAWN. If an image contains a diagram, circuit, ray optics diagram, or graph, generate a responsive, self-contained SVG string inside `"diagram"`.
-   - If solving the question benefits from an illustrative diagram, generate an SVG inside `"solutionDiagram"`.
-   - SVG properties: viewBox="0 0 240 160", width="100%", style="max-width:240px;margin:auto;display:block;".
-6. VERIFIED STEP-BY-STEP SOLUTIONS + SPEED SHORTCUT:
-   - Do NOT give one-sentence answers. Every solution must be verified and structured into:
-     **Step 1:** Underlying syllabus principle or formula.
-     **Step 2:** Substitution with SI units.
-     **Step 3:** Step-by-step derivation leading to the answer.
-     **JAMB Speed Tip:** Quick mental shortcut or elimination trick for the exam hall.
-     **Correct Answer:** Option X ($value$).
-7. COMPREHENSION PASSAGES:
-   - For English comprehension or passage-based items, include the full passage text inside `"passage"`.
+     | $Value 1$ | $Value 2$ |
 
-### EXACT JSON OBJECT SCHEMA:
+5. COMPREHENSION PASSAGES:
+   - For English Language papers, put the entire reading passage in `"passage"` for all questions based on it.
+
+6. OUTPUT FORMAT:
+   - Output ONLY the raw JSON array starting with `[` and ending with `]`. No markdown backticks or commentary.
+
+### JSON RECORD TEMPLATE:
 [
   {
     "id": "jamb-[subject_short]-[year]-q1",
@@ -83,37 +124,37 @@ Your task is to transcribe, mathematically verify, and output all questions and 
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "Question text with inline math $v = u + at$ or table.",
+    "question": "A body accelerates uniformly from rest at $2\\text{ m/s}^2$ for $5\\text{ s}$. Find its final velocity.",
     "diagram": null,
     "options": [
-      "Option A",
-      "Option B",
-      "Option C",
-      "Option D"
+      "$10\\text{ m/s}$",
+      "$15\\text{ m/s}$",
+      "$20\\text{ m/s}$",
+      "$25\\text{ m/s}$"
     ],
     "correctAnswer": 0,
-    "explanation": "**Step 1:** State formula: $v = u + at$.\n\n**Step 2:** Substitute given values: $u = 0$, $a = 2\\text{ m/s}^2$, $t = 5\\text{ s}$.\n\n**Step 3:** Calculate: $v = 0 + (2)(5) = 10\\text{ m/s}$.\n\n**JAMB Speed Tip:** Since initial velocity is zero, multiply acceleration directly by time: $2 \\times 5 = 10\\text{ m/s}$ in under 5 seconds!\n\n**Correct Answer:** Option A ($10\\text{ m/s}$).",
+    "explanation": "**Step 1:** Use Newton's first equation of motion: $v = u + at$.\n\n**Step 2:** Given $u = 0\\text{ m/s}$ (starts from rest), $a = 2\\text{ m/s}^2$, $t = 5\\text{ s}$.\n\n**Step 3:** Substitute: $v = 0 + (2)(5) = 10\\text{ m/s}$.\n\n**JAMB Speed Tip:** When starting from rest ($u = 0$), simply multiply $a \\times t = 2 \\times 5 = 10\\text{ m/s}$ instantly in under 3 seconds!\n\n**Correct Answer:** Option A ($10\\text{ m/s}$).",
     "solutionDiagram": null,
-    "topic": "Mechanics - Linear Motion",
-    "difficulty": "Medium"
+    "topic": "Mechanics - Equations of Motion",
+    "difficulty": "Easy"
   }
 ]
 ```
 
 ---
 
-## 4. How to Register the Extracted File in the App
+## 5. How to Manually Register a New Year in `index.ts`
 
 1. Save the file to `src/data/question_banks/jamb/[subject]/jamb_[subject]_[year].json`.
-2. In `src/data/question_banks/jamb/index.ts`, add the import:
+2. Open `src/data/question_banks/jamb/index.ts` and add:
    ```typescript
    import { Question } from '../../../types';
-   import jambMath2024 from './mathematics/jamb_math_2024.json';
-   import jambMath2023 from './mathematics/jamb_math_2023.json'; // Newly added year
+   import jambMath2024Json from './mathematics/jamb_math_2024.json';
+   import jambMath2023Json from './mathematics/jamb_math_2023.json'; // <-- 1. Import
 
-   export const jambQuestions: Question[] = [
-     ...(jambMath2024 as unknown as Question[]),
-     ...(jambMath2023 as unknown as Question[])
+   export const manualQuestions: Question[] = [
+     ...(jambMath2024Json as unknown as Question[]),
+     ...(jambMath2023Json as unknown as Question[])                  // <-- 2. Register
    ];
    ```
-3. The year will automatically be available in the exam configuration screen.
+3. The year will immediately appear with its question count button in the CBT screen.

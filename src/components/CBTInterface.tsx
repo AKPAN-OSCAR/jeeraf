@@ -538,17 +538,19 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
 
             {/* Question Diagram / SVG / Image if present */}
             {currentQuestion?.diagram && (
-              <div 
-                className="my-4 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-theme-border max-w-md mx-auto overflow-hidden flex items-center justify-center text-slate-900 dark:text-slate-100 shadow-sm"
-                dangerouslySetInnerHTML={{ __html: currentQuestion.diagram }}
-              />
+              <div className="my-5 p-4 sm:p-6 bg-slate-950/90 rounded-2xl border-2 border-theme-border/80 max-w-xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-md [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:h-auto transition-all">
+                <div 
+                  className="w-full flex items-center justify-center"
+                  dangerouslySetInnerHTML={{ __html: currentQuestion.diagram }}
+                />
+              </div>
             )}
             {currentQuestion?.imageUrl && (
-              <div className="my-4 p-2 bg-theme-bg rounded-2xl border border-theme-border max-w-md mx-auto">
+              <div className="my-5 p-3 bg-theme-bg rounded-2xl border-2 border-theme-border max-w-xl mx-auto">
                 <img 
                   src={currentQuestion.imageUrl} 
                   alt="Question Diagram" 
-                  className="rounded-xl w-full h-auto object-contain max-h-64"
+                  className="rounded-xl w-full h-auto object-contain max-h-80"
                 />
               </div>
             )}

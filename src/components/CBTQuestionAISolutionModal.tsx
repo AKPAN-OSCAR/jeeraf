@@ -377,21 +377,21 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                 <button
                   type="button"
                   onClick={() => handleSendFollowUp(undefined, "Why is my selected option incorrect?")}
-                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-2.5 py-1 rounded-lg border border-theme-border transition-all text-slate-300 font-medium"
+                  className="text-[11px] bg-theme-bg hover:bg-theme-accent hover:text-white px-2.5 py-1 rounded-lg border border-theme-border transition-all text-theme-text font-medium"
                 >
                   Why is my answer wrong?
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSendFollowUp(undefined, "Can you show the exact formula with values plugged in?")}
-                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-2.5 py-1 rounded-lg border border-theme-border transition-all text-slate-300 font-medium"
+                  className="text-[11px] bg-theme-bg hover:bg-theme-accent hover:text-white px-2.5 py-1 rounded-lg border border-theme-border transition-all text-theme-text font-medium"
                 >
                   Show formula steps
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSendFollowUp(undefined, "Give me a quick mnemonic or trick to remember this.")}
-                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-2.5 py-1 rounded-lg border border-theme-border transition-all text-slate-300 font-medium"
+                  className="text-[11px] bg-theme-bg hover:bg-theme-accent hover:text-white px-2.5 py-1 rounded-lg border border-theme-border transition-all text-theme-text font-medium"
                 >
                   Memory trick
                 </button>
@@ -400,7 +400,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
           </div>
 
           {/* RIGHT PANEL: LIVE INTERACTIVE AI DISCUSSION */}
-          <div className="w-full md:w-7/12 flex flex-col bg-theme-card/80 overflow-hidden">
+          <div className="w-full md:w-7/12 flex flex-col bg-theme-card overflow-hidden">
             {/* Messages Feed */}
             <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4">
               {messages.map((msg) => (
@@ -414,10 +414,10 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                   <div className="flex items-center gap-1.5 text-[10px] text-theme-muted font-bold px-1">
                     {msg.sender === 'ai' ? (
                       <>
-                        <div className="w-3.5 h-3.5 rounded-full overflow-hidden shrink-0 border border-amber-500/30">
+                        <div className="w-3.5 h-3.5 rounded-full overflow-hidden shrink-0 border border-theme-accent/30">
                           <JeeRafGoldIcon className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-amber-400">JeeRaf AI Copilot</span>
+                        <span className="text-theme-accent">JeeRaf AI Copilot</span>
                       </>
                     ) : (
                       <span>You</span>
@@ -429,8 +429,8 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                     className={cn(
                       "p-4 rounded-2xl max-w-[92%] leading-relaxed text-sm shadow-md",
                       msg.sender === 'user'
-                        ? "bg-slate-800 text-white rounded-tr-none border border-slate-700"
-                        : "bg-slate-950 text-slate-100 rounded-tl-none border border-amber-500/30"
+                        ? "bg-theme-accent text-white rounded-tr-none border border-theme-accent/40"
+                        : "bg-theme-bg text-theme-text rounded-tl-none border border-theme-border shadow-sm"
                     )}
                   >
                     <MathRenderer text={msg.text} />
@@ -439,8 +439,8 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
               ))}
 
               {isLoading && (
-                <div className="flex items-center gap-3 p-4 bg-slate-950/80 border border-amber-500/20 rounded-2xl text-xs text-amber-300 animate-pulse max-w-sm">
-                  <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                <div className="flex items-center gap-3 p-4 bg-theme-bg/90 border border-theme-accent/20 rounded-2xl text-xs text-theme-text animate-pulse max-w-sm">
+                  <div className="w-5 h-5 border-2 border-theme-accent border-t-transparent rounded-full animate-spin shrink-0" />
                   <span>JeeRaf AI is reasoning through the solution steps...</span>
                 </div>
               )}
@@ -460,7 +460,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Ask JeeRaf AI why this was solved this way..."
                 disabled={isLoading}
-                className="flex-1 bg-theme-card border border-theme-border focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 rounded-xl px-4 py-2.5 text-xs text-theme-text placeholder:text-theme-muted outline-none transition-all"
+                className="flex-1 bg-theme-card border border-theme-border focus:border-theme-accent focus:ring-1 focus:ring-theme-accent/30 rounded-xl px-4 py-2.5 text-xs text-theme-text placeholder:text-theme-muted outline-none transition-all"
               />
               <button
                 type="submit"

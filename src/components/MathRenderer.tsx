@@ -69,16 +69,16 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
           return (
             <div 
               key={`tbl-${blockIdx}`} 
-              className="overflow-x-auto my-3.5 p-1 rounded-2xl border border-theme-border bg-theme-card/60 shadow-sm max-w-full"
+              className="overflow-x-auto my-4 p-1 rounded-2xl border-2 border-theme-border bg-theme-card shadow-sm max-w-full"
             >
-              <table className="min-w-full divide-y divide-theme-border text-xs sm:text-sm text-left border-collapse">
+              <table className="min-w-full text-xs sm:text-sm text-left border-collapse border border-theme-border">
                 {block.headers.length > 0 && (
-                  <thead className="bg-theme-bg/90">
+                  <thead className="bg-theme-bg">
                     <tr>
                       {block.headers.map((head, hIdx) => (
                         <th 
                           key={hIdx} 
-                          className="px-3.5 py-2.5 text-xs font-black uppercase tracking-wider text-theme-text border-b border-theme-border text-center sm:text-left"
+                          className="px-4 py-3 text-xs font-black uppercase tracking-wider text-theme-text border border-theme-border text-center sm:text-left bg-theme-bg/80"
                         >
                           {parseInlineContent(head)}
                         </th>
@@ -86,16 +86,16 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
                     </tr>
                   </thead>
                 )}
-                <tbody className="divide-y divide-theme-border/60">
+                <tbody>
                   {block.rows.map((row, rIdx) => (
                     <tr 
                       key={rIdx} 
-                      className="hover:bg-theme-bg/50 transition-colors odd:bg-theme-bg/20"
+                      className="hover:bg-theme-bg/40 transition-colors odd:bg-theme-bg/15"
                     >
                       {row.map((cell, cIdx) => (
                         <td 
                           key={cIdx} 
-                          className="px-3.5 py-2.5 text-theme-text font-medium text-center sm:text-left whitespace-nowrap"
+                          className="px-4 py-2.5 text-theme-text font-medium text-center sm:text-left border border-theme-border whitespace-nowrap"
                         >
                           {parseInlineContent(cell)}
                         </td>
@@ -250,6 +250,18 @@ function parseMarkdownTable(tableLines: string[]): TableBlock | null {
   return null;
 }
 
+function cleanMathExpression(math: string): string {
+  if (!math) return '';
+  return math
+    // Convert single digit fractions like \frac12 to \frac{1}{2}
+    .replace(/\\frac([0-9a-zA-Z])([0-9a-zA-Z])/g, '\\frac{$1}{$2}')
+    // Convert \frac{1}2 to \frac{1}{2}
+    .replace(/\\frac\{([^{}]+)\}([0-9a-zA-Z])/g, '\\frac{$1}{$2}')
+    // Convert \frac1{2} to \frac{1}{2}
+    .replace(/\\frac([0-9a-zA-Z])\{([^{}]+)\}/g, '\\frac{$1}{$2}')
+    .trim();
+}
+
 // Helper function to parse inline text, math ($...$ and $$...$$), bold (**...**), italics (*...*), and LaTeX symbols
 function parseInlineContent(str: string): React.ReactNode[] {
   if (!str) return [];
@@ -265,21 +277,23 @@ function parseInlineContent(str: string): React.ReactNode[] {
 
     // Block Math $$...$$
     if (part.startsWith('$$') && part.endsWith('$$') && part.length > 4) {
-      const math = part.slice(2, -2).trim();
+      const rawMath = part.slice(2, -2).trim();
+      const math = cleanMathExpression(rawMath);
       try {
-        return <BlockMath key={index} math={math} />;
+        return <BlockMath key={index} math={math} renderError={() => <span className="font-serif italic text-theme-text">{math}</span>} />;
       } catch (e) {
-        return <code key={index} className="text-xs bg-theme-bg px-1.5 py-0.5 rounded text-amber-400 font-mono">{math}</code>;
+        return <span key={index} className="font-serif italic text-theme-text">{math}</span>;
       }
     }
 
     // Inline Math $...$
     if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
-      const math = part.slice(1, -1).trim();
+      const rawMath = part.slice(1, -1).trim();
+      const math = cleanMathExpression(rawMath);
       try {
-        return <InlineMath key={index} math={math} />;
+        return <InlineMath key={index} math={math} renderError={() => <span className="font-serif italic text-theme-text">{math}</span>} />;
       } catch (e) {
-        return <code key={index} className="text-xs bg-theme-bg px-1.5 py-0.5 rounded text-amber-400 font-mono">{math}</code>;
+        return <span key={index} className="font-serif italic text-theme-text">{math}</span>;
       }
     }
 

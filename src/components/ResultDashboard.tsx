@@ -497,10 +497,12 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
                 {/* Diagram / SVG */}
                 {currentSolutionQuestion.diagram && (
-                  <div 
-                    className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-theme-border max-w-md overflow-hidden flex items-center justify-center text-slate-900 dark:text-slate-100 shadow-sm"
-                    dangerouslySetInnerHTML={{ __html: currentSolutionQuestion.diagram }}
-                  />
+                  <div className="my-3 p-4 sm:p-6 bg-slate-950/90 rounded-2xl border-2 border-theme-border/80 max-w-xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-md [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:h-auto transition-all">
+                    <div 
+                      className="w-full flex items-center justify-center"
+                      dangerouslySetInnerHTML={{ __html: currentSolutionQuestion.diagram }}
+                    />
+                  </div>
                 )}
                 {currentSolutionQuestion.images && currentSolutionQuestion.images.length > 0 && (
                   <div className="flex flex-wrap gap-3">
@@ -624,8 +626,11 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                   </div>
 
                   {currentSolutionQuestion.solutionDiagram && (
-                    <div className="mt-3 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-theme-border max-w-md mx-auto overflow-hidden flex items-center justify-center text-slate-900 dark:text-slate-100 shadow-sm">
-                      <div dangerouslySetInnerHTML={{ __html: currentSolutionQuestion.solutionDiagram }} />
+                    <div className="mt-4 p-4 sm:p-6 bg-slate-950/90 rounded-2xl border-2 border-theme-border/80 max-w-xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-md [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:h-auto transition-all">
+                      <div 
+                        className="w-full flex items-center justify-center"
+                        dangerouslySetInnerHTML={{ __html: currentSolutionQuestion.solutionDiagram }} 
+                      />
                     </div>
                   )}
 
