@@ -367,6 +367,48 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
     setViewingItem(null);
   };
 
+  const handleVaultGenerateCBT = async (item: SavedTapeItem, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!item.audioUrl) {
+      alert("This vault record does not contain audio track data.");
+      return;
+    }
+    setIsProcessing(true);
+    setProcessingType('questions');
+    try {
+      let base64 = '';
+      let mimeType = 'audio/webm';
+      if (item.audioUrl.startsWith('data:')) {
+        const parts = item.audioUrl.split(',');
+        mimeType = parts[0]?.match(/:(.*?);/)?.[1] || 'audio/webm';
+        base64 = parts[1];
+      } else {
+        const res = await fetch(item.audioUrl);
+        const blob = await res.blob();
+        mimeType = blob.type || 'audio/webm';
+        base64 = await blobToBase64(blob);
+      }
+      const questions = await generateQuestionsFromAudio(
+        base64,
+        mimeType,
+        'Personal CBT',
+        item.questionCount || questionCount,
+        item.topics || topics
+      );
+      if (questions && questions.length > 0) {
+        onQuestionsGenerated(questions, duration);
+      } else {
+        alert("The AI could not extract questions from this tape. Please check microphone clarity and try again.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(`Error extracting CBT: ${err?.message || 'Please try again.'}`);
+    } finally {
+      setIsProcessing(false);
+      setProcessingType(null);
+    }
+  };
+
   const deleteFromVault = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (window.confirm("Are you sure you want to delete this tape record from your vault?")) {
@@ -549,6 +591,52 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
                     </div>
                   </div>
 
+                  {/* Reel-to-Reel Studio Spools & Tape Transport Deck */}
+                  <div className="w-full max-w-md mx-auto my-3 p-3 bg-theme-bg/80 rounded-2xl border border-theme-border flex items-center justify-between gap-4 shadow-inner">
+                    {/* Left Spool */}
+                    <div className="flex items-center gap-2">
+                      <div className={cn(
+                        "w-12 h-12 rounded-full border-2 border-theme-border bg-theme-card flex items-center justify-center relative shadow-xs transition-transform",
+                        recordingStatus === 'recording' ? "animate-spin [animation-duration:3s]" : ""
+                      )}>
+                        <Disc size={28} className={recordingStatus === 'recording' ? "text-rose-500" : "text-theme-muted"} />
+                        <div className="w-2.5 h-2.5 rounded-full bg-theme-border absolute" />
+                      </div>
+                      <div className="text-left hidden sm:block">
+                        <span className="text-[9px] font-black uppercase text-theme-muted tracking-wider block">Supply Reel</span>
+                        <span className="text-[10px] font-mono font-bold text-theme-text block">10.5" Studio</span>
+                      </div>
+                    </div>
+
+                    {/* Center Magnetic Head Bridge */}
+                    <div className="flex-1 flex flex-col items-center">
+                      <div className="h-0.5 w-full bg-theme-border relative flex items-center justify-center">
+                        <span className={cn(
+                          "w-4 h-2 rounded-xs border border-theme-border transition-colors",
+                          recordingStatus === 'recording' ? "bg-rose-500 shadow-xs shadow-rose-500/50" : "bg-theme-muted"
+                        )} />
+                      </div>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-theme-muted mt-1">
+                        44.1 kHz • 16-Bit Studio
+                      </span>
+                    </div>
+
+                    {/* Right Spool */}
+                    <div className="flex items-center gap-2">
+                      <div className="text-right hidden sm:block">
+                        <span className="text-[9px] font-black uppercase text-theme-muted tracking-wider block">Takeup Reel</span>
+                        <span className="text-[10px] font-mono font-bold text-theme-text block">Master Tape</span>
+                      </div>
+                      <div className={cn(
+                        "w-12 h-12 rounded-full border-2 border-theme-border bg-theme-card flex items-center justify-center relative shadow-xs transition-transform",
+                        recordingStatus === 'recording' ? "animate-spin [animation-duration:3s]" : ""
+                      )}>
+                        <Disc size={28} className={recordingStatus === 'recording' ? "text-rose-500" : "text-theme-muted"} />
+                        <div className="w-2.5 h-2.5 rounded-full bg-theme-border absolute" />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Master Studio Mic Circle & Waveform Ring */}
                   <div className="relative my-4">
                     <div className={cn(
@@ -624,25 +712,34 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
                     </p>
                   </div>
 
-                  {/* VU Meter Visualizer Strip */}
-                  <div className="my-3 w-full max-w-sm flex items-center justify-center gap-1 p-2 rounded-xl bg-theme-bg border border-theme-border">
-                    {Array.from({ length: 18 }).map((_, i) => {
-                      const val = visualData[i * 2] || 0;
-                      const isHot = i > 14;
-                      const isWarm = i > 10 && i <= 14;
-                      const isActive = recordingStatus === 'recording' && val > (i * 14);
-                      return (
-                        <div 
-                          key={i} 
-                          className={cn(
-                            "flex-1 h-3.5 rounded-xs transition-all duration-75",
-                            isActive
-                              ? isHot ? "bg-rose-500 shadow-xs shadow-rose-500" : isWarm ? "bg-amber-400" : "bg-emerald-400"
-                              : "bg-theme-border/40"
-                          )} 
-                        />
-                      );
-                    })}
+                  {/* Calibrated dB VU Meter Visualizer Strip */}
+                  <div className="my-3 w-full max-w-sm space-y-1">
+                    <div className="flex items-center justify-between text-[8px] font-mono font-bold text-theme-muted px-1">
+                      <span>-24dB</span>
+                      <span>-12dB</span>
+                      <span>-6dB</span>
+                      <span>0dB</span>
+                      <span className="text-rose-500">+3dB PEAK</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1 p-2 rounded-xl bg-theme-bg border border-theme-border shadow-inner">
+                      {Array.from({ length: 18 }).map((_, i) => {
+                        const val = visualData[i * 2] || 0;
+                        const isHot = i > 14;
+                        const isWarm = i > 10 && i <= 14;
+                        const isActive = recordingStatus === 'recording' && val > (i * 14);
+                        return (
+                          <div 
+                            key={i} 
+                            className={cn(
+                              "flex-1 h-3.5 rounded-xs transition-all duration-75",
+                              isActive
+                                ? isHot ? "bg-rose-500 shadow-xs shadow-rose-500" : isWarm ? "bg-amber-400" : "bg-emerald-400"
+                                : "bg-theme-border/40"
+                            )} 
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Studio Deck Action Controls */}
@@ -1152,19 +1249,31 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
                         </div>
 
                         {/* Card Actions */}
-                        <div className="pt-2 border-t border-theme-border grid grid-cols-2 gap-2">
-                          <button 
-                            onClick={() => loadSavedItem(item)}
-                            className="py-2.5 bg-theme-bg hover:bg-theme-card border border-theme-border text-theme-text rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                          >
-                            <PlayCircle size={14} className="text-theme-accent" /> Open Take
-                          </button>
-                          <button 
-                            onClick={() => setViewingItem(item)}
-                            className="py-2.5 bg-theme-accent text-white rounded-xl text-[11px] font-black uppercase tracking-wider transition-all shadow-sm hover:opacity-90 flex items-center justify-center gap-1.5 cursor-pointer"
-                          >
-                            <Maximize2 size={13} /> Focus Mode
-                          </button>
+                        <div className="pt-2 border-t border-theme-border flex flex-col gap-2">
+                          {item.audioUrl && (
+                            <button 
+                              onClick={(e) => handleVaultGenerateCBT(item, e)}
+                              disabled={isProcessing}
+                              className="w-full py-2.5 bg-theme-accent hover:opacity-95 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                            >
+                              <CheckCircle size={14} />
+                              <span>Generate CBT Exam ({item.questionCount || 20} Qs)</span>
+                            </button>
+                          )}
+                          <div className="grid grid-cols-2 gap-2">
+                            <button 
+                              onClick={() => loadSavedItem(item)}
+                              className="py-2 bg-theme-bg hover:bg-theme-card border border-theme-border text-theme-text rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <PlayCircle size={14} className="text-theme-accent" /> Open Take
+                            </button>
+                            <button 
+                              onClick={() => setViewingItem(item)}
+                              className="py-2 bg-theme-card hover:border-theme-accent border border-theme-border text-theme-text rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                            >
+                              <Maximize2 size={13} className="text-theme-muted" /> Focus Mode
+                            </button>
+                          </div>
                         </div>
                       </motion.div>
                     ))}

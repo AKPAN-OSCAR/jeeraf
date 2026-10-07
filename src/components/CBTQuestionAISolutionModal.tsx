@@ -248,9 +248,9 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
         {/* ===================================================================== */}
         {/* MODAL HEADER                                                          */}
         {/* ===================================================================== */}
-        <div className="bg-gradient-to-r from-theme-card via-theme-bg to-theme-card px-5 py-4 border-b border-theme-border flex items-center justify-between shrink-0">
+        <div className="bg-theme-card px-5 py-4 border-b border-theme-border flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shadow-inner">
+            <div className="w-10 h-10 rounded-2xl bg-theme-accent/15 border border-theme-accent/30 flex items-center justify-center shadow-inner">
               <JeeRafGoldIcon className="w-7 h-7 object-contain" />
             </div>
             <div>
@@ -262,7 +262,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                   Interactive Copilot
                 </span>
               </div>
-              <p className="text-xs text-theme-muted font-medium">
+              <p className="text-xs text-theme-muted font-bold">
                 {subject} • Question {questionIndex + 1} of {examType || 'CBT Review'}
               </p>
             </div>
@@ -274,7 +274,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
               <button
                 type="button"
                 onClick={handleOpenInFullScreen}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-theme-bg hover:bg-theme-accent hover:text-white text-theme-text text-xs font-bold rounded-xl border border-theme-border transition-all shadow-sm cursor-pointer"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-theme-bg hover:bg-theme-accent hover:text-white text-theme-text text-xs font-bold rounded-xl border border-theme-border transition-all shadow-xs cursor-pointer"
                 title="Transfer this question to full-screen JeeRaf AI page (/ai)"
               >
                 <Maximize2 size={13} />
@@ -286,7 +286,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-theme-muted hover:text-theme-text hover:bg-theme-bg rounded-xl transition-colors cursor-pointer"
+              className="p-2 text-theme-muted hover:text-theme-text hover:bg-theme-bg rounded-xl transition-colors cursor-pointer border border-transparent hover:border-theme-border"
               title="Close drawer"
             >
               <X size={20} />
@@ -299,23 +299,23 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
         {/* ===================================================================== */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* LEFT PANEL: QUESTION CONTEXT SNAPSHOT */}
-          <div className="w-full md:w-5/12 bg-theme-bg/60 border-b md:border-b-0 md:border-r border-theme-border p-4 md:p-6 overflow-y-auto space-y-4">
+          <div className="w-full md:w-5/12 bg-theme-bg/90 border-b md:border-b-0 md:border-r border-theme-border p-4 md:p-6 overflow-y-auto space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-theme-accent">
                   Question {questionIndex + 1}
                 </span>
                 {isCorrect ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-600 bg-emerald-500/15 px-2.5 py-1 rounded-full border border-emerald-500/30">
                     <CheckCircle2 size={12} /> Correct (+1)
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-extrabold text-rose-700 dark:text-rose-400 bg-rose-500/15 px-2 py-0.5 rounded-full border border-rose-500/30">
+                  <span className="inline-flex items-center gap-1 text-xs font-black text-rose-600 bg-rose-500/15 px-2.5 py-1 rounded-full border border-rose-500/30">
                     <XCircle size={12} /> Missed
                   </span>
                 )}
               </div>
-              <div className="text-sm font-semibold text-theme-text leading-relaxed bg-theme-card p-3.5 rounded-2xl border border-theme-border shadow-xs">
+              <div className="text-sm font-semibold text-theme-text leading-relaxed bg-theme-card p-4 rounded-2xl border-2 border-theme-border shadow-xs">
                 <MathRenderer text={question.question} />
               </div>
             </div>
@@ -325,7 +325,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
               <span className="text-[11px] font-black uppercase tracking-wider text-theme-muted">
                 Options Review:
               </span>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {question.options.map((opt, i) => {
                   const letter = String.fromCharCode(65 + i);
                   const isCorrectChoice = i === question.correctAnswer;
@@ -335,18 +335,18 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                     <div
                       key={i}
                       className={cn(
-                        "p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 transition-all",
+                        "p-3 rounded-xl border-2 text-xs flex items-center justify-between gap-2 transition-all",
                         isCorrectChoice 
-                          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-900 dark:text-emerald-300 font-bold" 
+                          ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-600 font-extrabold shadow-xs" 
                           : isUserChoice 
-                            ? "bg-rose-500/15 border-rose-500/40 text-rose-900 dark:text-rose-300 font-bold"
-                            : "bg-theme-card border-theme-border text-theme-text font-medium"
+                            ? "bg-rose-500/15 border-rose-500/50 text-rose-600 font-extrabold shadow-xs"
+                            : "bg-theme-card border-theme-border text-theme-text font-medium hover:border-theme-accent/40"
                       )}
                     >
                       <div className="flex items-center gap-2 truncate">
                         <span className={cn(
                           "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0",
-                          isCorrectChoice ? "bg-emerald-600 text-white" : isUserChoice ? "bg-rose-600 text-white" : "bg-theme-bg text-theme-muted border border-theme-border"
+                          isCorrectChoice ? "bg-emerald-600 text-white" : isUserChoice ? "bg-rose-600 text-white" : "bg-theme-bg text-theme-text border border-theme-border"
                         )}>
                           {letter}
                         </span>
@@ -369,29 +369,29 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
             </div>
 
             {/* Quick Prompt Suggestions */}
-            <div className="pt-2 border-t border-theme-border space-y-1.5">
+            <div className="pt-2 border-t border-theme-border space-y-2">
               <span className="text-[11px] font-black uppercase tracking-wider text-theme-muted flex items-center gap-1">
-                <Lightbulb size={12} className="text-theme-accent" /> Fast Questions:
+                <Lightbulb size={12} className="text-theme-accent" /> Fast Inquiries:
               </span>
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
                   onClick={() => handleSendFollowUp(undefined, "Why is my selected option incorrect?")}
-                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-2.5 py-1.5 rounded-lg border border-theme-border transition-all text-theme-text font-bold cursor-pointer"
+                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-3 py-1.5 rounded-xl border border-theme-border transition-all text-theme-text font-bold cursor-pointer shadow-2xs"
                 >
                   Why is my answer wrong?
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSendFollowUp(undefined, "Can you show the exact formula with values plugged in?")}
-                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-2.5 py-1.5 rounded-lg border border-theme-border transition-all text-theme-text font-bold cursor-pointer"
+                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-3 py-1.5 rounded-xl border border-theme-border transition-all text-theme-text font-bold cursor-pointer shadow-2xs"
                 >
                   Show formula steps
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSendFollowUp(undefined, "Give me a quick mnemonic or trick to remember this.")}
-                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-2.5 py-1.5 rounded-lg border border-theme-border transition-all text-theme-text font-bold cursor-pointer"
+                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-3 py-1.5 rounded-xl border border-theme-border transition-all text-theme-text font-bold cursor-pointer shadow-2xs"
                 >
                   Memory trick
                 </button>
@@ -414,23 +414,23 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                   <div className="flex items-center gap-1.5 text-[10px] text-theme-muted font-bold px-1">
                     {msg.sender === 'ai' ? (
                       <>
-                        <div className="w-3.5 h-3.5 rounded-full overflow-hidden shrink-0 border border-theme-accent/30">
+                        <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-theme-accent/40 bg-theme-card flex items-center justify-center">
                           <JeeRafGoldIcon className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-theme-accent">JeeRaf AI Copilot</span>
+                        <span className="text-theme-accent font-black">JeeRaf AI Copilot</span>
                       </>
                     ) : (
-                      <span>You</span>
+                      <span className="text-theme-text">You</span>
                     )}
                     <span>• {msg.time}</span>
                   </div>
 
                   <div 
                     className={cn(
-                      "p-4 rounded-2xl max-w-[92%] leading-relaxed text-sm shadow-md",
+                      "p-4 sm:p-5 rounded-2xl max-w-[92%] leading-relaxed text-sm shadow-sm transition-colors",
                       msg.sender === 'user'
                         ? "bg-theme-accent text-white rounded-tr-none border border-theme-accent/40"
-                        : "bg-theme-bg text-theme-text rounded-tl-none border border-theme-border shadow-sm"
+                        : "bg-theme-bg text-theme-text rounded-tl-none border-2 border-theme-border"
                     )}
                   >
                     <MathRenderer text={msg.text} />
@@ -439,9 +439,9 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
               ))}
 
               {isLoading && (
-                <div className="flex items-center gap-3 p-4 bg-theme-bg/90 border border-theme-accent/20 rounded-2xl text-xs text-theme-text animate-pulse max-w-sm">
+                <div className="flex items-center gap-3 p-4 bg-theme-bg border-2 border-theme-border rounded-2xl text-xs text-theme-text animate-pulse max-w-sm shadow-xs">
                   <div className="w-5 h-5 border-2 border-theme-accent border-t-transparent rounded-full animate-spin shrink-0" />
-                  <span>JeeRaf AI is reasoning through the solution steps...</span>
+                  <span className="font-bold">JeeRaf AI is reasoning through the solution steps...</span>
                 </div>
               )}
 
@@ -460,12 +460,12 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Ask JeeRaf AI why this was solved this way..."
                 disabled={isLoading}
-                className="flex-1 bg-theme-card border border-theme-border focus:border-theme-accent focus:ring-1 focus:ring-theme-accent/30 rounded-xl px-4 py-2.5 text-xs text-theme-text placeholder:text-theme-muted outline-none transition-all"
+                className="flex-1 bg-theme-card border-2 border-theme-border focus:border-theme-accent rounded-xl px-4 py-2.5 text-xs text-theme-text placeholder:text-theme-muted outline-none transition-all"
               />
               <button
                 type="submit"
                 disabled={!userInput.trim() || isLoading}
-                className="px-4 py-2.5 bg-theme-accent hover:opacity-95 disabled:opacity-40 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-theme-accent/20 shrink-0"
+                className="px-4 py-2.5 bg-theme-accent hover:opacity-95 disabled:opacity-40 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-theme-accent/20 shrink-0 cursor-pointer"
               >
                 <span>Ask</span>
                 <Send size={13} />

@@ -34,7 +34,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   totalTokensBudget: 5000000,
   aiModelName: 'gemini-3.8-flash',
   ibomAiModel: 'gemini-3.8-flash',
-  adminAiModel: 'gemini-3.1-pro-preview',
+  adminAiModel: 'gemini-3.8-flash',
   ibomAiApiKey: '',
   adminAiApiKey: '',
   apiKeysList: [],
@@ -270,8 +270,8 @@ async function generateBatch(
   const maxRetries = 3;
   let attempt = 0;
   const ai = getAI();
-  // Using gemini-3.1-pro-preview for deep academic reasoning, falling back to gemini-3.8-flash
-  let currentModel = "gemini-3.1-pro-preview"; 
+  // Using gemini-3.8-flash for instant, quota-safe responses, falling back to gemini-flash-latest / flash-lite
+  let currentModel = "gemini-3.8-flash"; 
 
   while (attempt <= maxRetries) {
     try {
@@ -344,9 +344,9 @@ async function generateBatch(
       
       // Fallback logic for rate limits/high demand or model availability
       if (isRateLimit || errorMessage.includes('403') || errorMessage.includes('not found') || errorMessage.includes('deprecated')) {
-        if (currentModel === "gemini-3.1-pro-preview") {
-          currentModel = "gemini-3.8-flash";
-        } else if (currentModel === "gemini-3.8-flash") {
+        if (currentModel === "gemini-3.8-flash") {
+          currentModel = "gemini-flash-latest";
+        } else if (currentModel === "gemini-flash-latest") {
           currentModel = "gemini-3.1-flash-lite";
         }
       }
@@ -649,7 +649,7 @@ export async function extractQuestionsWithAI(
   }
 
   const ai = getAI();
-  const model = "gemini-3.1-pro-preview";
+  const model = "gemini-3.8-flash";
 
   const contents: any[] = [];
 
@@ -748,7 +748,7 @@ export async function chatWithAIQuestionsAgent(
   }
 
   const ai = getAI();
-  const model = "gemini-3.1-pro-preview";
+  const model = "gemini-3.8-flash";
 
   const prompt = `You are an expert AI Exam Assistant helping an administrator manage examination questions.
   The administrator is currently working on:

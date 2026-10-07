@@ -9,6 +9,7 @@ import { auth } from '../firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
+import { CONTINENTS, getCountryById, REGIONAL_SERVERS } from '../data/regions';
 
 enum AuthState {
   LOGIN = 'login',
@@ -33,6 +34,7 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
   const [view, setView] = useState<AuthState>(AuthState.LOGIN);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [country, setCountry] = useState('Nigeria');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -65,6 +67,9 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
     const trialExpiresAt = new Date();
     trialExpiresAt.setDate(trialExpiresAt.getDate() + trialDays);
 
+    const countryConfig = getCountryById(country || 'Nigeria');
+    const preferredServerId = countryConfig?.preferredServer?.id || 'af-west-1';
+
     try {
       await setDoc(doc(db, profilePath), {
         uid: firebaseUser.uid,
@@ -73,6 +78,10 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
         subscriptionStatus: 'paid',
         plan: 'claxy_pro',
         isPremium: true,
+        cbtContinent: 'africa',
+        cbtCountry: country || 'Nigeria',
+        preferredServerRegion: preferredServerId,
+        serverRegion: preferredServerId,
         trialExpiresAt: trialExpiresAt.toISOString(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -283,6 +292,33 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {
                 {view === AuthState.SIGNUP && (
                   <p className="text-[10px] text-white/40 ml-1">Must be at least 6 characters</p>
                 )}
+              </div>
+            )}
+
+            {view === AuthState.SIGNUP && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-sm font-medium text-white/80">Region & Edge Server</label>
+                  <span className="text-[10px] uppercase font-black text-theme-accent bg-theme-accent/20 px-2 py-0.5 rounded-full border border-theme-accent/30">
+                    Africa Hub
+                  </span>
+                </div>
+                <div className="relative">
+                  <select
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-theme-accent/50 transition-all text-sm font-semibold"
+                  >
+                    {CONTINENTS[0].countries.map((c) => (
+                      <option key={c.id} value={c.name} className="bg-slate-900 text-white">
+                        {c.flag} {c.name} • {c.preferredServer.code} ({c.preferredServer.latencyMs}ms)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-[10px] text-white/50 ml-1">
+                  Selected regional database will automatically optimize question delivery and CBT speed.
+                </p>
               </div>
             )}
 

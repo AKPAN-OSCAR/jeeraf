@@ -3578,14 +3578,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ user, profile, onBac
                   {
                     name: "Audio AI Study Analyzer & Generator",
                     desc: "Used for analyzing speech, audio lectures, and video recordings to compile custom practice sheets.",
-                    model: "gemini-3.1-pro-preview",
+                    model: "gemini-3.8-flash",
                     status: "Active",
                     role: "Multimodal Audio Engine"
                   },
                   {
                     name: "Audio Explanation System",
                     desc: "Powering vocalized transcript summaries and deep reasoning tutorials for individual test takers.",
-                    model: "gemini-3.1-pro-preview",
+                    model: "gemini-3.8-flash",
                     status: "Active",
                     role: "Synthesizer & Reasoning Engine"
                   },

@@ -1118,7 +1118,7 @@ FORMATTING INSTRUCTIONS:
         }
 
         const preferredModel = (typeof localStorage !== 'undefined' ? localStorage.getItem('sib_ibom_ai_model') : null) || 'gemini-3.8-flash';
-        const candidateModels = Array.from(new Set([preferredModel, 'gemini-3.8-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite']));
+        const candidateModels = Array.from(new Set([preferredModel, 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite']));
 
         let lastModelErr: any = null;
         for (const modelName of candidateModels) {
