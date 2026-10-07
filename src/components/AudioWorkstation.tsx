@@ -1,11 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, Square, Pause, Play, Trash2, CheckCircle, FileAudio, Loader2, X, ChevronRight, Settings2, Minus, Plus, Sparkles, Volume2, History, RotateCcw, Save, Trash, Upload, Calendar, PlayCircle, Maximize2, ArrowLeft } from 'lucide-react';
+import { 
+  Mic, Square, Pause, Play, Trash2, CheckCircle, FileAudio, 
+  Loader2, X, ChevronRight, Settings2, Minus, Plus, Sparkles, 
+  Volume2, History, RotateCcw, Save, Upload, Calendar, PlayCircle, 
+  Maximize2, ArrowLeft, Radio, Download, Search, Check, Disc,
+  Headphones, Award, BookOpen, Clock, FileText, Send, Sparkle
+} from 'lucide-react';
 import { cn } from '../data/lib/utils';
 import { generateQuestionsFromAudio, getAudioExplanation } from '../services/aiQuestions';
-import { GoldSpinner } from './AIAvatar';
+import { GoldSpinner, JeeRafHeadIcon } from './AIAvatar';
 import { Question } from '../types';
-import Markdown from 'react-markdown';
+import { MathRenderer } from './MathRenderer';
 
 interface AudioWorkstationProps {
   onClose: () => void;
@@ -13,13 +19,16 @@ interface AudioWorkstationProps {
   user: any;
 }
 
-interface SavedItem {
+export interface SavedTapeItem {
   id: string;
-  type: 'recording' | 'explanation';
+  type: 'recording' | 'explanation' | 'full_session';
   title: string;
   timestamp: number;
-  audioUrl?: string; // This will actually be base64 or blob URL in memory, usually we'd use Firestore Storage but for now we keep LocalStorage pattern with better persistence warnings
+  durationSeconds?: number;
+  audioUrl?: string;
   explanation?: string;
+  topics?: string;
+  questionCount?: number;
 }
 
 export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioWorkstationProps) {
@@ -27,55 +36,48 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingType, setProcessingType] = useState<'questions' | 'explanation' | null>(null);
   const [explanation, setExplanation] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'selection' | 'studio' | 'vault'>('selection');
-  const [activeTab, setActiveTab] = useState<'record' | 'upload'>('record');
+  const [viewMode, setViewMode] = useState<'studio' | 'upload' | 'vault'>('studio');
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
-  const [viewingItem, setViewingItem] = useState<SavedItem | null>(null);
+  const [viewingItem, setViewingItem] = useState<SavedTapeItem | null>(null);
+  const [vaultSearchQuery, setVaultSearchQuery] = useState('');
   
   // Configuration
   const [questionCount, setQuestionCount] = useState(20);
   const [duration, setDuration] = useState(30);
   const [topics, setTopics] = useState('');
 
+  // Audio Analyser State
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
   const [visualData, setVisualData] = useState<Uint8Array>(new Uint8Array(0));
   const animationFrameRef = useRef<number | null>(null);
-
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // History state (sync with user-specific local storage)
-  const historyKey = `study_audio_history_${user?.uid || 'guest'}`;
-  const [history, setHistory] = useState<SavedItem[]>(() => {
-    const saved = localStorage.getItem(historyKey);
-    return saved ? JSON.parse(saved) : [];
+  // Tape Vault Persistence
+  const historyKey = `jeeraf_audio_vault_${user?.uid || 'guest'}`;
+  const [vaultItems, setVaultItems] = useState<SavedTapeItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(historyKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   useEffect(() => {
-    localStorage.setItem(historyKey, JSON.stringify(history));
-  }, [history, historyKey]);
-
-  // Draft persistence for ongoing recording
-  useEffect(() => {
-    const draftKey = `audio_draft_${user?.uid || 'guest'}`;
-    if (recordingStatus === 'recording' || recordingStatus === 'paused') {
-       // We can't easily save the Blob chunks in real-time to localStorage, 
-       // but we can save the metadata so the user knows they were recording.
-       localStorage.setItem(draftKey, JSON.stringify({
-         recordingTime,
-         topics,
-         status: recordingStatus,
-         timestamp: Date.now()
-       }));
-    } else if (recordingStatus === 'idle') {
-      localStorage.removeItem(draftKey);
+    try {
+      localStorage.setItem(historyKey, JSON.stringify(vaultItems));
+    } catch (err) {
+      console.warn("Storage quota exceeded for audio vault:", err);
     }
-  }, [recordingStatus, recordingTime, topics, user]);
+  }, [vaultItems, historyKey]);
 
+  // Timer
   useEffect(() => {
     if (recordingStatus === 'recording') {
       timerRef.current = setInterval(() => {
@@ -89,6 +91,7 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
     };
   }, [recordingStatus]);
 
+  // Audio Visualizer Loop
   useEffect(() => {
     if (recordingStatus === 'recording' && analyser) {
       const updateVisualizer = () => {
@@ -100,20 +103,19 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
       updateVisualizer();
     } else {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-      // We don't reset visualData immediately to keep the last frame visible briefly
     }
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
   }, [recordingStatus, analyser]);
 
+  // Microphone recording
   const startRecording = async () => {
     try {
-      // Enhanced audio constraints for maximum clarity
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
-          noiseSuppression: false, // Disabling aggressive noise suppression for "normal" voice sound
+          noiseSuppression: false,
           autoGainControl: true,
           channelCount: 1, 
           sampleRate: 44100
@@ -121,15 +123,13 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
       });
       streamRef.current = stream;
 
-      // Audio Context for Visualizer
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const source = audioCtx.createMediaStreamSource(stream);
       const analyserNode = audioCtx.createAnalyser();
       analyserNode.fftSize = 256;
       source.connect(analyserNode);
       setAnalyser(analyserNode);
-      
-      // Preferred formats
+
       const preferredTypes = [
         'audio/webm;codecs=opus',
         'audio/webm',
@@ -139,15 +139,7 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
         'audio/wav'
       ];
       
-      let mimeType = preferredTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
-      
-      // Force audio/wav if on Safari/iOS which might be picky, or use empty for default
-      if (!mimeType) {
-        console.warn("No preferred mimeType supported, using browser default");
-      }
-
-      console.log("Using mimeType for recording:", mimeType);
-
+      const mimeType = preferredTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
       const recorder = new MediaRecorder(stream, { 
         mimeType: mimeType || undefined,
         audioBitsPerSecond: 128000
@@ -161,7 +153,6 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
       };
 
       recorder.onstop = () => {
-        // Use the recorder's actual mimeType if the blob doesn't have one
         const finalType = recorder.mimeType || mimeType || 'audio/webm';
         const audioBlob = new Blob(internalChunks, { type: finalType });
         const url = URL.createObjectURL(audioBlob);
@@ -170,15 +161,16 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
         if (audioCtx.state !== 'closed') audioCtx.close();
       };
 
-      recorder.start(1000); // 1s slices are safer for some browsers than 100ms
+      recorder.start(1000);
       setMediaRecorder(recorder);
       setRecordingStatus('recording');
       setAudioChunks([]);
       setAudioUrl(null);
+      setUploadedFileName(null);
       setRecordingTime(0);
     } catch (err) {
       console.error("Microphone access denied:", err);
-      alert("Microphone access denied. Please allow permissions for studio recording.");
+      alert("Microphone access denied. Please grant microphone permissions to use the Audio Recording Studio.");
     }
   };
 
@@ -212,6 +204,7 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
     }
     setRecordingStatus('idle');
     setAudioUrl(null);
+    setUploadedFileName(null);
     setAudioChunks([]);
     setRecordingTime(0);
     setExplanation(null);
@@ -229,79 +222,97 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
     });
   };
 
+  // 1. AI Task: Generate CBT practice test from audio
   const handleGenerateQuestions = async () => {
-    if (!audioChunks.length) return;
+    if (!audioChunks.length) {
+      alert("Please record audio or upload an audio lecture first!");
+      return;
+    }
     
     setIsProcessing(true);
     setProcessingType('questions');
     
     try {
-      const audioBlob = new Blob(audioChunks, { type: audioChunks[0].type });
+      const blobType = audioChunks[0]?.type || 'audio/webm';
+      const audioBlob = new Blob(audioChunks, { type: blobType });
       const base64 = await blobToBase64(audioBlob);
       
       const questions = await generateQuestionsFromAudio(
         base64, 
-        audioChunks[0].type, 
+        blobType, 
         'Personal CBT', 
         questionCount, 
         topics
       );
 
-      if (questions.length > 0) {
+      if (questions && questions.length > 0) {
+        // Auto-save take metadata to vault
+        await autoSaveToVault('recording', `Lecture CBT (${questions.length} Questions) - ${topics || 'General'}`);
         onQuestionsGenerated(questions, duration);
+      } else {
+        alert("The AI could not extract test questions from this audio. Please check microphone clarity and try again.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to generate questions. Please try again.");
+      alert(`Failed to generate questions: ${err?.message || 'Please try again.'}`);
     } finally {
       setIsProcessing(false);
       setProcessingType(null);
     }
   };
 
+  // 2. AI Task: Full Explanatory / Lecture Breakdown
   const handleGetExplanation = async () => {
-    if (!audioChunks.length) return;
+    if (!audioChunks.length) {
+      alert("Please record audio or upload an audio lecture first!");
+      return;
+    }
     
     setIsProcessing(true);
     setProcessingType('explanation');
     
     try {
-      const audioBlob = new Blob(audioChunks, { type: audioChunks[0].type });
+      const blobType = audioChunks[0]?.type || 'audio/webm';
+      const audioBlob = new Blob(audioChunks, { type: blobType });
       const base64 = await blobToBase64(audioBlob);
       
-      const result = await getAudioExplanation(base64, audioChunks[0].type);
-      setExplanation(result);
-    } catch (err) {
+      const result = await getAudioExplanation(base64, blobType);
+      if (result) {
+        setExplanation(result);
+        await autoSaveToVault('explanation', `Full Lecture Notes: ${topics || 'Session'}`, result);
+      }
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to get explanation.");
+      alert(`Failed to generate explanation: ${err?.message || 'Please try again.'}`);
     } finally {
       setIsProcessing(false);
       setProcessingType(null);
     }
   };
 
+  // Audio File Upload handler
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
       setAudioUrl(url);
+      setUploadedFileName(file.name);
       setRecordingStatus('stopped');
       
-      // Load chunks from file
       const arrayBuffer = await file.arrayBuffer();
-      const blob = new Blob([arrayBuffer], { type: file.type });
+      const blob = new Blob([arrayBuffer], { type: file.type || 'audio/mp3' });
       setAudioChunks([blob]);
-      setRecordingTime(0); 
+      setRecordingTime(0);
     }
   };
 
-  const saveToHistory = async (type: 'recording' | 'explanation') => {
-    let savedAudioUrl = undefined;
+  // Tape Vault Management
+  const autoSaveToVault = async (type: 'recording' | 'explanation' | 'full_session', defaultTitle?: string, customExplanation?: string) => {
+    let savedAudioUrl: string | undefined = undefined;
     
-    // For recordings, we convert the blob URL to a DataURL for persistence
-    if (type === 'recording' && audioChunks.length > 0) {
+    if (audioChunks.length > 0) {
       try {
-        const audioBlob = new Blob(audioChunks, { type: audioChunks[0].type });
+        const audioBlob = new Blob(audioChunks, { type: audioChunks[0]?.type || 'audio/webm' });
         const reader = new FileReader();
         const base64Promise = new Promise<string>((resolve) => {
           reader.onloadend = () => resolve(reader.result as string);
@@ -309,655 +320,580 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
         });
         savedAudioUrl = await base64Promise;
       } catch (err) {
-        console.error("Failed to persist audio:", err);
-        savedAudioUrl = audioUrl || undefined; // Fallback to temp URL
+        console.error("Failed to persist audio string:", err);
+        savedAudioUrl = audioUrl || undefined;
       }
     }
 
-    const newItem: SavedItem = {
-      id: Math.random().toString(36).substr(2, 9),
+    const newItem: SavedTapeItem = {
+      id: `tape-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
       type,
-      title: topics || `Audio Study ${new Date().toLocaleDateString()}`,
+      title: topics || defaultTitle || (uploadedFileName ? `Tape: ${uploadedFileName}` : `Studio Take ${new Date().toLocaleDateString()}`),
       timestamp: Date.now(),
+      durationSeconds: recordingTime > 0 ? recordingTime : undefined,
       audioUrl: savedAudioUrl,
-      explanation: type === 'explanation' ? explanation || undefined : undefined,
+      explanation: customExplanation || explanation || undefined,
+      topics: topics || undefined,
+      questionCount: questionCount
     };
-    setHistory([newItem, ...history]);
+
+    setVaultItems(prev => [newItem, ...prev]);
     setShowSaveSuccess(true);
     setTimeout(() => setShowSaveSuccess(false), 3000);
   };
 
-  const loadSavedItem = async (item: SavedItem) => {
+  const loadSavedItem = async (item: SavedTapeItem) => {
     if (item.audioUrl) {
       setAudioUrl(item.audioUrl);
-      
-      // If it's a data URL, convert it back to chunks so processing works
       if (item.audioUrl.startsWith('data:')) {
         try {
           const response = await fetch(item.audioUrl);
           const blob = await response.blob();
           setAudioChunks([blob]);
-        } catch (err) {
-          console.error("Failed to recover audio chunks:", err);
-          // Fallback: create a dummy chunk so logic doesn't break if processing is clicked
-          setAudioChunks([]); 
+        } catch {
+          setAudioChunks([]);
         }
       }
-      
-      setActiveTab('record');
       setRecordingStatus('stopped');
       setViewMode('studio');
       setExplanation(item.explanation || null);
+      if (item.topics) setTopics(item.topics);
     } else if (item.explanation) {
       setExplanation(item.explanation);
       setViewMode('studio');
-      setActiveTab('record');
       setRecordingStatus('stopped');
+      if (item.topics) setTopics(item.topics);
     }
+    setViewingItem(null);
   };
 
-  const deleteFromHistory = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this study record?")) {
-      setHistory(history.filter(item => item.id !== id));
+  const deleteFromVault = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this tape record from your vault?")) {
+      setVaultItems(prev => prev.filter(item => item.id !== id));
       if (viewingItem?.id === id) setViewingItem(null);
     }
   };
 
-  const handleModeSelection = (mode: 'record' | 'upload') => {
-    setActiveTab(mode);
-    setViewMode('studio');
-    resetRecording();
+  const formatTimecode = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hrs > 0) {
+      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Filtered vault records
+  const filteredVault = useMemo(() => {
+    if (!vaultSearchQuery.trim()) return vaultItems;
+    const q = vaultSearchQuery.toLowerCase();
+    return vaultItems.filter(item => 
+      item.title.toLowerCase().includes(q) || 
+      (item.topics && item.topics.toLowerCase().includes(q))
+    );
+  }, [vaultItems, vaultSearchQuery]);
 
   return (
-    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-0 md:p-4 overflow-hidden">
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[60] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden animate-in fade-in duration-200">
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        initial={{ scale: 0.96, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 20 }}
-        className="bg-theme-card md:rounded-[2.5rem] p-6 md:p-8 max-w-6xl w-full shadow-2xl relative h-full md:h-[90vh] flex flex-col md:flex-row gap-8 border border-theme-border overflow-hidden"
+        exit={{ scale: 0.96, opacity: 0, y: 15 }}
+        className="bg-theme-card text-theme-text rounded-3xl md:rounded-[2.5rem] p-0 max-w-6xl w-full shadow-2xl relative h-[92vh] max-h-[920px] flex flex-col border-2 border-theme-border overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Success Notification */}
+        {/* Success Alert Banner */}
         <AnimatePresence>
           {showSaveSuccess && (
             <motion.div 
-              initial={{ y: -100, opacity: 0 }}
+              initial={{ y: -60, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -100, opacity: 0 }}
-              className="absolute top-8 left-1/2 -translate-x-1/2 z-[70] bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 font-bold"
+              exit={{ y: -60, opacity: 0 }}
+              className="absolute top-4 left-1/2 -translate-x-1/2 z-[70] bg-emerald-600 text-white px-6 py-2.5 rounded-2xl shadow-xl flex items-center gap-2.5 font-bold text-xs uppercase tracking-wider"
             >
-              <CheckCircle /> Study Record Saved Successfully!
+              <CheckCircle size={16} /> Saved to Study Tape Vault
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Full-screen Focused View (Blackout Mode) */}
-        <AnimatePresence>
-          {viewingItem && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 z-[80] bg-black overflow-y-auto custom-scrollbar"
-            >
-              <div className="min-h-screen flex flex-col p-6 md:p-20">
-                {/* Top Controls */}
-                <div className="flex items-center justify-between mb-16">
-                  <button 
-                    onClick={() => setViewingItem(null)}
-                    className="p-4 bg-white/5 border border-white/10 rounded-full text-white/60 hover:text-white hover:bg-white/10 hover:scale-110 transition-all flex items-center gap-3 font-bold uppercase text-[11px] tracking-[0.3em]"
-                  >
-                    <ArrowLeft size={20} /> Back to Vault
-                  </button>
-                  <div className="flex items-center gap-4">
-                    <div className="px-6 py-3 bg-rose-500/10 border border-rose-500/20 rounded-full">
-                       <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">{viewingItem.type} Session</p>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        deleteFromHistory(viewingItem.id);
-                        setViewingItem(null);
-                      }}
-                      className="p-4 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-full hover:bg-rose-500 hover:text-white transition-all hover:scale-110"
-                    >
-                      <Trash2 size={24} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="max-w-4xl mx-auto w-full space-y-20 flex-1 flex flex-col justify-center">
-                  <div className="space-y-6 text-center">
-                    <motion.div
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <h2 className="text-6xl md:text-8xl font-black text-white leading-none tracking-tighter mb-6">{viewingItem.title}</h2>
-                      <p className="text-white/40 text-lg font-medium">{new Date(viewingItem.timestamp).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })}</p>
-                    </motion.div>
-                  </div>
-
-                  {viewingItem.audioUrl && (
-                    <motion.div 
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                      className="p-12 bg-white/[0.03] border-2 border-white/10 rounded-[4rem] shadow-2xl backdrop-blur-xl group hover:border-rose-500/30 transition-all"
-                    >
-                      <div className="flex items-center gap-6 mb-10">
-                        <div className="w-16 h-16 bg-rose-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-rose-500/40">
-                          <Volume2 className="text-white" size={32} />
-                        </div>
-                        <div>
-                          <h4 className="text-xl font-black text-white uppercase tracking-tight">Audio Analysis</h4>
-                          <p className="text-xs text-white/40 font-bold tracking-widest uppercase">Neural Source Material</p>
-                        </div>
-                      </div>
-                      {viewingItem.audioUrl && (
-                        <audio 
-                          key={viewingItem.audioUrl}
-                          src={viewingItem.audioUrl} 
-                          controls 
-                          preload="auto"
-                          className="w-full h-16 accent-rose-500 bg-transparent" 
-                        />
-                      )}
-                      
-                      <div className="mt-10 flex justify-center pt-6 border-t border-white/5">
-                        <button 
-                          onClick={() => loadSavedItem(viewingItem)}
-                          className="px-12 py-5 bg-rose-500 text-white rounded-[2.5rem] font-black uppercase text-xs tracking-widest shadow-2xl shadow-rose-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-4"
-                        >
-                          <PlayCircle size={24} /> Enter Recording Studio
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {viewingItem.explanation && (
-                    <motion.div 
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.4 }}
-                      className="p-16 bg-white/[0.02] border border-white/10 rounded-[4rem] prose prose-invert max-w-none shadow-inner"
-                    >
-                      <div className="flex items-center gap-4 mb-12">
-                        <Sparkles className="text-rose-500" size={32} />
-                        <h4 className="text-2xl font-black text-white uppercase tracking-[0.2em] m-0">Study Intelligence</h4>
-                      </div>
-                      <div className="text-white/70 text-xl leading-relaxed markdown-content markdown-vault-focused">
-                        <Markdown>{viewingItem.explanation}</Markdown>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  <div className="pt-20 flex justify-center">
-                    <button 
-                      onClick={() => setViewingItem(null)}
-                      className="group flex flex-col items-center gap-4"
-                    >
-                      <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center group-hover:bg-rose-500/20 group-hover:border-rose-500 transition-all">
-                        <X size={32} className="text-white group-hover:scale-125 transition-transform" />
-                      </div>
-                      <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em] group-hover:text-rose-500 transition-colors">Close Focus Mode</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Top Dash Menu */}
-        <div className="absolute top-0 inset-x-0 h-20 bg-theme-bg/80 backdrop-blur-xl border-b border-theme-border z-40 flex items-center justify-between px-8">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-rose-500 rounded-xl flex items-center justify-center shadow-lg shadow-rose-500/20">
-              <Volume2 className="text-white" size={20} />
+        {/* ===================================================================== */}
+        {/* TOP STUDIO NAVIGATION BAR                                             */}
+        {/* ===================================================================== */}
+        <header className="bg-theme-bg/95 border-b border-theme-border px-5 md:px-8 py-3.5 flex items-center justify-between shrink-0 z-30">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-theme-accent/15 border border-theme-accent/30 flex items-center justify-center shadow-xs text-theme-accent">
+              <Headphones size={22} />
             </div>
             <div>
-              <h2 className="font-black text-theme-text uppercase tracking-tighter text-lg">Study Studio</h2>
-              <p className="text-[10px] text-rose-500 font-bold uppercase tracking-widest">Neural Audio Analysis</p>
+              <div className="flex items-center gap-2">
+                <h2 className="font-black text-theme-text uppercase tracking-tight text-base sm:text-lg">
+                  JeeRaf Audio Studio
+                </h2>
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-theme-accent/10 text-theme-accent border border-theme-accent/20">
+                  <Radio size={10} className="animate-pulse" /> Studio Console
+                </span>
+              </div>
+              <p className="text-[11px] text-theme-muted font-bold">
+                Speech-to-Test Laboratory & Cognitive Lecture Breakdown
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-theme-card p-1.5 rounded-2xl border border-theme-border shadow-sm">
+          {/* Mode Switcher Tabs */}
+          <div className="flex items-center gap-1.5 bg-theme-card p-1 rounded-2xl border border-theme-border shadow-inner">
             <button 
-              onClick={() => setViewMode('selection')}
+              onClick={() => { setViewMode('studio'); }}
               className={cn(
-                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                viewMode === 'selection' ? "bg-rose-500 text-white shadow-md shadow-rose-500/20" : "text-theme-muted hover:text-theme-text"
+                "px-3.5 sm:px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer",
+                viewMode === 'studio' 
+                  ? "bg-theme-accent text-white shadow-md shadow-theme-accent/20" 
+                  : "text-theme-muted hover:text-theme-text"
               )}
             >
-              Mode Select
+              <Mic size={14} />
+              <span>Record Studio</span>
             </button>
             <button 
-              onClick={() => { if(viewMode === 'selection') handleModeSelection('record'); else setViewMode('studio'); }}
+              onClick={() => { setViewMode('upload'); }}
               className={cn(
-                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                viewMode === 'studio' ? "bg-rose-500 text-white shadow-md shadow-rose-500/20" : "text-theme-muted hover:text-theme-text"
+                "px-3.5 sm:px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer",
+                viewMode === 'upload' 
+                  ? "bg-theme-accent text-white shadow-md shadow-theme-accent/20" 
+                  : "text-theme-muted hover:text-theme-text"
               )}
             >
-              Studio
+              <Upload size={14} />
+              <span>Digital Sync</span>
             </button>
             <button 
-              onClick={() => setViewMode('vault')}
+              onClick={() => { setViewMode('vault'); }}
               className={cn(
-                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                viewMode === 'vault' ? "bg-rose-500 text-white shadow-md shadow-rose-500/20" : "text-theme-muted hover:text-theme-text"
+                "px-3.5 sm:px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer",
+                viewMode === 'vault' 
+                  ? "bg-theme-accent text-white shadow-md shadow-theme-accent/20" 
+                  : "text-theme-muted hover:text-theme-text"
               )}
             >
-              Study Vault
+              <Disc size={14} />
+              <span>Tape Vault</span>
+              <span className="ml-1 text-[9px] px-1.5 py-0.2 rounded-full bg-theme-card text-theme-text border border-theme-border">
+                {vaultItems.length}
+              </span>
             </button>
           </div>
 
           <button 
             onClick={onClose}
-            className="w-10 h-10 bg-theme-card border border-theme-border rounded-xl flex items-center justify-center text-theme-muted hover:text-rose-500 transition-all hover:scale-105 active:scale-95"
+            className="w-9 h-9 bg-theme-card border border-theme-border rounded-xl flex items-center justify-center text-theme-muted hover:text-theme-text hover:bg-theme-bg transition-all cursor-pointer shadow-xs"
+            title="Exit Studio"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
-        </div>
+        </header>
 
-        {/* Main Content Area */}
-        <div className="flex-1 mt-24 overflow-y-auto px-4 md:px-8 pb-12 custom-scrollbar">
+        {/* ===================================================================== */}
+        {/* MAIN BODY WORKSPACE                                                   */}
+        {/* ===================================================================== */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 custom-scrollbar">
           <AnimatePresence mode="wait">
-            {viewMode === 'selection' && (
+            
+            {/* TAB 1: RECORDING STUDIO DECK */}
+            {viewMode === 'studio' && (
               <motion.div
-                key="selection"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="h-full flex flex-col items-center justify-center max-w-5xl mx-auto"
-              >
-                <div className="text-center mb-16">
-                  <h1 className="text-6xl font-black text-theme-text tracking-tighter mb-4">Choose Your <span className="text-rose-500">Method</span></h1>
-                  <p className="text-theme-muted text-lg max-w-2xl mx-auto font-medium">Capture lectures in real-time or process existing digital libraries with our advanced AI Studio.</p>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-8 w-full">
-                  <button 
-                    onClick={() => handleModeSelection('record')}
-                    className="group relative bg-theme-card border-2 border-theme-border p-12 rounded-[3.5rem] text-left transition-all hover:border-rose-500/50 hover:shadow-2xl hover:shadow-rose-500/10 overflow-hidden"
-                  >
-                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <Mic size={120} className="text-rose-500" />
-                    </div>
-                    <div className="w-20 h-20 bg-rose-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-rose-500/40 mb-8 group-hover:scale-110 transition-transform">
-                      <Mic className="text-white" size={40} />
-                    </div>
-                    <h3 className="text-3xl font-black text-theme-text mb-4 uppercase tracking-tight">Direct Recording</h3>
-                    <p className="text-theme-muted text-lg font-medium leading-relaxed">Perfect for live lectures. Our acoustic engine filters background noise for crystal clear transcripts.</p>
-                    <div className="mt-8 flex items-center gap-3 text-rose-500 font-bold uppercase tracking-widest text-xs">
-                      Enter Studio <ChevronRight size={16} />
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => handleModeSelection('upload')}
-                    className="group relative bg-theme-card border-2 border-theme-border p-12 rounded-[3.5rem] text-left transition-all hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 overflow-hidden"
-                  >
-                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <FileAudio size={120} className="text-emerald-500" />
-                    </div>
-                    <div className="w-20 h-20 bg-emerald-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40 mb-8 group-hover:scale-110 transition-transform">
-                      <FileAudio className="text-white" size={40} />
-                    </div>
-                    <h3 className="text-3xl font-black text-theme-text mb-4 uppercase tracking-tight">Digital Sync</h3>
-                    <p className="text-theme-muted text-lg font-medium leading-relaxed">Upload your library of MP3, WAV or M4A files. Ideal for processing pre-recorded study materials.</p>
-                    <div className="mt-8 flex items-center gap-3 text-emerald-500 font-bold uppercase tracking-widest text-xs">
-                      Start Upload <ChevronRight size={16} />
-                    </div>
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {viewMode === 'studio' && activeTab === 'record' && (
-              <motion.div
-                key="studio-record"
-                initial={{ opacity: 0, y: 20 }}
+                key="studio-tab"
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="max-w-4xl mx-auto space-y-10"
+                exit={{ opacity: 0, y: -15 }}
+                className="max-w-4xl mx-auto space-y-6"
               >
-                {/* 1. STUDIO HEADER & ON-AIR BADGE */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-theme-border/60 pb-6">
-                  <div className="flex items-center gap-4">
-                    <button 
-                      onClick={() => setViewMode('selection')} 
-                      className="p-3 bg-theme-card border border-theme-border rounded-2xl text-theme-muted hover:text-rose-500 hover:border-rose-500/30 transition-all active:scale-95 shadow-xs"
-                      title="Back to Station Modes"
-                    >
-                      <ArrowLeft size={18} />
-                    </button>
-                    <div>
-                      <div className="flex items-center gap-2.5">
-                        <h3 className="text-2xl sm:text-3xl font-black text-theme-text uppercase tracking-tight">Audio Studio & Lecture Lab</h3>
-                      </div>
-                      <p className="text-theme-muted text-xs sm:text-sm border-l-2 border-rose-500 pl-3 mt-1">
-                        High-fidelity acoustic speech-to-test processor with real-time AI derivations.
-                      </p>
+                {/* 1. STUDIO CONSOLE DECK */}
+                <div className={cn(
+                  "bg-gradient-to-b from-theme-card to-theme-bg rounded-3xl sm:rounded-[3rem] p-6 sm:p-10 border-2 flex flex-col items-center text-center relative overflow-hidden transition-all shadow-xl",
+                  recordingStatus === 'recording' 
+                    ? "border-rose-500/80 shadow-rose-500/15 ring-4 ring-rose-500/10" 
+                    : "border-theme-border"
+                )}>
+                  {/* Top Broadcast Ceiling Status Strip */}
+                  <div className="w-full flex items-center justify-between pb-4 mb-4 border-b border-theme-border/70">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-theme-accent animate-pulse" />
+                      <span className="text-xs font-black uppercase tracking-widest text-theme-muted">
+                        Acoustic Speech Processing Deck
+                      </span>
+                    </div>
+
+                    {/* Studio Indicator Light (ON AIR) */}
+                    <div className={cn(
+                      "px-3.5 py-1.5 rounded-full border flex items-center gap-2 font-black uppercase text-[11px] tracking-widest shadow-xs transition-all",
+                      recordingStatus === 'recording'
+                        ? "bg-rose-500/15 border-rose-500 text-rose-500 animate-pulse shadow-rose-500/20"
+                        : recordingStatus === 'paused'
+                        ? "bg-amber-500/15 border-amber-500 text-amber-500"
+                        : recordingStatus === 'stopped'
+                        ? "bg-emerald-500/15 border-emerald-500 text-emerald-500"
+                        : "bg-theme-bg border-theme-border text-theme-muted"
+                    )}>
+                      <span className={cn(
+                        "w-2 h-2 rounded-full",
+                        recordingStatus === 'recording' ? "bg-rose-500 animate-ping" : 
+                        recordingStatus === 'paused' ? "bg-amber-500" :
+                        recordingStatus === 'stopped' ? "bg-emerald-500" : "bg-theme-muted"
+                      )} />
+                      <span>
+                        {recordingStatus === 'recording' ? '● ON AIR • REC' :
+                         recordingStatus === 'paused' ? 'TAKE PAUSED' :
+                         recordingStatus === 'stopped' ? 'MASTER TAPE READY' : 'STUDIO STANDBY'}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Studio Broadcast Indicator (ON AIR) */}
-                  <div className={cn(
-                    "px-4 py-2 rounded-2xl border flex items-center gap-2.5 font-black uppercase text-xs tracking-widest shadow-md transition-all",
-                    recordingStatus === 'recording'
-                      ? "bg-rose-500/10 border-rose-500 text-rose-500 animate-pulse shadow-rose-500/20"
-                      : recordingStatus === 'paused'
-                      ? "bg-amber-500/10 border-amber-500 text-amber-500"
-                      : recordingStatus === 'stopped'
-                      ? "bg-emerald-500/10 border-emerald-500 text-emerald-400"
-                      : "bg-theme-bg border-theme-border text-theme-muted"
-                  )}>
-                    <span className={cn(
-                      "w-2.5 h-2.5 rounded-full",
-                      recordingStatus === 'recording' ? "bg-rose-500 animate-ping" : 
-                      recordingStatus === 'paused' ? "bg-amber-500" :
-                      recordingStatus === 'stopped' ? "bg-emerald-400" : "bg-theme-muted"
-                    )} />
-                    <span>
-                      {recordingStatus === 'recording' ? '● ON AIR • REC' :
-                       recordingStatus === 'paused' ? 'PAUSED' :
-                       recordingStatus === 'stopped' ? 'TAPE READY' : 'STUDIO READY'}
-                    </span>
-                  </div>
-                </div>
+                  {/* Master Studio Mic Circle & Waveform Ring */}
+                  <div className="relative my-4">
+                    <div className={cn(
+                      "w-36 h-36 sm:w-44 sm:h-44 rounded-full flex items-center justify-center relative z-10 transition-all duration-300 shadow-2xl",
+                      recordingStatus === 'recording' 
+                        ? "bg-rose-600 scale-105 shadow-rose-600/40 ring-8 ring-rose-500/25" 
+                        : "bg-theme-card border-4 border-theme-border hover:border-theme-accent transition-colors"
+                    )}>
+                      {/* Live Spectrum Frequency Bars */}
+                      {recordingStatus === 'recording' && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          {Array.from({ length: 16 }).map((_, i) => {
+                            const value = visualData[i * 3] || 0;
+                            const height = Math.max(8, (value / 255) * 48);
+                            return (
+                              <motion.div 
+                                key={i}
+                                className="w-1.5 mx-0.5 bg-white/70 rounded-full"
+                                animate={{ height }}
+                                transition={{ duration: 0.08 }}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
 
-                {/* 2. RECORDING CONSOLE */}
-                <div className={cn(
-                  "bg-gradient-to-b from-theme-card/90 to-theme-bg rounded-[3rem] p-8 sm:p-12 border-2 flex flex-col items-center text-center relative overflow-hidden transition-all duration-700 shadow-2xl",
-                  recordingStatus === 'recording' 
-                    ? "border-rose-500/60 shadow-rose-500/10" 
-                    : "border-theme-border shadow-xl"
-                )}>
-                  {/* Studio Ceiling Status Light Strip */}
-                  <div className="absolute top-0 inset-x-0 h-1.5 bg-theme-border/40 overflow-hidden">
+                      {recordingStatus === 'recording' ? (
+                        <button 
+                          type="button"
+                          onClick={stopRecording}
+                          title="Cut & Finalize Take"
+                          className="relative z-20 hover:scale-110 transition-transform cursor-pointer"
+                        >
+                          <Square className="text-white fill-white" size={40} />
+                        </button>
+                      ) : recordingStatus === 'paused' ? (
+                        <button 
+                          type="button"
+                          onClick={resumeRecording}
+                          title="Resume Recording"
+                          className="relative z-20 hover:scale-110 transition-transform cursor-pointer"
+                        >
+                          <Play className="text-amber-500 fill-amber-500 ml-1" size={40} />
+                        </button>
+                      ) : (
+                        <button 
+                          type="button"
+                          onClick={startRecording}
+                          title="Initialize Studio Mic"
+                          className="relative z-20 hover:scale-110 transition-transform cursor-pointer"
+                        >
+                          <Mic className="text-theme-accent" size={44} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Ambient Acoustic Halo */}
                     {recordingStatus === 'recording' && (
-                      <motion.div 
-                        className="h-full bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.8)]" 
-                        animate={{ x: ['-100%', '100%'] }} 
-                        transition={{ duration: 2.2, repeat: Infinity, ease: 'linear' }} 
-                      />
+                      <div className="absolute inset-0 -m-3 rounded-full border-2 border-rose-500/30 animate-ping pointer-events-none" />
                     )}
                   </div>
 
-                  <div className="w-full flex flex-col items-center">
-                    {/* Central Studio Mic / Visualizer Ring */}
-                    <div className="relative mb-8">
-                      <div className={cn(
-                        "w-36 h-36 sm:w-44 sm:h-44 rounded-full flex items-center justify-center relative z-10 transition-all duration-500 shadow-2xl",
-                        recordingStatus === 'recording' 
-                          ? "bg-rose-500 scale-105 shadow-rose-500/40 ring-8 ring-rose-500/20" 
-                          : "bg-theme-card border-4 border-theme-border hover:border-rose-500/40"
-                      )}>
-                        {/* Audio Waveform Bars Inside Ring */}
-                        {recordingStatus === 'recording' && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            {Array.from({ length: 16 }).map((_, i) => {
-                              const value = visualData[i * 3] || 0;
-                              const height = Math.max(8, (value / 255) * 48);
-                              return (
-                                <motion.div 
-                                  key={i}
-                                  className="w-1.5 mx-0.5 bg-white/50 rounded-full"
-                                  animate={{ height }}
-                                  transition={{ duration: 0.08 }}
-                                />
-                              );
-                            })}
-                          </div>
-                        )}
+                  {/* Master Timecode Readout */}
+                  <div className="space-y-1 my-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">
+                      Studio Timecode
+                    </span>
+                    <p className={cn(
+                      "font-mono text-5xl sm:text-6xl font-black tracking-tighter drop-shadow-sm",
+                      recordingStatus === 'recording' ? "text-rose-500" : "text-theme-text"
+                    )}>
+                      {formatTimecode(recordingTime)}
+                    </p>
+                  </div>
 
-                        {recordingStatus === 'recording' ? (
-                          <Square className="text-white fill-white cursor-pointer relative z-20 hover:scale-110 transition-transform" size={44} onClick={stopRecording} />
-                        ) : recordingStatus === 'paused' ? (
-                          <Play className="text-rose-500 fill-rose-500 ml-1 cursor-pointer hover:scale-110 transition-transform" size={44} onClick={resumeRecording} />
-                        ) : (
-                          <Mic className="text-rose-500 cursor-pointer hover:scale-110 transition-transform" size={48} onClick={startRecording} />
-                        )}
-                      </div>
+                  {/* VU Meter Visualizer Strip */}
+                  <div className="my-3 w-full max-w-sm flex items-center justify-center gap-1 p-2 rounded-xl bg-theme-bg border border-theme-border">
+                    {Array.from({ length: 18 }).map((_, i) => {
+                      const val = visualData[i * 2] || 0;
+                      const isHot = i > 14;
+                      const isWarm = i > 10 && i <= 14;
+                      const isActive = recordingStatus === 'recording' && val > (i * 14);
+                      return (
+                        <div 
+                          key={i} 
+                          className={cn(
+                            "flex-1 h-3.5 rounded-xs transition-all duration-75",
+                            isActive
+                              ? isHot ? "bg-rose-500 shadow-xs shadow-rose-500" : isWarm ? "bg-amber-400" : "bg-emerald-400"
+                              : "bg-theme-border/40"
+                          )} 
+                        />
+                      );
+                    })}
+                  </div>
 
-                      {/* Studio VU Meter Ambient Halo */}
-                      {recordingStatus === 'recording' && (
-                        <div className="absolute inset-0 -m-3 rounded-full border-2 border-rose-500/30 animate-ping pointer-events-none" />
-                      )}
-                    </div>
-
-                    {/* Studio Console Timecode */}
-                    <div className="space-y-2 z-10">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">
-                          Studio Timecode
-                        </span>
-                      </div>
-                      <p className={cn(
-                        "font-mono text-6xl sm:text-7xl font-black tracking-tighter drop-shadow-md",
-                        recordingStatus === 'recording' ? "text-rose-500" : "text-theme-muted"
-                      )}>
-                        {formatTime(recordingTime)}
-                      </p>
-                    </div>
-
-                    {/* Studio VU Meter Strip */}
-                    <div className="my-6 w-full max-w-xs flex items-center justify-center gap-1.5 p-2 rounded-xl bg-theme-bg/80 border border-theme-border/70">
-                      {Array.from({ length: 14 }).map((_, i) => {
-                        const val = visualData[i * 3] || 0;
-                        const isHot = i > 11;
-                        const isWarm = i > 8 && i <= 11;
-                        const isActive = recordingStatus === 'recording' && val > (i * 18);
-                        return (
-                          <div 
-                            key={i} 
-                            className={cn(
-                              "flex-1 h-3 rounded-xs transition-all duration-75",
-                              isActive
-                                ? isHot ? "bg-rose-500 shadow-xs shadow-rose-500" : isWarm ? "bg-amber-400" : "bg-emerald-400"
-                                : "bg-theme-border/40"
-                            )} 
-                          />
-                        );
-                      })}
-                    </div>
-
-                    {/* Primary Studio Action Controls */}
-                    <div className="flex flex-wrap items-center justify-center gap-4 mt-4 z-10">
-                      {recordingStatus === 'idle' && (
+                  {/* Studio Deck Action Controls */}
+                  <div className="flex flex-wrap items-center justify-center gap-3 mt-4 z-10">
+                    {recordingStatus === 'idle' && (
+                      <button 
+                        onClick={startRecording} 
+                        className="px-8 py-3.5 bg-theme-accent text-white rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg shadow-theme-accent/25 hover:opacity-90 transition-all active:scale-95 flex items-center gap-2.5 cursor-pointer"
+                      >
+                        <Mic size={18} /> Initialize Studio Take
+                      </button>
+                    )}
+                    {recordingStatus === 'recording' && (
+                      <div className="flex items-center gap-3">
                         <button 
-                          onClick={startRecording} 
-                          className="px-12 py-5 bg-rose-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-rose-500/30 hover:bg-rose-600 transition-all active:scale-95 flex items-center gap-3"
+                          onClick={pauseRecording} 
+                          className="px-5 py-3 bg-theme-card border border-theme-border rounded-2xl flex items-center gap-2 text-theme-text hover:text-amber-500 hover:border-amber-500/40 transition-all font-bold text-xs uppercase tracking-wider cursor-pointer"
                         >
-                          <Mic size={24} /> Initialize Studio Mic
+                          <Pause size={16} /> Pause Take
                         </button>
-                      )}
-                      {recordingStatus === 'recording' && (
-                        <div className="flex items-center gap-4">
-                          <button 
-                            onClick={pauseRecording} 
-                            className="px-6 py-4 bg-theme-card border border-theme-border rounded-2xl flex items-center gap-2 text-theme-muted hover:text-amber-500 hover:border-amber-500/40 transition-all font-bold text-sm"
-                          >
-                            <Pause size={18} /> Pause Take
-                          </button>
-                          <button 
-                            onClick={stopRecording} 
-                            className="px-10 py-4 bg-rose-500 text-white rounded-2xl font-black text-base shadow-xl shadow-rose-500/30 hover:bg-rose-600 transition-all flex items-center gap-3 active:scale-95"
-                          >
-                            <Square size={20} fill="white" /> Cut & Process Take
-                          </button>
-                        </div>
-                      )}
-                      {recordingStatus === 'paused' && (
-                        <div className="flex items-center gap-4">
-                          <button 
-                            onClick={resumeRecording} 
-                            className="px-8 py-4 bg-rose-500 text-white rounded-2xl font-black text-base shadow-xl shadow-rose-500/30 hover:bg-rose-600 transition-all flex items-center gap-2 active:scale-95"
-                          >
-                            <Play size={20} fill="white" /> Resume Take
-                          </button>
-                          <button 
-                            onClick={stopRecording} 
-                            className="px-6 py-4 bg-theme-card border border-theme-border rounded-2xl font-bold text-sm text-theme-text hover:bg-theme-bg transition-all"
-                          >
-                            Finalize Recording
-                          </button>
-                        </div>
-                      )}
-                      {recordingStatus === 'stopped' && (
-                        <div className="flex flex-col items-center gap-6 w-full max-w-xl">
-                          <div className="w-full p-5 bg-theme-card border border-theme-border rounded-2xl shadow-sm space-y-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted block text-left">
-                              Studio Tape Playback
+                        <button 
+                          onClick={stopRecording} 
+                          className="px-8 py-3 bg-rose-600 text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg shadow-rose-600/30 hover:bg-rose-500 transition-all flex items-center gap-2.5 active:scale-95 cursor-pointer"
+                        >
+                          <Square size={16} fill="white" /> Cut Take & Process
+                        </button>
+                      </div>
+                    )}
+                    {recordingStatus === 'paused' && (
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={resumeRecording} 
+                          className="px-6 py-3 bg-theme-accent text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-md hover:opacity-90 transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
+                        >
+                          <Play size={16} fill="white" /> Resume Take
+                        </button>
+                        <button 
+                          onClick={stopRecording} 
+                          className="px-5 py-3 bg-theme-card border border-theme-border rounded-2xl font-bold text-xs uppercase tracking-wider text-theme-text hover:bg-theme-bg transition-all cursor-pointer"
+                        >
+                          Finalize Take
+                        </button>
+                      </div>
+                    )}
+                    {recordingStatus === 'stopped' && (
+                      <div className="flex flex-col items-center gap-4 w-full max-w-lg">
+                        <div className="w-full p-4 bg-theme-card border border-theme-border rounded-2xl shadow-xs space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-theme-muted">
+                              Master Tape Playback
                             </span>
-                            {audioUrl && (
-                              <audio 
-                                key={audioUrl}
-                                src={audioUrl} 
-                                controls 
-                                preload="auto"
-                                className="w-full h-11 accent-rose-500 rounded-lg" 
-                              />
-                            )}
+                            <span className="text-xs font-mono font-bold text-theme-accent">
+                              {formatTimecode(recordingTime)}
+                            </span>
                           </div>
-                          <div className="flex flex-wrap justify-center gap-3">
-                            <button 
-                              onClick={resetRecording} 
-                              className="px-6 py-3 bg-theme-card border border-theme-border rounded-xl text-theme-muted hover:text-rose-500 transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-wider"
-                            >
-                              <RotateCcw size={16} /> Record New Take
-                            </button>
-                            <button 
-                              onClick={() => saveToHistory('recording')} 
-                              className="px-6 py-3 bg-theme-card border border-theme-border rounded-xl font-bold text-xs uppercase tracking-wider text-theme-text hover:border-theme-muted transition-all flex items-center gap-2"
-                            >
-                              <Save size={16} /> Save to Tape Vault
-                            </button>
-                          </div>
+                          {audioUrl && (
+                            <audio 
+                              key={audioUrl}
+                              src={audioUrl} 
+                              controls 
+                              preload="auto"
+                              className="w-full h-10 accent-theme-accent rounded-lg" 
+                            />
+                          )}
                         </div>
-                      )}
-                    </div>
+                        <div className="flex flex-wrap justify-center gap-2.5">
+                          <button 
+                            onClick={resetRecording} 
+                            className="px-4 py-2.5 bg-theme-card border border-theme-border rounded-xl text-theme-muted hover:text-theme-text transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-wider cursor-pointer"
+                          >
+                            <RotateCcw size={14} /> Record New Take
+                          </button>
+                          <button 
+                            onClick={() => autoSaveToVault('recording')} 
+                            className="px-4 py-2.5 bg-theme-card border border-theme-border rounded-xl font-bold text-xs uppercase tracking-wider text-theme-text hover:border-theme-accent transition-all flex items-center gap-2 cursor-pointer"
+                          >
+                            <Save size={14} /> Save to Tape Vault
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* 3. SETTINGS & AI EXECUTION BELOW RECORDING */}
-                <div className="grid lg:grid-cols-2 gap-8">
-                  <div className="bg-theme-card rounded-[3.5rem] p-10 border border-theme-border space-y-10 shadow-xl">
+                {/* 2. EXAM CONFIGURATION & DUAL AI ENGINE DISPATCH */}
+                <div className="grid lg:grid-cols-2 gap-6">
+                  {/* CONFIG PANEL */}
+                  <div className="bg-theme-card rounded-3xl p-6 sm:p-8 border border-theme-border space-y-6 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-[11px] font-black text-theme-muted uppercase tracking-[0.4em] flex items-center gap-4">
-                        <Settings2 size={18} className="text-rose-500" /> Precision Engine
+                      <h3 className="text-xs font-black text-theme-text uppercase tracking-widest flex items-center gap-2">
+                        <Settings2 size={16} className="text-theme-accent" /> CBT Exam Blueprint
                       </h3>
-                      <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
+                      <span className="text-[10px] uppercase font-bold text-theme-muted px-2 py-0.5 rounded-md bg-theme-bg border border-theme-border">
+                        Personal Mode
+                      </span>
                     </div>
                     
-                    <div className="grid sm:grid-cols-2 gap-10">
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-2">Exam Complexity</label>
-                        <div className="flex items-center justify-between bg-theme-bg border border-theme-border rounded-3xl p-3 text-theme-text shadow-inner">
-                          <button onClick={() => setQuestionCount(prev => Math.max(5, prev - 5))} className="w-12 h-12 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-2xl transition-all shadow-sm">
-                            <Minus size={20} className="text-theme-muted" />
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {/* Question Count */}
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-theme-muted uppercase tracking-wider pl-1">
+                          Questions Count
+                        </label>
+                        <div className="flex items-center justify-between bg-theme-bg border border-theme-border rounded-2xl p-2.5 text-theme-text shadow-inner">
+                          <button 
+                            onClick={() => setQuestionCount(prev => Math.max(5, prev - 5))} 
+                            className="w-9 h-9 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-xl transition-all cursor-pointer"
+                          >
+                            <Minus size={16} className="text-theme-muted" />
                           </button>
-                          <span className="text-3xl font-black">{questionCount}</span>
-                          <button onClick={() => setQuestionCount(prev => Math.min(100, prev + 5))} className="w-12 h-12 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-2xl transition-all shadow-sm">
-                            <Plus size={20} className="text-theme-muted" />
+                          <span className="text-2xl font-black">{questionCount}</span>
+                          <button 
+                            onClick={() => setQuestionCount(prev => Math.min(50, prev + 5))} 
+                            className="w-9 h-9 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-xl transition-all cursor-pointer"
+                          >
+                            <Plus size={16} className="text-theme-muted" />
                           </button>
                         </div>
                       </div>
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-2">Test Duration</label>
-                        <div className="flex items-center justify-between bg-theme-bg border border-theme-border rounded-3xl p-3 text-theme-text shadow-inner">
-                          <button onClick={() => setDuration(prev => Math.max(10, prev - 5))} className="w-12 h-12 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-2xl transition-all shadow-sm">
-                            <Minus size={20} className="text-theme-muted" />
+
+                      {/* Test Duration */}
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-theme-muted uppercase tracking-wider pl-1">
+                          Test Duration
+                        </label>
+                        <div className="flex items-center justify-between bg-theme-bg border border-theme-border rounded-2xl p-2.5 text-theme-text shadow-inner">
+                          <button 
+                            onClick={() => setDuration(prev => Math.max(5, prev - 5))} 
+                            className="w-9 h-9 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-xl transition-all cursor-pointer"
+                          >
+                            <Minus size={16} className="text-theme-muted" />
                           </button>
-                          <span className="text-3xl font-black">{duration}<span className="text-[10px] ml-1 opacity-40">MIN</span></span>
-                          <button onClick={() => setDuration(prev => Math.min(180, prev + 5))} className="w-12 h-12 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-2xl transition-all shadow-sm">
-                            <Plus size={20} className="text-theme-muted" />
+                          <span className="text-2xl font-black">{duration}<span className="text-xs ml-1 font-bold text-theme-muted">MIN</span></span>
+                          <button 
+                            onClick={() => setDuration(prev => Math.min(180, prev + 5))} 
+                            className="w-9 h-9 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-xl transition-all cursor-pointer"
+                          >
+                            <Plus size={16} className="text-theme-muted" />
                           </button>
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-2">Neural Focus Point</label>
+                    {/* Topic input */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-theme-muted uppercase tracking-wider pl-1">
+                        Lecture Topic / Syllabus Target
+                      </label>
                       <input 
-                        placeholder="Subject, Topic or Concept..."
+                        placeholder="e.g. Organic Chemistry, Calculus, Newton's Laws..."
                         value={topics}
                         onChange={(e) => setTopics(e.target.value)}
-                        className="w-full bg-theme-bg border border-theme-border rounded-[2.5rem] px-8 py-6 text-sm focus:ring-8 focus:ring-rose-500/10 focus:border-rose-500 outline-none text-theme-text transition-all font-medium shadow-inner"
+                        className="w-full bg-theme-bg border border-theme-border rounded-2xl px-5 py-3.5 text-xs text-theme-text placeholder:text-theme-muted focus:border-theme-accent outline-none transition-all font-medium shadow-inner"
                       />
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-6">
+                  {/* DUAL AI ACTION DECK */}
+                  <div className="flex flex-col gap-4">
+                    {/* BUTTON 1: GENERATE CBT EXAM */}
                     <button
                       disabled={!audioUrl || isProcessing}
                       onClick={handleGenerateQuestions}
-                      className="flex-1 group relative overflow-hidden bg-rose-500 text-white rounded-[3.5rem] font-black uppercase text-sm tracking-[0.5em] flex flex-col items-center justify-center gap-6 disabled:opacity-40 transition-all shadow-2xl shadow-rose-500/40 hover:translate-y-[-6px] active:scale-95"
+                      className="flex-1 bg-theme-accent hover:opacity-95 text-white rounded-3xl p-6 font-black uppercase text-xs tracking-widest flex flex-col items-center justify-center gap-3 disabled:opacity-40 transition-all shadow-xl shadow-theme-accent/25 hover:translate-y-[-2px] active:scale-98 cursor-pointer"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       {isProcessing && processingType === 'questions' ? (
-                        <div className="flex flex-col items-center gap-4">
-                           <GoldSpinner size={48} />
-                           <span className="text-[10px] tracking-widest animate-pulse">Running Neural Array...</span>
+                        <div className="flex flex-col items-center gap-2">
+                          <GoldSpinner size={36} />
+                          <span className="text-[11px] tracking-wider animate-pulse font-bold">Synthesizing CBT Exam Questions...</span>
                         </div>
                       ) : (
                         <>
-                          <CheckCircle size={64} className="drop-shadow-2xl" />
-                          <span>Generate Exam</span>
+                          <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center shadow-inner">
+                            <CheckCircle size={26} className="text-white" />
+                          </div>
+                          <div className="text-center">
+                            <span className="text-sm font-black block">Generate CBT Exam</span>
+                            <span className="text-[10px] font-normal opacity-85 block lowercase">Extract test questions & start exam</span>
+                          </div>
                         </>
                       )}
                     </button>
+
+                    {/* BUTTON 2: FULL EXPLANATORY / LECTURE BREAKDOWN */}
                     <button
                       disabled={!audioUrl || isProcessing}
                       onClick={handleGetExplanation}
-                      className="flex-1 group bg-theme-card border-4 border-theme-border rounded-[3.5rem] font-black uppercase text-sm tracking-[0.5em] flex flex-col items-center justify-center gap-6 disabled:opacity-40 transition-all hover:bg-theme-bg hover:border-rose-500/40 hover:translate-y-[-6px] active:scale-95 shadow-xl"
+                      className="flex-1 bg-theme-card border-2 border-theme-border hover:border-theme-accent text-theme-text rounded-3xl p-6 font-black uppercase text-xs tracking-widest flex flex-col items-center justify-center gap-3 disabled:opacity-40 transition-all hover:bg-theme-bg hover:translate-y-[-2px] active:scale-98 cursor-pointer shadow-sm"
                     >
                       {isProcessing && processingType === 'explanation' ? (
-                        <div className="flex flex-col items-center gap-4">
-                           <GoldSpinner size={48} />
-                           <span className="text-[10px] tracking-widest animate-pulse">Extracting Narrative...</span>
+                        <div className="flex flex-col items-center gap-2">
+                          <GoldSpinner size={36} />
+                          <span className="text-[11px] tracking-wider animate-pulse font-bold text-theme-accent">Analyzing Audio Lecture Deeply...</span>
                         </div>
                       ) : (
                         <>
-                          <div className="w-20 h-20 bg-rose-500/10 rounded-[2rem] flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Sparkles className="text-rose-500" size={40} />
+                          <div className="w-12 h-12 rounded-2xl bg-theme-accent/10 border border-theme-accent/20 flex items-center justify-center text-theme-accent">
+                            <Sparkles size={24} />
                           </div>
-                          <span className="text-theme-text">Full Explanation</span>
+                          <div className="text-center">
+                            <span className="text-sm font-black block">Full Explanatory Breakdown</span>
+                            <span className="text-[10px] font-normal text-theme-muted block lowercase">Conceptual rules, formulas & mnemonics</span>
+                          </div>
                         </>
                       )}
                     </button>
                   </div>
                 </div>
 
-                {/* Explanation Result Preview */}
+                {/* EXPLANATION RESULT PREVIEW (IF AVAILABLE) */}
                 <AnimatePresence>
                   {explanation && (
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-theme-bg rounded-[4rem] p-12 border-2 border-rose-500/30 shadow-2xl relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-10 flex gap-4 z-10">
-                        <button onClick={() => saveToHistory('explanation')} className="px-8 py-4 bg-rose-500 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-rose-500/30 hover:scale-105 transition-all flex items-center gap-3">
-                          <Save size={20} /> Save Study Notes
-                        </button>
-                        <button onClick={() => setExplanation(null)} className="p-4 bg-theme-card border border-theme-border rounded-2xl text-theme-muted hover:text-rose-500 transition-all">
-                          <Trash2 size={24} />
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-6 mb-12">
-                        <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center border border-rose-500/20 shadow-inner">
-                          <Sparkles size={32} className="text-rose-500 animate-pulse" />
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.98 }} 
+                      animate={{ opacity: 1, scale: 1 }} 
+                      className="bg-theme-card rounded-3xl p-6 sm:p-10 border-2 border-theme-accent/30 shadow-xl relative overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between pb-4 mb-6 border-b border-theme-border">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-theme-accent/15 border border-theme-accent/30 flex items-center justify-center text-theme-accent">
+                            <Sparkles size={20} />
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-black text-theme-text uppercase tracking-tight">
+                              AI Lecture Intelligence
+                            </h4>
+                            <p className="text-xs text-theme-muted font-bold">
+                              Verified Academic Synthesis & Revision Guide
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-4xl font-black text-theme-text uppercase tracking-tight">AI Insights</h4>
-                          <p className="text-xs text-rose-500 font-black tracking-widest uppercase mt-1">Deep-Dive Analysis Module</p>
+
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => autoSaveToVault('explanation')} 
+                            className="px-4 py-2 bg-theme-accent text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm hover:opacity-90 transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Save size={14} /> Save Notes
+                          </button>
+                          <button 
+                            onClick={() => setExplanation(null)} 
+                            className="p-2 text-theme-muted hover:text-theme-text bg-theme-bg rounded-xl transition-all cursor-pointer"
+                            title="Dismiss notes"
+                          >
+                            <X size={18} />
+                          </button>
                         </div>
                       </div>
-                      <div className="prose prose-xl prose-invert max-w-none text-theme-muted text-lg leading-relaxed markdown-content p-10 bg-theme-card/30 rounded-[3rem] border border-theme-border/50">
-                        <Markdown>{explanation}</Markdown>
+
+                      <div className="text-theme-text leading-relaxed p-4 bg-theme-bg/60 rounded-2xl border border-theme-border">
+                        <MathRenderer text={explanation} />
                       </div>
                     </motion.div>
                   )}
@@ -965,131 +901,138 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
               </motion.div>
             )}
 
-            {viewMode === 'studio' && activeTab === 'upload' && (
+            {/* TAB 2: DIGITAL SYNC / AUDIO FILE UPLOAD */}
+            {viewMode === 'upload' && (
               <motion.div
-                key="studio-upload"
-                initial={{ opacity: 0, y: 20 }}
+                key="upload-tab"
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="max-w-4xl mx-auto space-y-12"
+                exit={{ opacity: 0, y: -15 }}
+                className="max-w-4xl mx-auto space-y-6"
               >
-                {/* 1. SETTINGS FIRST for Upload Path */}
-                <div className="flex items-center gap-4">
-                  <button onClick={() => setViewMode('selection')} className="p-3 bg-theme-card border border-theme-border rounded-xl text-theme-muted hover:text-rose-500 transition-all">
-                    <ArrowLeft size={18} />
-                  </button>
-                  <div>
-                    <h3 className="text-3xl font-black text-theme-text uppercase tracking-tight text-left">Digital Material Processor</h3>
-                    <p className="text-theme-muted text-sm border-l-2 border-emerald-500 pl-3 text-left">Upload pre-recorded sessions for analysis.</p>
+                {/* UPLOAD DROPZONE */}
+                <div className="bg-theme-bg rounded-3xl sm:rounded-[3rem] p-8 sm:p-14 border-2 border-dashed border-theme-border hover:border-theme-accent/60 flex flex-col items-center text-center transition-all shadow-inner">
+                  <div className="w-20 h-20 rounded-3xl bg-theme-accent/10 border border-theme-accent/20 flex items-center justify-center mb-6 text-theme-accent">
+                    <Upload size={38} />
                   </div>
-                </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-theme-text uppercase tracking-tight mb-2">
+                    Digital Audio Synchronization
+                  </h3>
+                  <p className="text-theme-muted text-xs sm:text-sm max-w-md mb-8 font-medium">
+                    Import existing lecture recordings, seminars, or study voice notes. Supports MP3, WAV, AAC, M4A, FLAC, and WebM.
+                  </p>
 
-                <div className="grid lg:grid-cols-2 gap-8 pb-8">
-                  <div className="bg-theme-card rounded-[3.5rem] p-10 border border-theme-border space-y-10 shadow-xl">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-[11px] font-black text-theme-muted uppercase tracking-[0.4em] flex items-center gap-4">
-                        <Settings2 size={18} className="text-emerald-500" /> Processor Config
-                      </h3>
-                    </div>
-                    
-                    <div className="grid sm:grid-cols-2 gap-10">
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-2">Questions</label>
-                        <div className="flex items-center justify-between bg-theme-bg border border-theme-border rounded-3xl p-3 text-theme-text shadow-inner">
-                          <button onClick={() => setQuestionCount(prev => Math.max(5, prev - 5))} className="w-12 h-12 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-2xl transition-all">
-                            <Minus size={20} className="text-theme-muted" />
-                          </button>
-                          <span className="text-3xl font-black">{questionCount}</span>
-                          <button onClick={() => setQuestionCount(prev => Math.min(100, prev + 5))} className="w-12 h-12 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-2xl transition-all">
-                            <Plus size={20} className="text-theme-muted" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-2">CBT Duration</label>
-                        <div className="flex items-center justify-between bg-theme-bg border border-theme-border rounded-3xl p-3 text-theme-text shadow-inner">
-                          <button onClick={() => setDuration(prev => Math.max(10, prev - 5))} className="w-12 h-12 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-2xl transition-all">
-                            <Minus size={20} className="text-theme-muted" />
-                          </button>
-                          <span className="text-3xl font-black">{duration}m</span>
-                          <button onClick={() => setDuration(prev => Math.min(180, prev + 5))} className="w-12 h-12 flex items-center justify-center bg-theme-card hover:bg-theme-border rounded-2xl transition-all">
-                            <Plus size={20} className="text-theme-muted" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                  <input 
+                    id="digital-audio-file-input" 
+                    type="file" 
+                    accept="audio/*" 
+                    className="hidden" 
+                    onChange={handleFileUpload} 
+                  />
 
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-theme-muted uppercase tracking-[0.2em] pl-2">Subject Matter Focus</label>
-                      <input 
-                        placeholder="Search specific topics in audio..."
-                        value={topics}
-                        onChange={(e) => setTopics(e.target.value)}
-                        className="w-full bg-theme-bg border border-theme-border rounded-[2.5rem] px-8 py-6 text-sm focus:ring-8 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-theme-text transition-all font-medium shadow-inner"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-6">
-                    <button
-                      disabled={!audioUrl || isProcessing}
-                      onClick={handleGenerateQuestions}
-                      className="flex-1 group relative overflow-hidden bg-emerald-600 text-white rounded-[3.5rem] font-black uppercase text-sm tracking-[0.5em] flex flex-col items-center justify-center gap-6 disabled:opacity-40 transition-all shadow-2xl shadow-emerald-500/40 hover:translate-y-[-6px] active:scale-95"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                      {isProcessing && processingType === 'questions' ? <GoldSpinner size={48} /> : <CheckCircle size={64} className="drop-shadow-2xl" />}
-                      <span>Process CBT</span>
-                    </button>
-                    <button
-                      disabled={!audioUrl || isProcessing}
-                      onClick={handleGetExplanation}
-                      className="flex-1 group bg-theme-card border-4 border-theme-border rounded-[3.5rem] font-black uppercase text-sm tracking-[0.5em] flex flex-col items-center justify-center gap-6 disabled:opacity-40 transition-all hover:bg-theme-bg hover:border-emerald-500/40 hover:translate-y-[-6px] active:scale-95 shadow-xl"
-                    >
-                      {isProcessing && processingType === 'explanation' ? <GoldSpinner size={48} /> : <Sparkles className="text-emerald-500" size={64} />}
-                      <span className="text-theme-text">Narrative Analysis</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* 2. UPLOAD ZONE SECOND (Upload Area) */}
-                <div className="bg-theme-bg rounded-[4rem] p-16 border-2 border-dashed border-theme-border flex flex-col items-center text-center relative overflow-hidden hover:border-emerald-500/50 transition-all shadow-inner">
-                  <div className="w-24 h-24 bg-emerald-500/10 rounded-3xl flex items-center justify-center mb-8 border border-emerald-500/20 group hover:scale-110 transition-transform">
-                    <Upload className="text-emerald-500" size={48} />
-                  </div>
-                  <h3 className="text-4xl font-black text-theme-text mb-4 uppercase tracking-tight">Material Link</h3>
-                  <p className="text-theme-muted text-lg max-w-sm mb-12 leading-relaxed font-medium">Link your lecture audio files for deep neural analysis. Supports high-fidelity formats.</p>
-                  
                   <button 
-                    onClick={() => document.getElementById('audio-upload-input')?.click()}
-                    className="px-16 py-7 bg-emerald-600 text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-emerald-500/30 flex items-center gap-4 hover:scale-105 active:scale-95 transition-all"
+                    onClick={() => document.getElementById('digital-audio-file-input')?.click()}
+                    className="px-8 py-4 bg-theme-accent text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-theme-accent/25 hover:opacity-90 active:scale-95 transition-all flex items-center gap-3 cursor-pointer"
                   >
-                    <Upload size={32} /> Link Files
-                    <input id="audio-upload-input" type="file" accept="audio/*" className="hidden" onChange={handleFileUpload} />
+                    <FileAudio size={18} /> Select Audio File
                   </button>
 
+                  {/* Uploaded File Player */}
                   <AnimatePresence>
                     {audioUrl && (
-                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-16 w-full max-w-lg p-10 bg-theme-card border-2 border-theme-border rounded-[3rem] shadow-2xl">
-                         <div className="flex items-center justify-between mb-6">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-emerald-500">File Inbound</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                              <span className="text-[11px] font-black text-emerald-500 uppercase">Synchronized</span>
-                            </div>
-                         </div>
-                         <audio src={audioUrl} controls className="w-full h-14 accent-emerald-500" />
+                      <motion.div 
+                        initial={{ opacity: 0, y: 15 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        className="mt-8 w-full max-w-lg p-5 bg-theme-card border-2 border-theme-border rounded-2xl shadow-md text-left"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-theme-accent truncate pr-2">
+                            {uploadedFileName || "Synchronized Audio Take"}
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-500 uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
+                            Ready for AI
+                          </span>
+                        </div>
+                        <audio src={audioUrl} controls className="w-full h-10 accent-theme-accent" />
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
 
-                {/* Explanation Result */}
+                {/* Configuration & AI Buttons for Uploaded Audio */}
+                <div className="grid lg:grid-cols-2 gap-6">
+                  <div className="bg-theme-card rounded-3xl p-6 border border-theme-border space-y-4 shadow-sm">
+                    <h3 className="text-xs font-black text-theme-text uppercase tracking-widest flex items-center gap-2">
+                      <Settings2 size={16} className="text-theme-accent" /> Test Settings
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-theme-muted uppercase block mb-1">Questions</label>
+                        <div className="flex items-center justify-between bg-theme-bg p-2 rounded-xl border border-theme-border">
+                          <button onClick={() => setQuestionCount(prev => Math.max(5, prev - 5))} className="p-1 hover:bg-theme-card rounded text-theme-muted"><Minus size={14} /></button>
+                          <span className="font-bold text-sm">{questionCount}</span>
+                          <button onClick={() => setQuestionCount(prev => Math.min(50, prev + 5))} className="p-1 hover:bg-theme-card rounded text-theme-muted"><Plus size={14} /></button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-theme-muted uppercase block mb-1">Duration</label>
+                        <div className="flex items-center justify-between bg-theme-bg p-2 rounded-xl border border-theme-border">
+                          <button onClick={() => setDuration(prev => Math.max(5, prev - 5))} className="p-1 hover:bg-theme-card rounded text-theme-muted"><Minus size={14} /></button>
+                          <span className="font-bold text-sm">{duration}m</span>
+                          <button onClick={() => setDuration(prev => Math.min(180, prev + 5))} className="p-1 hover:bg-theme-card rounded text-theme-muted"><Plus size={14} /></button>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-theme-muted uppercase block mb-1">Focus Topics</label>
+                      <input 
+                        placeholder="Topics in uploaded material..."
+                        value={topics}
+                        onChange={(e) => setTopics(e.target.value)}
+                        className="w-full bg-theme-bg border border-theme-border rounded-xl px-4 py-2 text-xs text-theme-text outline-none focus:border-theme-accent"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <button
+                      disabled={!audioUrl || isProcessing}
+                      onClick={handleGenerateQuestions}
+                      className="flex-1 bg-theme-accent hover:opacity-95 text-white rounded-2xl p-5 font-black uppercase text-xs tracking-wider flex items-center justify-center gap-3 disabled:opacity-40 transition-all shadow-lg cursor-pointer"
+                    >
+                      {isProcessing && processingType === 'questions' ? (
+                        <GoldSpinner size={24} />
+                      ) : (
+                        <>
+                          <CheckCircle size={20} />
+                          <span>Generate CBT from Uploaded Audio</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      disabled={!audioUrl || isProcessing}
+                      onClick={handleGetExplanation}
+                      className="flex-1 bg-theme-card border-2 border-theme-border hover:border-theme-accent text-theme-text rounded-2xl p-5 font-black uppercase text-xs tracking-wider flex items-center justify-center gap-3 disabled:opacity-40 transition-all cursor-pointer shadow-xs"
+                    >
+                      {isProcessing && processingType === 'explanation' ? (
+                        <GoldSpinner size={24} />
+                      ) : (
+                        <>
+                          <Sparkles size={20} className="text-theme-accent" />
+                          <span>Full Lecture Explanation Notes</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Upload Explanation Result */}
                 <AnimatePresence>
                   {explanation && (
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-theme-card rounded-[3.5rem] p-12 border-2 border-emerald-500/30 shadow-2xl">
-                      {/* ... Markdown explanation same as above ... */}
-                      <div className="prose prose-xl prose-invert max-w-none text-theme-muted markdown-content">
-                        <Markdown>{explanation}</Markdown>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-theme-card rounded-3xl p-6 sm:p-8 border border-theme-border shadow-md">
+                      <h4 className="text-base font-black text-theme-text uppercase mb-4">Extracted Lecture Notes</h4>
+                      <div className="bg-theme-bg p-4 rounded-2xl border border-theme-border text-theme-text text-sm">
+                        <MathRenderer text={explanation} />
                       </div>
                     </motion.div>
                   )}
@@ -1097,85 +1040,130 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
               </motion.div>
             )}
 
+            {/* TAB 3: STUDY TAPE VAULT ARCHIVE */}
             {viewMode === 'vault' && (
               <motion.div
-                key="vault"
+                key="vault-tab"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-8 max-w-5xl mx-auto"
+                className="max-w-5xl mx-auto space-y-6"
               >
-                <div className="flex items-center justify-between">
+                {/* Vault Header & Search */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-theme-border pb-4">
                   <div>
-                    <h3 className="text-4xl font-black text-theme-text tracking-tight uppercase">Study Vault</h3>
-                    <p className="text-theme-muted font-medium border-l-2 border-rose-500 pl-3">Your personal library of captured wisdom.</p>
+                    <h3 className="text-2xl sm:text-3xl font-black text-theme-text uppercase tracking-tight">
+                      Study Tape Vault
+                    </h3>
+                    <p className="text-xs text-theme-muted font-bold">
+                      Your secured archive of audio study takes, synthesized lectures, and AI derivations.
+                    </p>
                   </div>
-                  <div className="bg-theme-bg px-6 py-3 rounded-2xl border border-theme-border font-bold text-xs text-theme-muted tracking-widest uppercase">
-                    {history.length} Saved Records
+
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                      <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-muted" />
+                      <input 
+                        type="text"
+                        value={vaultSearchQuery}
+                        onChange={(e) => setVaultSearchQuery(e.target.value)}
+                        placeholder="Search vault takes..."
+                        className="w-full bg-theme-bg border border-theme-border rounded-xl pl-9 pr-3 py-2 text-xs text-theme-text placeholder:text-theme-muted outline-none focus:border-theme-accent"
+                      />
+                    </div>
+                    <div className="px-3 py-2 rounded-xl bg-theme-bg border border-theme-border text-[11px] font-black uppercase text-theme-muted shrink-0">
+                      {vaultItems.length} Takes
+                    </div>
                   </div>
                 </div>
 
-                {history.length === 0 ? (
-                  <div className="text-center py-32 bg-theme-bg rounded-[3rem] border-2 border-dashed border-theme-border/50">
-                    <div className="w-24 h-24 bg-theme-card rounded-full flex items-center justify-center mx-auto mb-6 text-theme-muted/30">
-                      <History size={48} />
+                {/* Vault Items List */}
+                {filteredVault.length === 0 ? (
+                  <div className="text-center py-24 bg-theme-bg/60 rounded-3xl border-2 border-dashed border-theme-border/70 space-y-3">
+                    <div className="w-16 h-16 rounded-2xl bg-theme-card border border-theme-border flex items-center justify-center mx-auto text-theme-muted">
+                      <Disc size={32} />
                     </div>
-                    <h4 className="text-xl font-bold text-theme-text mb-2">The Vault is Empty</h4>
-                    <p className="text-theme-muted max-w-sm mx-auto">Start a recording session or upload materials to populate your personal study archive.</p>
+                    <h4 className="text-base font-black text-theme-text uppercase">The Tape Vault is Empty</h4>
+                    <p className="text-xs text-theme-muted max-w-sm mx-auto font-medium">
+                      Record a live lecture in the Studio or upload study material to populate your personal audio archive.
+                    </p>
+                    <button
+                      onClick={() => setViewMode('studio')}
+                      className="px-6 py-2.5 bg-theme-accent text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm hover:opacity-90 transition-all cursor-pointer inline-flex items-center gap-2 mt-2"
+                    >
+                      <Mic size={14} /> Open Recording Studio
+                    </button>
                   </div>
                 ) : (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {history.map((item) => (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {filteredVault.map((item) => (
                       <motion.div
                         layout
                         key={item.id}
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="group bg-theme-bg border border-theme-border rounded-[2.5rem] p-8 hover:border-rose-500/50 transition-all hover:shadow-2xl hover:shadow-rose-500/10 relative overflow-hidden"
+                        className="bg-theme-card border-2 border-theme-border hover:border-theme-accent/50 rounded-3xl p-5 transition-all shadow-xs hover:shadow-md flex flex-col justify-between space-y-4 group"
                       >
-                        <div className="absolute top-0 right-0 p-6 flex flex-col gap-2 scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all">
-                          <button 
-                            onClick={() => deleteFromHistory(item.id)}
-                            className="p-3 bg-rose-500/10 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all shadow-lg"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-rose-500 mb-4">
-                          {item.type === 'recording' ? (
-                            <div className="flex items-center gap-1.5 bg-rose-500/10 px-3 py-1.5 rounded-full border border-rose-500/20">
-                              <Mic size={14} />
-                              <span className="text-[9px] font-black uppercase tracking-widest">Recording</span>
+                        <div>
+                          <div className="flex items-center justify-between mb-2.5">
+                            <div className="flex items-center gap-2">
+                              {item.type === 'recording' ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-500 border border-rose-500/20">
+                                  <Mic size={10} /> Live Take
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-theme-accent/15 text-theme-accent border border-theme-accent/20">
+                                  <Sparkles size={10} /> Lecture Notes
+                                </span>
+                              )}
+                              {item.durationSeconds && (
+                                <span className="text-[10px] font-mono text-theme-muted font-bold">
+                                  {formatTimecode(item.durationSeconds)}
+                                </span>
+                              )}
                             </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 text-emerald-500">
-                              <Sparkles size={14} />
-                              <span className="text-[9px] font-black uppercase tracking-widest">Full Deep-Dive</span>
+
+                            <button 
+                              onClick={(e) => deleteFromVault(item.id, e)}
+                              className="p-1.5 text-theme-muted hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all cursor-pointer"
+                              title="Delete record"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+
+                          <h4 className="text-base font-black text-theme-text group-hover:text-theme-accent transition-colors line-clamp-1 uppercase tracking-tight">
+                            {item.title}
+                          </h4>
+
+                          <div className="flex items-center gap-2 text-theme-muted text-[11px] font-bold mt-1">
+                            <Calendar size={12} />
+                            <span>{new Date(item.timestamp).toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+
+                          {/* Audio Player if present */}
+                          {item.audioUrl && (
+                            <div className="mt-3 p-2 bg-theme-bg rounded-xl border border-theme-border">
+                              <audio src={item.audioUrl} controls className="w-full h-8 accent-theme-accent" />
                             </div>
                           )}
                         </div>
 
-                        <h4 className="text-xl font-black text-theme-text mb-2 line-clamp-1 group-hover:text-rose-500 transition-colors uppercase tracking-tight">{item.title}</h4>
-                        <div className="flex items-center gap-3 text-theme-muted text-xs font-bold mb-8">
-                          <Calendar size={14} />
-                          {new Date(item.timestamp).toLocaleDateString()}
-                          <span className="opacity-20">•</span>
-                          {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 mt-auto">
+                        {/* Card Actions */}
+                        <div className="pt-2 border-t border-theme-border grid grid-cols-2 gap-2">
                           <button 
                             onClick={() => loadSavedItem(item)}
-                            className="flex items-center justify-center gap-2 py-4 bg-theme-card border border-theme-border rounded-2xl text-[10px] font-black uppercase tracking-widest text-theme-text hover:bg-theme-bg transition-all"
+                            className="py-2.5 bg-theme-bg hover:bg-theme-card border border-theme-border text-theme-text rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                           >
-                            <PlayCircle size={16} className="text-rose-500" /> Open Record
+                            <PlayCircle size={14} className="text-theme-accent" /> Open Take
                           </button>
                           <button 
                             onClick={() => setViewingItem(item)}
-                            className="flex items-center justify-center gap-2 py-4 bg-rose-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all"
+                            className="py-2.5 bg-theme-accent text-white rounded-xl text-[11px] font-black uppercase tracking-wider transition-all shadow-sm hover:opacity-90 flex items-center justify-center gap-1.5 cursor-pointer"
                           >
-                            <Maximize2 size={16} /> Focus View
+                            <Maximize2 size={13} /> Focus Mode
                           </button>
                         </div>
                       </motion.div>
@@ -1184,8 +1172,112 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
                 )}
               </motion.div>
             )}
+
           </AnimatePresence>
         </div>
+
+        {/* ===================================================================== */}
+        {/* FULLSCREEN FOCUSED TAPE VIEW (THEME-AWARE FOCUS MODE)                 */}
+        {/* ===================================================================== */}
+        <AnimatePresence>
+          {viewingItem && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              className="absolute inset-0 z-[80] bg-theme-card overflow-y-auto custom-scrollbar flex flex-col p-4 sm:p-8 md:p-12"
+            >
+              <div className="max-w-4xl mx-auto w-full space-y-8 flex-1 flex flex-col">
+                {/* Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-theme-border">
+                  <button 
+                    onClick={() => setViewingItem(null)}
+                    className="px-4 py-2 bg-theme-bg border border-theme-border rounded-xl text-theme-text hover:bg-theme-card transition-all flex items-center gap-2 font-black uppercase text-xs tracking-wider cursor-pointer shadow-xs"
+                  >
+                    <ArrowLeft size={16} /> Back to Vault
+                  </button>
+
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => {
+                        deleteFromVault(viewingItem.id);
+                        setViewingItem(null);
+                      }}
+                      className="p-2.5 text-rose-500 bg-rose-500/10 border border-rose-500/20 rounded-xl hover:bg-rose-500 hover:text-white transition-all cursor-pointer"
+                      title="Delete record"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Title & Metadata */}
+                <div className="space-y-2">
+                  <span className="text-xs font-black uppercase tracking-widest text-theme-accent">
+                    Vault Tape Inspection
+                  </span>
+                  <h2 className="text-2xl sm:text-4xl font-black text-theme-text uppercase tracking-tight">
+                    {viewingItem.title}
+                  </h2>
+                  <p className="text-xs text-theme-muted font-bold">
+                    Recorded on {new Date(viewingItem.timestamp).toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })}
+                  </p>
+                </div>
+
+                {/* Audio Playback Box */}
+                {viewingItem.audioUrl && (
+                  <div className="p-6 bg-theme-bg rounded-3xl border-2 border-theme-border space-y-4 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider text-theme-text flex items-center gap-2">
+                        <Volume2 size={16} className="text-theme-accent" /> Master Audio Stream
+                      </span>
+                      {viewingItem.durationSeconds && (
+                        <span className="text-xs font-mono font-bold text-theme-accent">
+                          {formatTimecode(viewingItem.durationSeconds)}
+                        </span>
+                      )}
+                    </div>
+                    <audio src={viewingItem.audioUrl} controls className="w-full h-12 accent-theme-accent" />
+                    
+                    <div className="pt-2 flex justify-end">
+                      <button 
+                        onClick={() => loadSavedItem(viewingItem)}
+                        className="px-6 py-2.5 bg-theme-accent text-white rounded-xl font-black uppercase text-xs tracking-wider shadow-sm hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer"
+                      >
+                        <PlayCircle size={16} /> Load into Studio Console
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Markdown Explanation Notes */}
+                {viewingItem.explanation && (
+                  <div className="p-6 sm:p-8 bg-theme-bg rounded-3xl border border-theme-border space-y-4 shadow-sm flex-1">
+                    <div className="flex items-center gap-2.5 pb-3 border-b border-theme-border">
+                      <Sparkles size={18} className="text-theme-accent" />
+                      <h4 className="text-sm font-black text-theme-text uppercase tracking-wider">
+                        Cognitive Study Intelligence
+                      </h4>
+                    </div>
+                    <div className="text-theme-text text-sm leading-relaxed">
+                      <MathRenderer text={viewingItem.explanation} />
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-6 pb-2 text-center">
+                  <button 
+                    onClick={() => setViewingItem(null)}
+                    className="px-8 py-3 bg-theme-card border border-theme-border text-theme-muted hover:text-theme-text rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                  >
+                    Close Focus Mode
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </motion.div>
     </div>
   );

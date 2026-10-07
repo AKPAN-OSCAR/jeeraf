@@ -258,7 +258,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                 <h3 className="text-base font-black text-theme-text tracking-tight">
                   JeeRaf AI Solution Breakdown
                 </h3>
-                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-theme-accent/15 text-theme-accent border border-theme-accent/30">
                   Interactive Copilot
                 </span>
               </div>
@@ -274,7 +274,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
               <button
                 type="button"
                 onClick={handleOpenInFullScreen}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-theme-bg hover:bg-theme-accent hover:text-white text-theme-muted text-xs font-bold rounded-xl border border-theme-border transition-all shadow-sm"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-theme-bg hover:bg-theme-accent hover:text-white text-theme-text text-xs font-bold rounded-xl border border-theme-border transition-all shadow-sm cursor-pointer"
                 title="Transfer this question to full-screen JeeRaf AI page (/ai)"
               >
                 <Maximize2 size={13} />
@@ -286,7 +286,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-theme-muted hover:text-theme-text hover:bg-theme-bg rounded-xl transition-colors"
+              className="p-2 text-theme-muted hover:text-theme-text hover:bg-theme-bg rounded-xl transition-colors cursor-pointer"
               title="Close drawer"
             >
               <X size={20} />
@@ -306,16 +306,16 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                   Question {questionIndex + 1}
                 </span>
                 {isCorrect ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-extrabold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  <span className="inline-flex items-center gap-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
                     <CheckCircle2 size={12} /> Correct (+1)
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-extrabold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
+                  <span className="inline-flex items-center gap-1 text-xs font-extrabold text-rose-700 dark:text-rose-400 bg-rose-500/15 px-2 py-0.5 rounded-full border border-rose-500/30">
                     <XCircle size={12} /> Missed
                   </span>
                 )}
               </div>
-              <div className="text-sm font-semibold text-theme-text leading-relaxed bg-theme-card p-3.5 rounded-2xl border border-theme-border">
+              <div className="text-sm font-semibold text-theme-text leading-relaxed bg-theme-card p-3.5 rounded-2xl border border-theme-border shadow-xs">
                 <MathRenderer text={question.question} />
               </div>
             </div>
@@ -337,28 +337,28 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                       className={cn(
                         "p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 transition-all",
                         isCorrectChoice 
-                          ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold" 
+                          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-900 dark:text-emerald-300 font-bold" 
                           : isUserChoice 
-                            ? "bg-rose-500/15 border-rose-500 text-rose-400 font-bold"
-                            : "bg-theme-card border-theme-border text-theme-muted"
+                            ? "bg-rose-500/15 border-rose-500/40 text-rose-900 dark:text-rose-300 font-bold"
+                            : "bg-theme-card border-theme-border text-theme-text font-medium"
                       )}
                     >
                       <div className="flex items-center gap-2 truncate">
                         <span className={cn(
                           "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0",
-                          isCorrectChoice ? "bg-emerald-500 text-slate-950" : isUserChoice ? "bg-rose-500 text-white" : "bg-theme-bg text-theme-muted"
+                          isCorrectChoice ? "bg-emerald-600 text-white" : isUserChoice ? "bg-rose-600 text-white" : "bg-theme-bg text-theme-muted border border-theme-border"
                         )}>
                           {letter}
                         </span>
                         <span className="truncate">{opt}</span>
                       </div>
                       {isCorrectChoice && (
-                        <span className="text-[10px] font-black bg-emerald-500/20 px-2 py-0.5 rounded-full shrink-0">
+                        <span className="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-full shrink-0 shadow-xs">
                           Official Key
                         </span>
                       )}
                       {isUserChoice && !isCorrectChoice && (
-                        <span className="text-[10px] font-black bg-rose-500/20 px-2 py-0.5 rounded-full shrink-0">
+                        <span className="text-[10px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-full shrink-0 shadow-xs">
                           Your Choice
                         </span>
                       )}
@@ -371,27 +371,27 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
             {/* Quick Prompt Suggestions */}
             <div className="pt-2 border-t border-theme-border space-y-1.5">
               <span className="text-[11px] font-black uppercase tracking-wider text-theme-muted flex items-center gap-1">
-                <Lightbulb size={12} className="text-amber-400" /> Fast Questions:
+                <Lightbulb size={12} className="text-theme-accent" /> Fast Questions:
               </span>
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
                   onClick={() => handleSendFollowUp(undefined, "Why is my selected option incorrect?")}
-                  className="text-[11px] bg-theme-bg hover:bg-theme-accent hover:text-white px-2.5 py-1 rounded-lg border border-theme-border transition-all text-theme-text font-medium"
+                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-2.5 py-1.5 rounded-lg border border-theme-border transition-all text-theme-text font-bold cursor-pointer"
                 >
                   Why is my answer wrong?
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSendFollowUp(undefined, "Can you show the exact formula with values plugged in?")}
-                  className="text-[11px] bg-theme-bg hover:bg-theme-accent hover:text-white px-2.5 py-1 rounded-lg border border-theme-border transition-all text-theme-text font-medium"
+                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-2.5 py-1.5 rounded-lg border border-theme-border transition-all text-theme-text font-bold cursor-pointer"
                 >
                   Show formula steps
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSendFollowUp(undefined, "Give me a quick mnemonic or trick to remember this.")}
-                  className="text-[11px] bg-theme-bg hover:bg-theme-accent hover:text-white px-2.5 py-1 rounded-lg border border-theme-border transition-all text-theme-text font-medium"
+                  className="text-[11px] bg-theme-card hover:bg-theme-accent hover:text-white px-2.5 py-1.5 rounded-lg border border-theme-border transition-all text-theme-text font-bold cursor-pointer"
                 >
                   Memory trick
                 </button>
@@ -484,7 +484,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
             <button
               type="button"
               onClick={handleOpenInFullScreen}
-              className="text-amber-400 hover:text-amber-300 font-bold underline flex items-center gap-1 cursor-pointer"
+              className="text-theme-accent hover:opacity-85 font-bold underline flex items-center gap-1 cursor-pointer"
             >
               <span>Continue in Full AI Studio</span>
               <CornerUpRight size={13} />

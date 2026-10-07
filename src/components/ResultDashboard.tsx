@@ -497,7 +497,12 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
                 {/* Diagram / SVG */}
                 {currentSolutionQuestion.diagram && (
-                  <div className="my-3 p-4 sm:p-6 bg-slate-950/90 rounded-2xl border-2 border-theme-border/80 max-w-xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-md [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:h-auto transition-all">
+                  <div className="my-4 p-4 sm:p-6 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-2xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-md [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:h-auto transition-all">
+                    <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[11px] font-bold text-slate-400">
+                      <span className="uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-sky-400" /> Exam Figure / Solution Diagram
+                      </span>
+                    </div>
                     <div 
                       className="w-full flex items-center justify-center"
                       dangerouslySetInnerHTML={{ __html: currentSolutionQuestion.diagram }}

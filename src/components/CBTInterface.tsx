@@ -4,7 +4,7 @@ import {
   ChevronLeft, ChevronRight, Clock, Send, AlertCircle, 
   Flag, X, Calculator as CalcIcon, CheckCircle2, 
   Bookmark, ArrowRight, ArrowLeft, GripHorizontal, Check, RefreshCw,
-  LayoutGrid, ChevronDown, ChevronUp, Upload, Camera, HelpCircle
+  LayoutGrid, ChevronDown, ChevronUp, Upload, Camera, HelpCircle, Maximize2
 } from 'lucide-react';
 import { Subject, Question, ExamType } from '../types';
 import { cn, normalizeSubject } from '../data/lib/utils';
@@ -128,6 +128,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPassageExpanded, setIsPassageExpanded] = useState(false);
+  const [enlargedDiagram, setEnlargedDiagram] = useState<string | null>(null);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [visitedQuestions, setVisitedQuestions] = useState<Set<string>>(new Set([currentQuestion?.id].filter(Boolean)));
 
@@ -538,19 +539,42 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
 
             {/* Question Diagram / SVG / Image if present */}
             {currentQuestion?.diagram && (
-              <div className="my-5 p-4 sm:p-6 bg-slate-950/90 rounded-2xl border-2 border-theme-border/80 max-w-xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-md [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:h-auto transition-all">
+              <div className="my-5 p-4 sm:p-6 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-2xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-lg relative group transition-all">
+                <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[11px] font-bold text-slate-400">
+                  <span className="uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-sky-400" /> Exam Figure / Geometric Reference
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setEnlargedDiagram(currentQuestion.diagram || null)}
+                    className="flex items-center gap-1 text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-1 rounded-lg border border-sky-500/20 transition-all cursor-pointer font-bold"
+                  >
+                    <Maximize2 size={12} />
+                    <span>Enlarge Diagram</span>
+                  </button>
+                </div>
                 <div 
-                  className="w-full flex items-center justify-center"
+                  className="w-full flex items-center justify-center [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:h-auto"
                   dangerouslySetInnerHTML={{ __html: currentQuestion.diagram }}
                 />
               </div>
             )}
             {currentQuestion?.imageUrl && (
-              <div className="my-5 p-3 bg-theme-bg rounded-2xl border-2 border-theme-border max-w-xl mx-auto">
+              <div className="my-5 p-4 bg-theme-bg rounded-3xl border-2 border-theme-border max-w-2xl mx-auto">
+                <div className="flex justify-end pb-2 mb-2 border-b border-theme-border">
+                  <button
+                    type="button"
+                    onClick={() => setEnlargedDiagram(`<img src="${currentQuestion.imageUrl}" class="max-w-full max-h-[80vh] object-contain mx-auto" />`)}
+                    className="flex items-center gap-1 text-xs text-theme-accent font-bold hover:underline"
+                  >
+                    <Maximize2 size={13} />
+                    <span>View Full Size</span>
+                  </button>
+                </div>
                 <img 
                   src={currentQuestion.imageUrl} 
                   alt="Question Diagram" 
-                  className="rounded-xl w-full h-auto object-contain max-h-80"
+                  className="rounded-2xl w-full h-auto object-contain max-h-96 mx-auto"
                 />
               </div>
             )}
@@ -1417,6 +1441,38 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                     <span>{isContinuationSection && continuationPart === 1 ? 'Start Break Now' : 'Yes, Submit Now'}</span>
                   )}
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+        {/* Diagram Lightbox / Enlarged View */}
+        {enlargedDiagram && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-4xl w-full max-h-[90vh] bg-slate-900 border-2 border-sky-500/40 rounded-3xl p-6 shadow-2xl flex flex-col overflow-hidden"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse" />
+                  <span className="font-black text-white text-sm uppercase tracking-wider">Exam Blueprint / High-Res Diagram Inspection</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEnlargedDiagram(null)}
+                  className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-all cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div 
+                className="flex-1 overflow-auto p-4 flex items-center justify-center [&>svg]:w-full [&>svg]:max-w-3xl [&>svg]:h-auto"
+                dangerouslySetInnerHTML={{ __html: enlargedDiagram }}
+              />
+              <div className="pt-3 border-t border-slate-800 text-center text-xs text-slate-400 font-bold shrink-0">
+                Pinch or scroll to examine geometric angles, labels, and vectors in full detail.
               </div>
             </motion.div>
           </div>

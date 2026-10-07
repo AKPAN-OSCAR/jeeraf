@@ -21,10 +21,34 @@ interface NormalBlock {
 
 type ContentBlock = TableBlock | NormalBlock;
 
+function normalizeTextWithTables(rawText: string): string {
+  if (!rawText) return '';
+  // 1. Separate table rows connected by || or inline concatenated rows
+  let text = rawText
+    .replace(/\|\|\s*\|/g, '|\n|')
+    .replace(/\|\|/g, '|\n|');
+
+  // 2. Separate sentence preceding a markdown table row e.g. "Find the gradient.| $x$ |"
+  text = text.replace(/([.?!:])\s*(\|(?:\s*[^|\n]+\s*\|){2,})/g, '$1\n\n$2');
+
+  // 3. Normalize common LaTeX distortions in extracted CBT questions
+  text = text
+    .replace(/\$([^\$]*)\$/g, (match, inner) => {
+      // Fix \tan distortion like " an x" -> "\tan x"
+      const fixedInner = inner
+        .replace(/(^|\s)an(\s+[a-zA-Z0-9\(\)])/g, '$1\\tan$2')
+        .replace(/(^|\s)ext\{/g, '$1\\text{');
+      return `$${fixedInner}$`;
+    });
+
+  return text;
+}
+
 export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = '' }) => {
   if (!text) return null;
 
-  const lines = text.split('\n');
+  const normalizedText = normalizeTextWithTables(text);
+  const lines = normalizedText.split('\n');
   const blocks: ContentBlock[] = [];
   let currentTableLines: string[] = [];
 
@@ -253,6 +277,8 @@ function parseMarkdownTable(tableLines: string[]): TableBlock | null {
 function cleanMathExpression(math: string): string {
   if (!math) return '';
   return math
+    // Insert spacing for mixed fractions like 1\frac{1}{2} -> 1\,\frac{1}{2}
+    .replace(/([0-9])\\frac/g, '$1\\,\\frac')
     // Convert single digit fractions like \frac12 to \frac{1}{2}
     .replace(/\\frac([0-9a-zA-Z])([0-9a-zA-Z])/g, '\\frac{$1}{$2}')
     // Convert \frac{1}2 to \frac{1}{2}

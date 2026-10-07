@@ -81,7 +81,7 @@ export const MainDirectoryDashboard: React.FC<MainDirectoryDashboardProps> = ({
               <h1 className="text-lg font-black text-theme-text leading-none tracking-tight">JeeRaf CBT</h1>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-theme-accent bg-theme-accent/10 px-2 py-0.5 rounded-md border border-theme-accent/20">
-                  {getCountryFlag()} {cbtCountry}
+                  🌍 Africa • {getCountryFlag()} {cbtCountry}
                 </span>
               </div>
             </div>

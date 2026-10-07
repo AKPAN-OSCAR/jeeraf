@@ -65,6 +65,14 @@ export function sanitizeMathText(text?: string | null): string {
     .replace(/ight\./g, '\\right.');
 }
 
+export function sanitizeDiagramSvg(rawSvg?: string | null): string {
+  if (!rawSvg || typeof rawSvg !== 'string') return '';
+  return rawSvg
+    // Replace restrictive inline max-width:240px so the diagram can scale comfortably to container
+    .replace(/style="[^"]*max-width\s*:\s*\d+px[^"]*"/gi, 'style="max-width:100%;margin:auto;display:block;"')
+    .replace(/width="\d+px"/gi, 'width="100%"');
+}
+
 export function normalizeQuestion(q: any): Question {
   if (!q) return q;
   return {
@@ -75,7 +83,8 @@ export function normalizeQuestion(q: any): Question {
     passage: q.passage ? sanitizeMathText(q.passage) : null,
     subject: normalizeSubject(q.subject),
     year: Number(q.year) || q.year,
-    examType: String(q.examType || '').trim().toUpperCase() as ExamType
+    examType: String(q.examType || '').trim().toUpperCase() as ExamType,
+    diagram: q.diagram ? sanitizeDiagramSvg(q.diagram) : null
   };
 }
 
