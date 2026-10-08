@@ -2,6 +2,7 @@ import { Question } from '../../../types';
 import { normalizeQuestion } from '../../lib/utils';
 
 // Explicit Manual Imports of Past Question Files
+import waecMath2010Json from './mathematics/waec_math_2010.json';
 import waecMath2009Json from './mathematics/waec_math_2009.json';
 import waecMath2011Json from './mathematics/waec_math_2011.json';
 import waecMath2012Json from './mathematics/waec_math_2012.json';
@@ -20,6 +21,7 @@ import waecMath2015Json from './mathematics/waec_math_2015.json';
  *    ...(waecMath2014Json as unknown as Question[]),
  */
 export const manualQuestions: Question[] = [
+  ...(waecMath2010Json as unknown as Question[]),
   ...(waecMath2009Json as unknown as Question[]),
   ...(waecMath2011Json as unknown as Question[]),
   ...(waecMath2012Json as unknown as Question[]),
