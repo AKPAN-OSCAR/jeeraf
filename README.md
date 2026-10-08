@@ -82,6 +82,17 @@ To add or update past questions with 100% precision:
 
 ---
 
+## Check out the video clip below 
+
+<video controls src="src/library/general/Screen Recording 2026-10-08 192939.mp4" title="inside jeeraf cbt software"></video>
+
+
+**About this video:** A short walkthrough of JeeRaf CBT System, showing some of its current features and how they work.
+
+This is a quick insight of jeeraf cbt software displaying what features it has and how these features are being used in the software.
+
+> **Development status:** JeeRaf is still under development. This video shows the software as it currently stands; features and screens may change.
+
 ## Development
 
 ```bash
