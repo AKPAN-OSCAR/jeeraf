@@ -1,38 +1,29 @@
 # JeeRaf CBT System
 
-A high-performance Computer Based Testing (CBT) platform engineered for Nigerian and West African national examinations, including **WAEC (WASSCE)**, **JAMB (UTME)**, **NECO (SSCE)**, **WAEC GCE**, and **NECO GCE**.
+
+<p align="center">
+  <img src="./public/jeeraf-with-name.svg" alt="JeeRaf CBT System logo" width="280">
+</p>
+
+<p align="center">
+  An AI-powered learning and computer-based testing platform being built for learners around the world.
+</p>
+
+JeeRaf aims to help learners prepare for country-specific national examinations and create personalized CBT practice from their own study materials or lecture audio. Learners can configure their practice, review results, and get detailed explanations—all in one place.
 
 ---
 
-## Key Features
+## What JeeRaf Is Building
 
-1. **National CBT Exam Bodies & Custom Formats**
-   - **WAEC / WASSCE & WAEC GCE**: Supports Paper 1 (Objectives) and Paper 2 (Theory/Essay).
-   - **JAMB UTME**: Multi-subject configuration (English, Mathematics, Physics, Chemistry, Biology, etc.).
-   - **NECO & NECO GCE**: Standard national examination questions and timing.
-   - **Composite Exam Mode (Both Objectives & Theory)**:
-     - Automatically sequences Paper 1 (Objectives) followed by an official Intermission Break (minimum 5 minutes) before Paper 2 (Theory).
-     - Full synchronization across both papers in the final result dashboard.
+JeeRaf is under active development, with a global vision. The goal is to bring national exam preparation and flexible, AI-assisted study tools together:
 
-2. **Core Syllabus Question Banks (100% JSON Based)**
-   - All questions and marking guides are organized into pure `.json` files in `src/data/question_banks/`.
-   - Zero cloud database delay (instant loading, works 100% offline).
-   - Mathematical equations rendered via KaTeX LaTeX (`$...$` inline, `$$...$$` block).
-   - Geometric figures and circuit diagrams rendered via inline SVG or high-resolution images.
+- **Country-specific national exam practice:** Build out exam question banks and formats for learners in different countries. JAMB, WAEC, and NECO are among the exam formats represented in the current project; country and exam coverage is still growing.
+- **Personalized CBTs from study materials:** Let learners use their own notes and study resources to create practice exams, then set preferences such as the number of questions and test duration.
+- **Audio-assisted learning:** Record a lecture or upload an audio recording to request a detailed explanation and generate CBT practice from its study content.
+- **AI explanations and review:** Provide worked, step-by-step explanations to help learners understand answers, not just see a score. AI-generated content should be checked against trusted course materials.
+- **Exam-style tools:** Support objective and theory formats, configurable timing, an in-exam calculator, and review of submitted answers.
 
-3. **Draggable CBT Calculator**
-   - Universal floating scientific/basic CBT calculator.
-   - Draggable across the entire screen with 4-corner snap triggers (Top-Left, Top-Right, Bottom-Left, Bottom-Right).
-   - Minimizable, expandable, and glitch-free touch/click keypad.
-
-4. **Theory Answer Workings & LaTeX Toolbar**
-   - Dedicated mathematical symbols toolbar (fractions, square roots, powers, Greek letters, integrals).
-   - Handwritten workings photo upload with instant image preview.
-
-5. **Lightning-Fast Submission & Solution Review**
-   - Instant transition to the comprehensive result dashboard upon submit.
-   - Non-blocking background persistence to Cloud Firestore.
-   - In-depth question-by-question solution review with step-by-step explanations.
+JeeRaf is still being built. Feature availability and exam-bank coverage vary by country and exam, and will expand as development continues.
 
 ---
 
@@ -82,14 +73,11 @@ To add or update past questions with 100% precision:
 
 ---
 
-## Check out the video clip below 
+## Product Walkthrough
 
-<video controls src="src/library/general/Screen Recording 2026-10-08 192939.mp4" title="inside jeeraf cbt software"></video>
+<video controls src="" title="inside jeeraf cbt software"></video>
 
-
-**About this video:** A short walkthrough of JeeRaf CBT System, showing some of its current features and how they work.
-
-This is a quick insight of jeeraf cbt software displaying what features it has and how these features are being used in the software.
+This video gives a quick look at JeeRaf's current build and some of the features in development.
 
 > **Development status:** JeeRaf is still under development. This video shows the software as it currently stands; features and screens may change.
 
