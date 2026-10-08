@@ -73,9 +73,17 @@ To add or update past questions with 100% precision:
 
 ---
 
+
+
+
 ## Product Walkthrough
 
-<video controls src="" title="inside jeeraf cbt software"></video>
+[![Watch the JeeRaf walkthrough](https://img.youtube.com/vi/43x37fiQEfM/hqdefault.jpg)](https://www.youtube.com/watch?v=43x37fiQEfM)
+
+A short look at JeeRaf’s current build and features in development.
+
+
+
 
 This video gives a quick look at JeeRaf's current build and some of the features in development.
 
