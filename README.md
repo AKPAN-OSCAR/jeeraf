@@ -73,19 +73,15 @@ To add or update past questions with 100% precision:
 
 ---
 
-
-
-
 ## Product Walkthrough
 
-[![Watch the JeeRaf walkthrough](https://img.youtube.com/vi/43x37fiQEfM/hqdefault.jpg)](https://www.youtube.com/watch?v=43x37fiQEfM)
+<p align="center">
+  <a href="https://akpan-oscar.github.io/jeeraf/videos/">
+    <img src="https://img.youtube.com/vi/9Rby3KtvQhk/hqdefault.jpg" alt="Play the JeeRaf national exam CBT demo" width="640">
+  </a>
+</p>
 
-A short look at JeeRaf’s current build and features in development.
-
-
-
-
-This video gives a quick look at JeeRaf's current build and some of the features in development.
+Click the thumbnail to watch the 1:47 walkthrough in the [JeeRaf video gallery](https://akpan-oscar.github.io/jeeraf/videos/), or [open it directly on YouTube](https://youtu.be/9Rby3KtvQhk).
 
 > **Development status:** JeeRaf is still under development. This video shows the software as it currently stands; features and screens may change.
 
