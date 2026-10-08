@@ -63,9 +63,10 @@ export function sanitizeMathText(text?: string | null): string {
 export function sanitizeDiagramSvg(rawSvg?: string | null): string {
   if (!rawSvg || typeof rawSvg !== 'string') return '';
   return rawSvg
-    // Replace restrictive inline max-width:240px so the diagram can scale comfortably to container
-    .replace(/style="[^"]*max-width\s*:\s*\d+px[^"]*"/gi, 'style="max-width:100%;margin:auto;display:block;"')
-    .replace(/width="\d+px"/gi, 'width="100%"');
+    // Replace restrictive inline max-width:240px or other pixel widths with full responsive scale
+    .replace(/style=[\"'][^\"']*max-width\s*:\s*\d+px[^\"']*[\"']/gi, 'style="width:100%;max-width:100%;height:auto;margin:auto;display:block;"')
+    .replace(/max-width\s*:\s*\d+px;?/gi, 'max-width:100%;')
+    .replace(/width=[\"']\d+px[\"']/gi, 'width="100%"');
 }
 
 export function normalizeQuestion(q: any): Question {

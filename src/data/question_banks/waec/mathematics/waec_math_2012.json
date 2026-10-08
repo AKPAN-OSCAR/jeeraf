@@ -208,13 +208,13 @@
     "question": "Represent the inequality $-7<4x+9\\le13$ on a number line.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><line x1=\"35\" y1=\"110\" x2=\"205\" y2=\"110\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"60\" y1=\"80\" x2=\"190\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"35\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">-6</text><text x=\"60\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">-4</text><text x=\"90\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">-2</text><text x=\"120\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">0</text><text x=\"150\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">2</text><text x=\"180\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">4</text><text x=\"120\" y=\"145\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">Number line</text><circle cx=\"60\" cy=\"80\" r=\"4\" stroke=\"#f59e0b\" fill=\"none\" stroke-width=\"2\"/><circle cx=\"190\" cy=\"80\" r=\"4\" stroke=\"#f59e0b\" fill=\"none\" stroke-width=\"2\"/></svg>",
     "options": [
-      "$\\textxt{Open at }-4\\textxt{ and open at }1$",
-      "$\\textxt{Open at }-4\\textxt{ and closed at }1$",
-      "$\\textxt{Closed at }-4\\textxt{ and closed at }1$",
-      "$\\textxt{Closed at }-4\\textxt{ and open at }1$"
+      "$\\text{Open at }-4\\text{ and open at }1$",
+      "$\\text{Open at }-4\\text{ and closed at }1$",
+      "$\\text{Closed at }-4\\text{ and closed at }1$",
+      "$\\text{Closed at }-4\\text{ and open at }1$"
     ],
     "correctAnswer": 1,
-    "explanation": "**Solution:**\n\nSubtract $9$: $-16<4x\\le4$. Divide by $4$: $-4<x\\le1$. Hence $-4$ is open and $1$ is closed. Therefore the correct answer is Option B ($\\textxt{Open at }-4\\textxt{ and closed at }1$).",
+    "explanation": "**Solution:**\n\nSubtract $9$: $-16<4x\\le4$. Divide by $4$: $-4<x\\le1$. Hence $-4$ is open and $1$ is closed. Therefore the correct answer is Option B ($\\text{Open at }-4\\text{ and closed at }1$).",
     "solutionDiagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><line x1=\"35\" y1=\"110\" x2=\"205\" y2=\"110\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"60\" y1=\"80\" x2=\"190\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"35\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">-6</text><text x=\"60\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">-4</text><text x=\"90\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">-2</text><text x=\"120\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">0</text><text x=\"150\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">2</text><text x=\"180\" y=\"125\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">4</text><text x=\"120\" y=\"145\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">Number line</text><circle cx=\"60\" cy=\"80\" r=\"4\" stroke=\"#f59e0b\" fill=\"none\" stroke-width=\"2\"/><circle cx=\"190\" cy=\"80\" r=\"4\" stroke=\"#f59e0b\" fill=\"none\" stroke-width=\"2\"/></svg>",
     "topic": "Inequalities",
     "difficulty": "Easy"
@@ -315,7 +315,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "The curved surface area of a cylindrical tin is $704\\,cm^2$. If the radius of its base is $8$ cm, find the he\\right. Take $\\pi=22/7$.",
+    "question": "The curved surface area of a cylindrical tin is $704\\,cm^2$. If the radius of its base is $8$ cm, find the height. Take $\\pi=22/7$.",
     "diagram": null,
     "options": [
       "$14\\,cm$",
@@ -403,7 +403,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "In $\\triangleia\\angle XYZ$, $XY=8$ cm, $YZ=10$ cm and $XZ=6$ cm. Which relation is true?",
+    "question": "In $\\triangle XYZ$, $XY=8$ cm, $YZ=10$ cm and $XZ=6$ cm. Which relation is true?",
     "diagram": null,
     "options": [
       "$XY+YZ=XZ$",
@@ -786,7 +786,7 @@
       "$68^\\circ$"
     ],
     "correctAnswer": 1,
-    "explanation": "**Solution:**\n\nIn $\\triangleia\\angle PNO$, $\\angle NPO=180^\\circ-129^\\circ-37^\\circ=14^\\circ$. Since $MN\\parallel PO$, $\\angle MPO=180^\\circ-112^\\circ=68^\\circ$. Therefore $y=\\angle MPO-\\angle NPO=68^\\circ-14^\\circ=54^\\circ$. Therefore the correct answer is Option B ($54^\\circ$).",
+    "explanation": "**Solution:**\n\nIn $\\triangle PNO$, $\\angle NPO=180^\\circ-129^\\circ-37^\\circ=14^\\circ$. Since $MN\\parallel PO$, $\\angle MPO=180^\\circ-112^\\circ=68^\\circ$. Therefore $y=\\angle MPO-\\angle NPO=68^\\circ-14^\\circ=54^\\circ$. Therefore the correct answer is Option B ($54^\\circ$).",
     "solutionDiagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><line x1=\"35\" y1=\"125\" x2=\"75\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"75\" y1=\"45\" x2=\"170\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"170\" y1=\"45\" x2=\"210\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"35\" y1=\"125\" x2=\"170\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"30\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"75\" y=\"36\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">M</text><text x=\"170\" y=\"36\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">N</text><text x=\"215\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">O</text><text x=\"52\" y=\"77\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">y</text><text x=\"72\" y=\"63\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">112°</text><text x=\"150\" y=\"62\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">129°</text><text x=\"165\" y=\"105\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">37°</text></svg>",
     "topic": "Geometry - Parallel Lines",
     "difficulty": "Medium"
@@ -918,7 +918,7 @@
       "$0.26\\,cm$"
     ],
     "correctAnswer": 2,
-    "explanation": "**Solution:**\n\nSince $T,P,R$ are collinear, $\\angle RPO=60^\\circ$. Radius $OR$ is perpendicular to the tangent, so $\\triangleia\\angle POR$ is right-angled. $\\sin60^\\circ=OR/PO=4/PO$, hence $PO=4/\\sin60^\\circ\\approx4.6187$. Since $OQ=4$, $PQ=PO-OQ\\approx0.62$ cm. Therefore the correct answer is Option C ($0.62\\,cm$).",
+    "explanation": "**Solution:**\n\nSince $T,P,R$ are collinear, $\\angle RPO=60^\\circ$. Radius $OR$ is perpendicular to the tangent, so $\\triangle POR$ is right-angled. $\\sin60^\\circ=OR/PO=4/PO$, hence $PO=4/\\sin60^\\circ\\approx4.6187$. Since $OQ=4$, $PQ=PO-OQ\\approx0.62$ cm. Therefore the correct answer is Option C ($0.62\\,cm$).",
     "solutionDiagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"145\" cy=\"70\" r=\"48\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"30\" y1=\"120\" x2=\"205\" y2=\"120\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"30\" y1=\"120\" x2=\"145\" y2=\"70\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"145\" y1=\"70\" x2=\"145\" y2=\"120\" stroke=\"#f59e0b\" stroke-width=\"2\"/><text x=\"24\" y=\"136\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">T</text><text x=\"35\" y=\"110\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"145\" y=\"62\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">O</text><text x=\"145\" y=\"108\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"70\" y=\"95\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">4 cm</text><text x=\"42\" y=\"108\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">120°</text></svg>",
     "topic": "Circle - Tangent",
     "difficulty": "Medium"

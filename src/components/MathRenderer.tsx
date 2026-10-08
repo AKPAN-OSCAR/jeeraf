@@ -34,6 +34,13 @@ type Block = TableBlock | HeadingBlock | ListBlock | ParagraphBlock;
 function cleanMathExpression(math: string): string {
   if (!math) return '';
   return math
+    // Fix known common typos from transcription
+    .replace(/\\textxt/g, '\\text')
+    .replace(/\\triangleia\\angle/g, '\\triangle ')
+    .replace(/\\triangleia/g, '\\triangle ')
+    .replace(/\\\$/g, '')
+    // Handle currency inside math: \text{₦}
+    .replace(/₦/g, '\\text{₦}')
     // Insert spacing for mixed fractions like 1\frac{1}{2} -> 1\,\frac{1}{2}
     .replace(/([0-9])\\frac/g, '$1\\,\\frac')
     // Convert single digit fractions like \frac12 to \frac{1}{2}
@@ -133,15 +140,15 @@ function parseInlineContent(str: string): React.ReactNode[] {
       const math = cleanMathExpression(rawMath);
       try {
         return (
-          <span key={index} className="inline-block my-1.5 align-middle max-w-full overflow-x-auto text-theme-text">
+          <span key={index} className="block my-2 text-center max-w-full overflow-x-auto text-theme-text">
             <BlockMath 
               math={math} 
-              renderError={() => <span className="font-serif italic text-theme-text px-1">[{rawMath}]</span>} 
+              renderError={() => <span className="italic text-theme-text px-1">[{rawMath}]</span>} 
             />
           </span>
         );
       } catch {
-        return <span key={index} className="font-serif italic text-theme-text px-1">[{rawMath}]</span>;
+        return <span key={index} className="italic text-theme-text px-1">[{rawMath}]</span>;
       }
     }
 
@@ -151,15 +158,15 @@ function parseInlineContent(str: string): React.ReactNode[] {
       const math = cleanMathExpression(rawMath);
       try {
         return (
-          <span key={index} className="inline-block align-baseline mx-0.5 text-theme-text font-serif">
+          <span key={index} className="inline align-baseline text-theme-text">
             <InlineMath 
               math={math} 
-              renderError={() => <span className="font-serif italic text-theme-text px-0.5">{rawMath}</span>} 
+              renderError={() => <span className="italic text-theme-text">{rawMath}</span>} 
             />
           </span>
         );
       } catch {
-        return <span key={index} className="font-serif italic text-theme-text px-0.5">{rawMath}</span>;
+        return <span key={index} className="italic text-theme-text">{rawMath}</span>;
       }
     }
 

@@ -48,7 +48,7 @@
   "year": 2015,
   "section": "General",
   "type": "objective",
-  "question": "A trader bought an engine for $\\$15{,}000.00$ outside Nigeria. If the exchange rate is $\\$0.075$ to $₦1.00$, how much did the engine cost in Naira?",
+  "question": "A trader bought an engine for \u0005,000.00 outside Nigeria. If the exchange rate is sh.075 to ₦1.00, how much did the engine cost in Naira?",
   "diagram": null,
   "options": [
    "₦250,000.00",
@@ -57,7 +57,7 @@
    "₦100,000.00"
   ],
   "correctAnswer": 1,
-  "explanation": "$\\$0.075 = ₦1 \\Rightarrow \\$15{,}000 = ₦\\frac{15000}{0.075} = ₦200{,}000$. (Key: B.)",
+  "explanation": "sh.075 = ₦1 implies 15,000 = ₦\frac{15000}{0.075} = ₦200,000. (Key: B.)",
   "topic": "Foreign Exchange",
   "difficulty": "Easy",
   "solutionDiagram": null

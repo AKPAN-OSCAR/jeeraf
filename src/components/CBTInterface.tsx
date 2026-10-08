@@ -7,7 +7,7 @@ import {
   LayoutGrid, ChevronDown, ChevronUp, Upload, Camera, HelpCircle, Maximize2
 } from 'lucide-react';
 import { Subject, Question, ExamType } from '../types';
-import { cn, normalizeSubject } from '../data/lib/utils';
+import { cn, normalizeSubject, sanitizeDiagramSvg } from '../data/lib/utils';
 import { MathRenderer } from './MathRenderer';
 import { Calculator } from './Calculator';
 
@@ -539,14 +539,14 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
 
             {/* Question Diagram / SVG / Image if present */}
             {currentQuestion?.diagram && (
-              <div className="my-5 p-4 sm:p-7 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-3xl sm:max-w-4xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-xl relative group transition-all">
+              <div className="my-5 p-4 sm:p-6 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-2xl sm:max-w-3xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-xl relative group transition-all">
                 <div className="w-full flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-800 text-[11px] font-bold text-slate-400">
                   <span className="uppercase tracking-wider flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-sky-400" /> Exam Figure / Geometric Reference
                   </span>
                   <button
                     type="button"
-                    onClick={() => setEnlargedDiagram(currentQuestion.diagram || null)}
+                    onClick={() => setEnlargedDiagram(sanitizeDiagramSvg(currentQuestion.diagram))}
                     className="flex items-center gap-1 text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 px-3 py-1.5 rounded-lg border border-sky-500/20 transition-all cursor-pointer font-bold text-xs"
                   >
                     <Maximize2 size={13} />
@@ -554,8 +554,8 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                   </button>
                 </div>
                 <div 
-                  className="w-full flex items-center justify-center [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:min-h-[260px] sm:[&>svg]:min-h-[340px] [&>svg]:h-auto"
-                  dangerouslySetInnerHTML={{ __html: currentQuestion.diagram }}
+                  className="w-full flex items-center justify-center p-2 [&>svg]:w-full [&>svg]:max-w-xl sm:[&>svg]:max-w-2xl [&>svg]:h-auto [&>svg]:mx-auto"
+                  dangerouslySetInnerHTML={{ __html: sanitizeDiagramSvg(currentQuestion.diagram) }}
                 />
               </div>
             )}
