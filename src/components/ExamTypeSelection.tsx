@@ -21,7 +21,7 @@ interface ExamTypeSelectionProps {
   user: any;
   profile?: any;
   onLogout: () => void;
-  onNavigateTo: (target: 'dashboard' | 'textbooks' | 'exam_select' | 'progress' | 'admin_console' | 'subscription_portal' | 'fun' | 'blog' | 'awards' | 'system_ai' | 'browser') => void;
+  onNavigateTo: (target: 'dashboard' | 'textbooks' | 'exam_select' | 'progress' | 'admin_console' | 'subscription_portal' | 'fun' | 'blog' | 'awards' | 'system_ai' | 'browser' | 'audio' | 'file_upload') => void;
 }
 
 const EXAM_TYPES = [
@@ -330,7 +330,7 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 whileHover={{ y: -4 }}
-                onClick={() => setShowUpload(true)}
+                onClick={() => onNavigateTo('file_upload')}
                 className="group relative overflow-hidden bg-theme-accent p-8 rounded-3xl shadow-lg border border-theme-accent/30 hover:shadow-2xl transition-all cursor-pointer flex flex-col justify-between min-h-[260px]"
               >
                 <div className="flex justify-between items-start">
@@ -359,7 +359,7 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
                 whileHover={{ y: -4 }}
-                onClick={() => setShowAudio(true)}
+                onClick={() => onNavigateTo('audio')}
                 className="group relative overflow-hidden bg-rose-600 p-8 rounded-3xl shadow-lg border border-rose-500/30 hover:shadow-2xl transition-all cursor-pointer flex flex-col justify-between min-h-[260px]"
               >
                 <div className="flex justify-between items-start">
@@ -460,8 +460,8 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1 }}
-                      onClick={() => setShowUpload(true)}
-                      className="group relative overflow-hidden bg-theme-accent p-6 rounded-2xl shadow-sm border border-theme-accent/20 hover:shadow-lg transition-all text-left flex flex-col h-full"
+                      onClick={() => onNavigateTo('file_upload')}
+                      className="group relative overflow-hidden bg-theme-accent p-6 rounded-2xl shadow-sm border border-theme-accent/20 hover:shadow-lg transition-all text-left flex flex-col h-full cursor-pointer"
                     >
                       <div className="absolute top-0 right-0 p-3">
                         <div className="bg-white/10 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
@@ -489,8 +489,8 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1 }}
-                      onClick={() => setShowAudio(true)}
-                      className="group relative overflow-hidden bg-rose-600 p-6 rounded-2xl shadow-sm border border-rose-500/20 hover:shadow-lg transition-all text-left flex flex-col h-full"
+                      onClick={() => onNavigateTo('audio')}
+                      className="group relative overflow-hidden bg-rose-600 p-6 rounded-2xl shadow-sm border border-rose-500/20 hover:shadow-lg transition-all text-left flex flex-col h-full cursor-pointer"
                     >
                       <div className="absolute top-0 right-0 p-3">
                         <div className="bg-white/10 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">

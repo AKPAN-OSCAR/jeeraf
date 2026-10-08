@@ -586,8 +586,10 @@ export async function generateQuestionsFromText(
   text: string, 
   examType: ExamType = 'Personal CBT',
   count: number = 20,
-  topics?: string
+  difficultyOrTopics?: string,
+  extraTopics?: string
 ): Promise<Question[]> {
+  const topics = extraTopics ? `${extraTopics} (Difficulty: ${difficultyOrTopics})` : difficultyOrTopics;
   const { mode, settings } = await determineOperatingMode();
   if (mode === 'without_tokens') {
     const subj = guessSubject(text);
@@ -731,6 +733,16 @@ export async function extractQuestionsWithAI(
     }
     throw error;
   }
+}
+
+export async function generateQuestionsFromImage(
+  base64: string,
+  mimeType: string,
+  subject: string,
+  examType: ExamType,
+  prompt?: string
+): Promise<Question[]> {
+  return extractQuestionsWithAI({ base64, mimeType }, subject as any, examType, prompt);
 }
 
 export async function chatWithAIQuestionsAgent(

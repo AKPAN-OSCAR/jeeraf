@@ -315,7 +315,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                   </span>
                 )}
               </div>
-              <div className="text-sm font-semibold text-theme-text leading-relaxed bg-theme-card p-4 rounded-2xl border-2 border-theme-border shadow-xs">
+              <div className="text-base sm:text-lg font-semibold text-theme-text leading-relaxed bg-theme-card p-4 sm:p-5 rounded-2xl border-2 border-theme-border shadow-xs">
                 <MathRenderer text={question.question} />
               </div>
             </div>
@@ -325,7 +325,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
               <span className="text-[11px] font-black uppercase tracking-wider text-theme-muted">
                 Options Review:
               </span>
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {question.options.map((opt, i) => {
                   const letter = String.fromCharCode(65 + i);
                   const isCorrectChoice = i === question.correctAnswer;
@@ -335,7 +335,7 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                     <div
                       key={i}
                       className={cn(
-                        "p-3 rounded-xl border-2 text-xs flex items-center justify-between gap-2 transition-all",
+                        "p-3.5 rounded-xl border-2 text-xs sm:text-sm flex items-center justify-between gap-3 transition-all",
                         isCorrectChoice 
                           ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-600 font-extrabold shadow-xs" 
                           : isUserChoice 
@@ -343,22 +343,24 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
                             : "bg-theme-card border-theme-border text-theme-text font-medium hover:border-theme-accent/40"
                       )}
                     >
-                      <div className="flex items-center gap-2 truncate">
+                      <div className="flex items-center gap-2.5 flex-1 overflow-x-auto">
                         <span className={cn(
-                          "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0",
+                          "w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0",
                           isCorrectChoice ? "bg-emerald-600 text-white" : isUserChoice ? "bg-rose-600 text-white" : "bg-theme-bg text-theme-text border border-theme-border"
                         )}>
                           {letter}
                         </span>
-                        <span className="truncate">{opt}</span>
+                        <div className="flex-1 overflow-x-auto">
+                          <MathRenderer text={opt} />
+                        </div>
                       </div>
                       {isCorrectChoice && (
-                        <span className="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-full shrink-0 shadow-xs">
+                        <span className="text-[10px] font-black bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shrink-0 shadow-xs">
                           Official Key
                         </span>
                       )}
                       {isUserChoice && !isCorrectChoice && (
-                        <span className="text-[10px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-full shrink-0 shadow-xs">
+                        <span className="text-[10px] font-black bg-rose-600 text-white px-2.5 py-0.5 rounded-full shrink-0 shadow-xs">
                           Your Choice
                         </span>
                       )}

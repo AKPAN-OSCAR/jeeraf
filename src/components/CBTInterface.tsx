@@ -523,7 +523,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                 </div>
                 <div 
                   className={cn(
-                    "text-xs sm:text-sm text-theme-text leading-relaxed font-serif pr-2 custom-scrollbar overflow-y-auto transition-all duration-300",
+                    "text-sm sm:text-base text-theme-text leading-relaxed font-serif pr-2 custom-scrollbar overflow-y-auto transition-all duration-300",
                     isPassageExpanded ? "max-h-[550px]" : "max-h-64 sm:max-h-80"
                   )}
                 >
@@ -533,55 +533,55 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
             )}
 
             {/* Question Text */}
-            <div className="text-sm sm:text-base font-medium text-theme-text leading-relaxed">
+            <div className="text-lg sm:text-xl font-medium text-theme-text leading-relaxed tracking-normal">
               <MathRenderer text={currentQuestion?.question || 'Question content loading...'} />
             </div>
 
             {/* Question Diagram / SVG / Image if present */}
             {currentQuestion?.diagram && (
-              <div className="my-5 p-4 sm:p-6 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-2xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-lg relative group transition-all">
-                <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[11px] font-bold text-slate-400">
+              <div className="my-5 p-4 sm:p-7 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-3xl sm:max-w-4xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-xl relative group transition-all">
+                <div className="w-full flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-800 text-[11px] font-bold text-slate-400">
                   <span className="uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-sky-400" /> Exam Figure / Geometric Reference
+                    <span className="w-2.5 h-2.5 rounded-full bg-sky-400" /> Exam Figure / Geometric Reference
                   </span>
                   <button
                     type="button"
                     onClick={() => setEnlargedDiagram(currentQuestion.diagram || null)}
-                    className="flex items-center gap-1 text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-1 rounded-lg border border-sky-500/20 transition-all cursor-pointer font-bold"
+                    className="flex items-center gap-1 text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 px-3 py-1.5 rounded-lg border border-sky-500/20 transition-all cursor-pointer font-bold text-xs"
                   >
-                    <Maximize2 size={12} />
+                    <Maximize2 size={13} />
                     <span>Enlarge Diagram</span>
                   </button>
                 </div>
                 <div 
-                  className="w-full flex items-center justify-center [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:h-auto"
+                  className="w-full flex items-center justify-center [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:min-h-[260px] sm:[&>svg]:min-h-[340px] [&>svg]:h-auto"
                   dangerouslySetInnerHTML={{ __html: currentQuestion.diagram }}
                 />
               </div>
             )}
             {currentQuestion?.imageUrl && (
-              <div className="my-5 p-4 bg-theme-bg rounded-3xl border-2 border-theme-border max-w-2xl mx-auto">
+              <div className="my-5 p-4 sm:p-6 bg-theme-bg rounded-3xl border-2 border-theme-border max-w-3xl sm:max-w-4xl mx-auto shadow-md">
                 <div className="flex justify-end pb-2 mb-2 border-b border-theme-border">
                   <button
                     type="button"
-                    onClick={() => setEnlargedDiagram(`<img src="${currentQuestion.imageUrl}" class="max-w-full max-h-[80vh] object-contain mx-auto" />`)}
-                    className="flex items-center gap-1 text-xs text-theme-accent font-bold hover:underline"
+                    onClick={() => setEnlargedDiagram(`<img src="${currentQuestion.imageUrl}" class="max-w-full max-h-[85vh] object-contain mx-auto" />`)}
+                    className="flex items-center gap-1.5 text-xs text-theme-accent font-bold hover:underline"
                   >
-                    <Maximize2 size={13} />
+                    <Maximize2 size={14} />
                     <span>View Full Size</span>
                   </button>
                 </div>
                 <img 
                   src={currentQuestion.imageUrl} 
                   alt="Question Diagram" 
-                  className="rounded-2xl w-full h-auto object-contain max-h-96 mx-auto"
+                  className="rounded-2xl w-full h-auto object-contain max-h-[500px] sm:max-h-[580px] mx-auto"
                 />
               </div>
             )}
 
             {/* OBJECTIVES MODE: Multi-Choice Options A, B, C, D */}
             {!isTheoryQuestion && currentQuestion?.options && currentQuestion.options.length > 0 && (
-              <div className="space-y-3 pt-2">
+              <div className="space-y-3.5 pt-2">
                 {currentQuestion.options.map((option, idx) => {
                   const isSelected = answers[currentQuestion.id] === idx;
                   const optionLabel = String.fromCharCode(65 + idx);
@@ -593,22 +593,22 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                       type="button"
                       onClick={() => handleSelectAnswer(idx)}
                       className={cn(
-                        "w-full p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3.5 group cursor-pointer active:scale-98",
+                        "w-full p-4 sm:p-4.5 rounded-2xl border-2 text-left transition-all flex items-start gap-4 group cursor-pointer active:scale-98",
                         isSelected
                           ? "bg-amber-500/10 border-amber-500 shadow-sm ring-1 ring-amber-500/30"
                           : "bg-theme-bg border-theme-border hover:border-theme-muted"
                       )}
                     >
                       <div className={cn(
-                        "w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0 transition-colors border",
+                        "w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-colors border mt-0.5",
                         isSelected
-                          ? "bg-amber-500 text-slate-950 border-amber-500"
+                          ? "bg-amber-500 text-slate-950 border-amber-500 shadow-xs"
                           : "bg-theme-card text-theme-muted border-theme-border group-hover:text-theme-text"
                       )}>
                         {optionLabel}
                       </div>
 
-                      <div className="flex-1 text-xs sm:text-sm text-theme-text pt-0.5 leading-relaxed overflow-x-auto">
+                      <div className="flex-1 text-base sm:text-lg text-theme-text pt-0.5 leading-relaxed overflow-x-auto">
                         {isSvgOption ? (
                           <div 
                             className="p-2 bg-white dark:bg-slate-900 rounded-xl inline-block max-w-full overflow-hidden text-slate-800 dark:text-slate-200 border border-theme-border" 

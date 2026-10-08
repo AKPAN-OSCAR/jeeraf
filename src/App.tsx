@@ -28,6 +28,8 @@ import { SubscriptionPortal } from './components/SubscriptionPortal';
 import { JeeRafAIPage } from './components/JeeRafAIPage';
 import { WebBrowserPage } from './components/WebBrowserPage';
 import { MainDirectoryDashboard } from './components/MainDirectoryDashboard';
+import { AudioWorkstation } from './components/AudioWorkstation';
+import { FileUploadPage } from './components/FileUploadPage';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoldSpinner, JeeRafLogoWithName } from './components/AIAvatar';
 
@@ -56,7 +58,9 @@ export type AppState =
   | 'admin_console' 
   | 'subscription_portal'
   | 'system_ai'
-  | 'browser';
+  | 'browser'
+  | 'audio'
+  | 'file_upload';
 
 export const getPathFromState = (s: AppState): string => {
   switch (s) {
@@ -74,6 +78,8 @@ export const getPathFromState = (s: AppState): string => {
     case 'progress': return '/progress';
     case 'subscription_portal': return '/subscription';
     case 'admin_console': return '/admin';
+    case 'audio': return '/audio';
+    case 'file_upload': return '/file-upload';
     default: return '/';
   }
 };
@@ -94,6 +100,8 @@ export const getStateFromPath = (path: string): AppState | null => {
   if (clean === '/progress' || clean === '/stats') return 'progress';
   if (clean === '/subscription' || clean === '/plans') return 'subscription_portal';
   if (clean === '/admin') return 'admin_console';
+  if (clean === '/audio') return 'audio';
+  if (clean === '/file-upload' || clean === '/upload') return 'file_upload';
   return null;
 };
 
@@ -810,6 +818,8 @@ export default function App() {
     else if (target === 'subscription_portal') navigateToState('subscription_portal');
     else if (target === 'system_ai') navigateToState('system_ai');
     else if (target === 'browser') navigateToState('browser');
+    else if (target === 'audio') navigateToState('audio');
+    else if (target === 'file_upload') navigateToState('file_upload');
     else navigateToState('dashboard');
   };
 
@@ -870,6 +880,33 @@ export default function App() {
           onNavigateTo={handleNavigateTo}
           onStart={() => handleStartExam('General', currentDuration)}
           onBack={() => navigateToState('exam_select')}
+        />
+      )}
+
+      {state === 'audio' && user && (
+        <AudioWorkstation
+          user={user}
+          onClose={() => navigateToState('exam_select')}
+          onQuestionsGenerated={(questions, duration) => {
+            setCustomQuestions(questions);
+            setCurrentDuration(duration);
+            setSelectedExamType('Personal CBT');
+            navigateToState('personal_ready');
+          }}
+        />
+      )}
+
+      {state === 'file_upload' && user && (
+        <FileUploadPage
+          user={user}
+          profile={profile}
+          onBack={() => navigateToState('exam_select')}
+          onQuestionsGenerated={(questions, duration) => {
+            setCustomQuestions(questions);
+            setCurrentDuration(duration);
+            setSelectedExamType('Personal CBT');
+            navigateToState('personal_ready');
+          }}
         />
       )}
       

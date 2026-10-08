@@ -381,7 +381,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "In the diagram, $QR=10$ m, $SR=8$ m, $\\a\\angle QPS=30^\\circ$, $\\a\\angle QRP=90^\\circ$ and $PS=x$. Find $x$.",
+    "question": "In the diagram, $QR=10$ m, $SR=8$ m, $\\angle QPS=30^\\circ$, $\\angle QRP=90^\\circ$ and $PS=x$. Find $x$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><line x1=\"35\" y1=\"125\" x2=\"120\" y2=\"35\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"120\" y1=\"35\" x2=\"205\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"35\" y1=\"125\" x2=\"205\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"28\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"120\" y=\"27\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">Q</text><text x=\"211\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"95\" y=\"119\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">10 m</text><text x=\"160\" y=\"119\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">8 m</text><text x=\"65\" y=\"100\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">30°</text></svg>",
     "options": [
       "$1.32$ m",
@@ -425,7 +425,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "In the diagram, $O$ is the centre of the circle $PQRS$ and $\\a\\angle PSR=86^\\circ$. If $\\a\\angle POR=x^\\circ$, find $x$.",
+    "question": "In the diagram, $O$ is the centre of the circle $PQRS$ and $\\angle PSR=86^\\circ$. If $\\angle POR=x^\\circ$, find $x$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"120\" cy=\"80\" r=\"58\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"62\" y1=\"92\" x2=\"178\" y2=\"92\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"120\" y1=\"80\" x2=\"62\" y2=\"92\" stroke=\"#f59e0b\" stroke-width=\"2\"/><line x1=\"120\" y1=\"80\" x2=\"178\" y2=\"92\" stroke=\"#f59e0b\" stroke-width=\"2\"/><text x=\"120\" y=\"76\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">O</text><text x=\"55\" y=\"106\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"185\" y=\"106\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"120\" y=\"108\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">x</text></svg>",
     "options": [
       "$274^\\circ$",
@@ -447,7 +447,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "The diagram is the centre $O$. If $\\a\\angle SPR=2m$ and $\\a\\angle SQR=n$, express $m$ in terms of $n$.",
+    "question": "The diagram is the centre $O$. If $\\angle SPR=2m$ and $\\angle SQR=n$, express $m$ in terms of $n$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"120\" cy=\"80\" r=\"60\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"65\" y1=\"55\" x2=\"175\" y2=\"55\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"105\" x2=\"175\" y2=\"105\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"55\" x2=\"175\" y2=\"105\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"105\" x2=\"175\" y2=\"55\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"55\" y=\"50\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"185\" y=\"50\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">Q</text><text x=\"55\" y=\"120\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">S</text><text x=\"185\" y=\"120\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"75\" y=\"70\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">2m</text><text x=\"165\" y=\"70\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">n</text></svg>",
     "options": [
       "$m=\\frac n2$",
@@ -456,7 +456,7 @@
       "$m=n+2$"
     ],
     "correctAnswer": 0,
-    "explanation": "**Solution:**\n\nBoth $\\a\\angle SPR$ and $\\a\\angle SQR$ stand on the same chord $SR$ and the points $P,Q$ lie on the same segment. Hence $2m=n$, so $m=n/2$. Therefore the correct answer is Option A ($m=\\frac n2$).",
+    "explanation": "**Solution:**\n\nBoth $\\angle SPR$ and $\\angle SQR$ stand on the same chord $SR$ and the points $P,Q$ lie on the same segment. Hence $2m=n$, so $m=n/2$. Therefore the correct answer is Option A ($m=\\frac n2$).",
     "solutionDiagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"120\" cy=\"80\" r=\"60\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"65\" y1=\"55\" x2=\"175\" y2=\"55\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"105\" x2=\"175\" y2=\"105\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"55\" x2=\"175\" y2=\"105\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"105\" x2=\"175\" y2=\"55\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"55\" y=\"50\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"185\" y=\"50\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">Q</text><text x=\"55\" y=\"120\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">S</text><text x=\"185\" y=\"120\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"75\" y=\"70\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">2m</text><text x=\"165\" y=\"70\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">n</text></svg>",
     "topic": "Circle Theorems",
     "difficulty": "Easy"
@@ -469,7 +469,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "In the diagram, $MQ\\parallel RS$, $\\a\\angle TUV=70^\\circ$ and $\\a\\angle RLV=30^\\circ$. Find the value of $x$.",
+    "question": "In the diagram, $MQ\\parallel RS$, $\\angle TUV=70^\\circ$ and $\\angle RLV=30^\\circ$. Find the value of $x$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><line x1=\"35\" y1=\"125\" x2=\"205\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"75\" y1=\"30\" x2=\"125\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"125\" y1=\"125\" x2=\"175\" y2=\"30\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"75\" y1=\"30\" x2=\"175\" y2=\"30\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"30\" y=\"142\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">U</text><text x=\"125\" y=\"142\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">L</text><text x=\"205\" y=\"142\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">T</text><text x=\"70\" y=\"24\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">M</text><text x=\"180\" y=\"24\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"190\" y=\"24\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">V</text><text x=\"95\" y=\"65\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">70°</text><text x=\"145\" y=\"65\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">30°</text><text x=\"118\" y=\"118\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">x</text></svg>",
     "options": [
       "$150^\\circ$",
@@ -557,7 +557,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "The positions of three ships $P,Q,R$ at sea are illustrated. The arrows indicate the North direction. The bearing of $Q$ from $P$ is $050^\\circ$ and $\\a\\angle PQR=72^\\circ$. Calculate the bearing of $R$ from $Q$.",
+    "question": "The positions of three ships $P,Q,R$ at sea are illustrated. The arrows indicate the North direction. The bearing of $Q$ from $P$ is $050^\\circ$ and $\\angle PQR=72^\\circ$. Calculate the bearing of $R$ from $Q$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><line x1=\"45\" y1=\"125\" x2=\"120\" y2=\"55\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"120\" y1=\"55\" x2=\"200\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"45\" y1=\"125\" x2=\"200\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"120\" y1=\"55\" x2=\"120\" y2=\"15\" stroke=\"#f59e0b\" stroke-width=\"2\"/><text x=\"42\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"120\" y=\"48\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">Q</text><text x=\"207\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"115\" y=\"13\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">N</text><text x=\"82\" y=\"76\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">050°</text><text x=\"120\" y=\"90\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">72°</text></svg>",
     "options": [
       "$130^\\circ$",
@@ -777,7 +777,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "In the diagram, $MN\\parallel PO$, $\\a\\angle PMN=112^\\circ$, $\\a\\angle PNO=129^\\circ$, $\\a\\angle NOP=37^\\circ$ and $\\a\\angle MPN=y$. Find $y$.",
+    "question": "In the diagram, $MN\\parallel PO$, $\\angle PMN=112^\\circ$, $\\angle PNO=129^\\circ$, $\\angle NOP=37^\\circ$ and $\\angle MPN=y$. Find $y$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><line x1=\"35\" y1=\"125\" x2=\"75\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"75\" y1=\"45\" x2=\"170\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"170\" y1=\"45\" x2=\"210\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"35\" y1=\"125\" x2=\"170\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"30\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"75\" y=\"36\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">M</text><text x=\"170\" y=\"36\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">N</text><text x=\"215\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">O</text><text x=\"52\" y=\"77\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">y</text><text x=\"72\" y=\"63\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">112°</text><text x=\"150\" y=\"62\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">129°</text><text x=\"165\" y=\"105\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">37°</text></svg>",
     "options": [
       "$51^\\circ$",
@@ -786,7 +786,7 @@
       "$68^\\circ$"
     ],
     "correctAnswer": 1,
-    "explanation": "**Solution:**\n\nIn $\\triangleia\\angle PNO$, $\\a\\angle NPO=180^\\circ-129^\\circ-37^\\circ=14^\\circ$. Since $MN\\parallel PO$, $\\a\\angle MPO=180^\\circ-112^\\circ=68^\\circ$. Therefore $y=\\a\\angle MPO-\\a\\angle NPO=68^\\circ-14^\\circ=54^\\circ$. Therefore the correct answer is Option B ($54^\\circ$).",
+    "explanation": "**Solution:**\n\nIn $\\triangleia\\angle PNO$, $\\angle NPO=180^\\circ-129^\\circ-37^\\circ=14^\\circ$. Since $MN\\parallel PO$, $\\angle MPO=180^\\circ-112^\\circ=68^\\circ$. Therefore $y=\\angle MPO-\\angle NPO=68^\\circ-14^\\circ=54^\\circ$. Therefore the correct answer is Option B ($54^\\circ$).",
     "solutionDiagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><line x1=\"35\" y1=\"125\" x2=\"75\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"75\" y1=\"45\" x2=\"170\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"170\" y1=\"45\" x2=\"210\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"35\" y1=\"125\" x2=\"170\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"30\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"75\" y=\"36\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">M</text><text x=\"170\" y=\"36\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">N</text><text x=\"215\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">O</text><text x=\"52\" y=\"77\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">y</text><text x=\"72\" y=\"63\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">112°</text><text x=\"150\" y=\"62\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">129°</text><text x=\"165\" y=\"105\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">37°</text></svg>",
     "topic": "Geometry - Parallel Lines",
     "difficulty": "Medium"
@@ -887,7 +887,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "The diagram is a circle with centre $O$. $PRST$ are points on the circle. Find the value of $\\a\\angle PRS$.",
+    "question": "The diagram is a circle with centre $O$. $PRST$ are points on the circle. Find the value of $\\angle PRS$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"120\" cy=\"80\" r=\"60\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"62\" y1=\"80\" x2=\"178\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"62\" y1=\"80\" x2=\"120\" y2=\"25\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"120\" y1=\"25\" x2=\"178\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"62\" y1=\"80\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"178\" y1=\"80\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"52\" y=\"82\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"120\" y=\"18\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"188\" y=\"82\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">S</text><text x=\"150\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">T</text><text x=\"120\" y=\"73\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">72°</text></svg>",
     "options": [
       "$144^\\circ$",
@@ -896,7 +896,7 @@
       "$36^\\circ$"
     ],
     "correctAnswer": 3,
-    "explanation": "**Solution:**\n\nThe central angle subtending chord $PS$ is twice the angle at the circumference subtending the same chord. From the given central angle $72^\\circ$, $\\a\\angle PRS=72^\\circ/2=36^\\circ$. Therefore the correct answer is Option D ($36^\\circ$).",
+    "explanation": "**Solution:**\n\nThe central angle subtending chord $PS$ is twice the angle at the circumference subtending the same chord. From the given central angle $72^\\circ$, $\\angle PRS=72^\\circ/2=36^\\circ$. Therefore the correct answer is Option D ($36^\\circ$).",
     "solutionDiagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"120\" cy=\"80\" r=\"60\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"62\" y1=\"80\" x2=\"178\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"62\" y1=\"80\" x2=\"120\" y2=\"25\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"120\" y1=\"25\" x2=\"178\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"62\" y1=\"80\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"178\" y1=\"80\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"52\" y=\"82\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"120\" y=\"18\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"188\" y=\"82\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">S</text><text x=\"150\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">T</text><text x=\"120\" y=\"73\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">72°</text></svg>",
     "topic": "Circle Theorems",
     "difficulty": "Medium"
@@ -909,7 +909,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "The diagram is a circle of radius $OQ=4$ cm. $TR$ is a tangent to the circle at $R$. If $\\a\\angle TPO=120^\\circ$, find $PQ$.",
+    "question": "The diagram is a circle of radius $OQ=4$ cm. $TR$ is a tangent to the circle at $R$. If $\\angle TPO=120^\\circ$, find $PQ$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"145\" cy=\"70\" r=\"48\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"30\" y1=\"120\" x2=\"205\" y2=\"120\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"30\" y1=\"120\" x2=\"145\" y2=\"70\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"145\" y1=\"70\" x2=\"145\" y2=\"120\" stroke=\"#f59e0b\" stroke-width=\"2\"/><text x=\"24\" y=\"136\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">T</text><text x=\"35\" y=\"110\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"145\" y=\"62\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">O</text><text x=\"145\" y=\"108\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"70\" y=\"95\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">4 cm</text><text x=\"42\" y=\"108\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">120°</text></svg>",
     "options": [
       "$2.32\\,cm$",
@@ -918,7 +918,7 @@
       "$0.26\\,cm$"
     ],
     "correctAnswer": 2,
-    "explanation": "**Solution:**\n\nSince $T,P,R$ are collinear, $\\a\\angle RPO=60^\\circ$. Radius $OR$ is perpendicular to the tangent, so $\\triangleia\\angle POR$ is right-angled. $\\sin60^\\circ=OR/PO=4/PO$, hence $PO=4/\\sin60^\\circ\\approx4.6187$. Since $OQ=4$, $PQ=PO-OQ\\approx0.62$ cm. Therefore the correct answer is Option C ($0.62\\,cm$).",
+    "explanation": "**Solution:**\n\nSince $T,P,R$ are collinear, $\\angle RPO=60^\\circ$. Radius $OR$ is perpendicular to the tangent, so $\\triangleia\\angle POR$ is right-angled. $\\sin60^\\circ=OR/PO=4/PO$, hence $PO=4/\\sin60^\\circ\\approx4.6187$. Since $OQ=4$, $PQ=PO-OQ\\approx0.62$ cm. Therefore the correct answer is Option C ($0.62\\,cm$).",
     "solutionDiagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"145\" cy=\"70\" r=\"48\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"30\" y1=\"120\" x2=\"205\" y2=\"120\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"30\" y1=\"120\" x2=\"145\" y2=\"70\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"145\" y1=\"70\" x2=\"145\" y2=\"120\" stroke=\"#f59e0b\" stroke-width=\"2\"/><text x=\"24\" y=\"136\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">T</text><text x=\"35\" y=\"110\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"145\" y=\"62\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">O</text><text x=\"145\" y=\"108\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"70\" y=\"95\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">4 cm</text><text x=\"42\" y=\"108\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">120°</text></svg>",
     "topic": "Circle - Tangent",
     "difficulty": "Medium"
@@ -953,7 +953,7 @@
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "In the diagram, $SR=QR$, $\\a\\angle SRP=65^\\circ$ and $\\a\\angle RPQ=48^\\circ$. Find $\\a\\angle PRQ$.",
+    "question": "In the diagram, $SR=QR$, $\\angle SRP=65^\\circ$ and $\\angle RPQ=48^\\circ$. Find $\\angle PRQ$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"120\" cy=\"80\" r=\"60\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"65\" y1=\"45\" x2=\"175\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"45\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"175\" y1=\"45\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"45\" x2=\"55\" y2=\"120\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"55\" y1=\"120\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"58\" y=\"40\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"182\" y=\"40\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">S</text><text x=\"152\" y=\"142\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"48\" y=\"132\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">Q</text><text x=\"75\" y=\"64\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">48°</text><text x=\"105\" y=\"118\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">19°</text><text x=\"185\" y=\"95\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">65°</text></svg>",
     "options": [
       "$65^\\circ$",
@@ -962,7 +962,7 @@
       "$19^\\circ$"
     ],
     "correctAnswer": 3,
-    "explanation": "**Solution:**\n\nBecause $\\a\\angle RPQ=48^\\circ$ subtends chord $RQ$, $\\a\\angle RSQ=48^\\circ$. Since $SR=RQ$, triangle $SRQ$ has base angles $48^\\circ$ and $48^\\circ$, so $\\a\\angle QRS=84^\\circ$. Therefore $\\a\\angle PRQ=84^\\circ-65^\\circ=19^\\circ$. Therefore the correct answer is Option D ($19^\\circ$).",
+    "explanation": "**Solution:**\n\nBecause $\\angle RPQ=48^\\circ$ subtends chord $RQ$, $\\angle RSQ=48^\\circ$. Since $SR=RQ$, triangle $SRQ$ has base angles $48^\\circ$ and $48^\\circ$, so $\\angle QRS=84^\\circ$. Therefore $\\angle PRQ=84^\\circ-65^\\circ=19^\\circ$. Therefore the correct answer is Option D ($19^\\circ$).",
     "solutionDiagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"120\" cy=\"80\" r=\"60\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"65\" y1=\"45\" x2=\"175\" y2=\"45\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"45\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"175\" y1=\"45\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"65\" y1=\"45\" x2=\"55\" y2=\"120\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"55\" y1=\"120\" x2=\"150\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"58\" y=\"40\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"182\" y=\"40\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">S</text><text x=\"152\" y=\"142\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"48\" y=\"132\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">Q</text><text x=\"75\" y=\"64\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">48°</text><text x=\"105\" y=\"118\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">19°</text><text x=\"185\" y=\"95\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">65°</text></svg>",
     "topic": "Circle Theorems",
     "difficulty": "Hard"
@@ -1164,7 +1164,7 @@
     "section": "Part I",
     "type": "theory",
     "passage": null,
-    "question": "3(a) In the diagram, $TU$ is tangent to the circle, $\\a\\angle RVU=100^\\circ$ and $\\a\\angle URS=36^\\circ$. Calculate $\\a\\angle STU$.",
+    "question": "3(a) In the diagram, $TU$ is tangent to the circle, $\\angle RVU=100^\\circ$ and $\\angle URS=36^\\circ$. Calculate $\\angle STU$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><circle cx=\"120\" cy=\"75\" r=\"50\" stroke=\"#38bdf8\" fill=\"none\" stroke-width=\"2\"/><line x1=\"80\" y1=\"110\" x2=\"120\" y2=\"25\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"120\" y1=\"25\" x2=\"165\" y2=\"75\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"80\" y1=\"110\" x2=\"165\" y2=\"75\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"80\" y1=\"110\" x2=\"190\" y2=\"110\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"120\" y=\"18\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"70\" y=\"122\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">U</text><text x=\"172\" y=\"82\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">S</text><text x=\"198\" y=\"122\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">T</text><text x=\"91\" y=\"78\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">100°</text><text x=\"132\" y=\"53\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">36°</text></svg>",
     "options": [],
     "correctAnswer": -1,
@@ -1677,7 +1677,7 @@
     "section": "Part II",
     "type": "theory",
     "passage": null,
-    "question": "13(a) In the diagram, $PQ=6$ cm, $QR=13$ cm, $RS=5$ cm and $\\a\\angle RSQ$ is a right angle. Calculate, correct to one decimal place, $PS$.",
+    "question": "13(a) In the diagram, $PQ=6$ cm, $QR=13$ cm, $RS=5$ cm and $\\angle RSQ$ is a right angle. Calculate, correct to one decimal place, $PS$.",
     "diagram": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 160\" width=\"100%\" style=\"max-width:240px;margin:auto;display:block;\"><rect width=\"240\" height=\"160\" rx=\"4\" fill=\"#0f172a\"/><line x1=\"45\" y1=\"125\" x2=\"80\" y2=\"35\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"80\" y1=\"35\" x2=\"200\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"45\" y1=\"125\" x2=\"200\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"2\"/><line x1=\"80\" y1=\"35\" x2=\"80\" y2=\"100\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"42\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">P</text><text x=\"82\" y=\"28\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">Q</text><text x=\"207\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">R</text><text x=\"78\" y=\"118\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">S</text><text x=\"55\" y=\"82\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">6 cm</text><text x=\"135\" y=\"65\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">13 cm</text><text x=\"135\" y=\"140\" fill=\"#e2e8f0\" font-size=\"11\" text-anchor=\"middle\">5 cm</text></svg>",
     "options": [],
     "correctAnswer": -1,

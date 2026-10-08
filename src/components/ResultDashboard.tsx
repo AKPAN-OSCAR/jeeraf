@@ -497,10 +497,10 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
                 {/* Diagram / SVG */}
                 {currentSolutionQuestion.diagram && (
-                  <div className="my-4 p-4 sm:p-6 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-2xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-md [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:h-auto transition-all">
+                  <div className="my-4 p-4 sm:p-7 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-3xl sm:max-w-4xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-xl [&>svg]:w-full [&>svg]:!max-w-full [&>svg]:min-h-[240px] [&>svg]:h-auto transition-all">
                     <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[11px] font-bold text-slate-400">
                       <span className="uppercase tracking-wider flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-sky-400" /> Exam Figure / Solution Diagram
+                        <span className="w-2.5 h-2.5 rounded-full bg-sky-400" /> Exam Figure / Solution Diagram
                       </span>
                     </div>
                     <div 
@@ -510,13 +510,13 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                   </div>
                 )}
                 {currentSolutionQuestion.images && currentSolutionQuestion.images.length > 0 && (
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-4 justify-center my-3">
                     {currentSolutionQuestion.images.map((img, i) => img && (
                       <img 
                         key={i} 
                         src={img} 
                         alt="Question Diagram" 
-                        className="max-h-60 rounded-2xl border border-theme-border shadow-sm object-contain"
+                        className="max-h-80 sm:max-h-96 rounded-2xl border-2 border-theme-border shadow-md object-contain"
                         referrerPolicy="no-referrer"
                       />
                     ))}
@@ -567,7 +567,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                         <div
                           key={optIdx}
                           className={cn(
-                            "p-3.5 rounded-2xl border-2 flex items-center justify-between gap-3 text-xs sm:text-sm",
+                            "p-3.5 sm:p-4 rounded-2xl border-2 flex items-center justify-between gap-3 text-sm sm:text-base",
                             isCorrectAnswer
                               ? "border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold"
                               : isCandidateAnswer
@@ -575,9 +575,9 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
                                 : "border-theme-border bg-theme-bg text-theme-muted opacity-80"
                           )}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3.5 flex-1">
                             <div className={cn(
-                              "w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0",
+                              "w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0",
                               isCorrectAnswer 
                                 ? "bg-emerald-500 text-slate-950" 
                                 : isCandidateAnswer 

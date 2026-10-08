@@ -72,13 +72,13 @@ A high-performance Computer Based Testing (CBT) platform engineered for Nigerian
 
 ---
 
-## Adding Past Questions
+## Adding Past Questions & AI JSON Extraction Prompt
 
-To add or update past questions:
-1. Refer to the detailed guide in [`src/data/question_banks/README.md`](./src/data/question_banks/README.md).
-2. Use the provided AI prompt to transcribe past question papers into JSON.
-3. Paste the JSON into the relevant subject file (e.g. `src/data/question_banks/waec/mathematics/waec_math_2015.json`).
-4. Register the file in the exam body's `index.ts`.
+To add or update past questions with 100% precision:
+1. Refer to the master guide in [`src/data/question_banks/README.md`](./src/data/question_banks/README.md).
+2. Copy the **Universal Production AI Master Prompt** from Section 3, attach your scanned exam question images or PDF pages, and run it in ChatGPT (GPT-4o), Claude 3.5/3.7 Sonnet, Gemini 2.5 Pro, or DeepSeek.
+3. Save the returned JSON into the relevant subject file (e.g. `src/data/question_banks/waec/mathematics/waec_math_2015.json`).
+4. Register the file in the exam body's `index.ts`. All questions, subjects, and year selection buttons immediately become active in the app.
 
 ---
 

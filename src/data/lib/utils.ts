@@ -48,21 +48,16 @@ export function normalizeSubject(raw: any): Subject {
 export function sanitizeMathText(text?: string | null): string {
   if (!text || typeof text !== 'string') return '';
   return text
+    // Replace ASCII control character artifacts (form-feed \x0c and bell \x07) from OCR/PDF extraction
     .replace(/\x0crac/g, '\\frac')
     .replace(/\x0c/g, '\\')
     .replace(/\x07pprox/g, '\\approx')
     .replace(/\x07ngle/g, '\\angle')
     .replace(/\x07/g, '')
-    .replace(/\times/g, '\\times')
-    .replace(/\t([a-zA-Z])/g, (_, ch) => (ch === 'i' ? '\\times' : ch === 'e' ? '\\text' : ch === 'r' ? '\\triangle' : ' ' + ch))
-    .replace(/(?<=\s|\$|\(|\{|\[)ngle\s+([A-Za-z0-9])/g, '\\angle $1')
-    .replace(/\\?ngle\s+([A-Z]{2,4})/g, '\\angle $1')
-    .replace(/riangle\s+([A-Z]{3})/g, '\\triangle $1')
-    .replace(/ight\)/g, '\\right)')
-    .replace(/ight\]/g, '\\right]')
-    .replace(/ight\}/g, '\\right}')
-    .replace(/ight\|/g, '\\right|')
-    .replace(/ight\./g, '\\right.');
+    // Clean any accidental prefixed letters on standard LaTeX commands
+    .replace(/\\a\\angle/g, '\\angle')
+    .replace(/\\r\\right/g, '\\right')
+    .replace(/\\t\\triangle/g, '\\triangle');
 }
 
 export function sanitizeDiagramSvg(rawSvg?: string | null): string {

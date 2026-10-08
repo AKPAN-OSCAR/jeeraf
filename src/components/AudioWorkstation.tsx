@@ -438,13 +438,12 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
   }, [vaultItems, vaultSearchQuery]);
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[60] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 bg-theme-bg text-theme-text z-[60] flex flex-col h-screen w-screen overflow-hidden">
       <motion.div
-        initial={{ scale: 0.96, opacity: 0, y: 15 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.96, opacity: 0, y: 15 }}
-        className="bg-theme-card text-theme-text rounded-3xl md:rounded-[2.5rem] p-0 max-w-6xl w-full shadow-2xl relative h-[92vh] max-h-[920px] flex flex-col border-2 border-theme-border overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="bg-theme-bg text-theme-text p-0 w-full h-full flex flex-col overflow-hidden"
       >
         {/* Success Alert Banner */}
         <AnimatePresence>
@@ -463,22 +462,31 @@ export function AudioWorkstation({ onClose, onQuestionsGenerated, user }: AudioW
         {/* ===================================================================== */}
         {/* TOP STUDIO NAVIGATION BAR                                             */}
         {/* ===================================================================== */}
-        <header className="bg-theme-bg/95 border-b border-theme-border px-5 md:px-8 py-3.5 flex items-center justify-between shrink-0 z-30">
+        <header className="bg-theme-card border-b border-theme-border px-4 sm:px-6 md:px-8 py-3 flex items-center justify-between shrink-0 z-30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-theme-accent/15 border border-theme-accent/30 flex items-center justify-center shadow-xs text-theme-accent">
-              <Headphones size={22} />
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 sm:px-3 sm:py-2 rounded-xl bg-theme-bg border border-theme-border hover:border-theme-accent text-theme-text transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs"
+              title="Return to selection"
+            >
+              <ArrowLeft size={16} />
+              <span className="hidden sm:inline">Exit Studio</span>
+            </button>
+            <div className="w-9 h-9 rounded-xl bg-theme-accent/15 border border-theme-accent/30 flex items-center justify-center shadow-xs text-theme-accent shrink-0">
+              <Headphones size={20} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-black text-theme-text uppercase tracking-tight text-base sm:text-lg">
+                <h2 className="font-black text-theme-text uppercase tracking-tight text-sm sm:text-base">
                   JeeRaf Audio Studio
                 </h2>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-theme-accent/10 text-theme-accent border border-theme-accent/20">
-                  <Radio size={10} className="animate-pulse" /> Studio Console
+                <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-theme-accent/10 text-theme-accent border border-theme-accent/20">
+                  <Radio size={9} className="animate-pulse" /> Live Speech Lab
                 </span>
               </div>
-              <p className="text-[11px] text-theme-muted font-bold">
-                Speech-to-Test Laboratory & Cognitive Lecture Breakdown
+              <p className="text-[10px] text-theme-muted font-bold truncate max-w-xs sm:max-w-md">
+                Real-Time Audio Ingestion & Lecture Breakdown
               </p>
             </div>
           </div>
