@@ -1,0 +1,36 @@
+[
+  {
+    "id": "kcse-math-2024-q1",
+    "examType": "KCSE",
+    "subject": "Mathematics",
+    "year": 2024,
+    "difficulty": "Easy",
+    "question": "Evaluate without using a mathematical table: $\\frac{-12 \\div (-3) \\times 4 - (-15)}{-5 \\times 2 + (-1)}$.",
+    "options": [
+      "$-2.818$",
+      "$-2.5$",
+      "$-3.1$",
+      "$2.8$"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Numerator: $-12 \\div (-3) = 4$. Then $4 \\times 4 = 16$. $16 - (-15) = 16 + 15 = 31$.\nDenominator: $-5 \\times 2 = -10$. Then $-10 + (-1) = -11$.\nResult: $\\frac{31}{-11} \\approx -2.818$.",
+    "topic": "Integers & Operations"
+  },
+  {
+    "id": "kcse-math-2024-q2",
+    "examType": "KCSE",
+    "subject": "Mathematics",
+    "year": 2024,
+    "difficulty": "Medium",
+    "question": "A straight line passes through points $A(2, 5)$ and $B(6, 13)$. Find the gradient of line $AB$.",
+    "options": [
+      "$2$",
+      "$\\frac{1}{2}$",
+      "$3$",
+      "$4$"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Gradient $m = \\frac{y_2 - y_1}{x_2 - x_1} = \\frac{13 - 5}{6 - 2} = \\frac{8}{4} = 2$.",
+    "topic": "Coordinate Geometry"
+  }
+]

@@ -37,8 +37,10 @@ function stripDataUrl(base64Str?: string): string {
 async function generateWithFallback(params: {
   contents: any[];
   config?: any;
+  customApiKey?: string;
 }) {
-  const ai = getAI();
+  const activeKey = (params.customApiKey && params.customApiKey.trim()) || process.env.GEMINI_API_KEY;
+  const ai = new GoogleGenAI({ apiKey: activeKey || '' });
   let lastError: any = null;
 
   for (const model of CANDIDATE_MODELS) {
@@ -91,7 +93,8 @@ app.post('/api/ai/exam-tutor', async (req, res) => {
       subject = 'General', 
       examType = 'National Examination',
       customPrompt,
-      chatHistory = []
+      chatHistory = [],
+      apiKey
     } = req.body;
 
     if (!question) {
@@ -141,6 +144,7 @@ Built-in Explanation: "${question.explanation}"`;
     let textResult = '';
     try {
       const result = await generateWithFallback({
+        customApiKey: apiKey,
         contents: [
           ...chatHistory.map((m: any) => ({
             role: m.sender === 'user' ? 'user' : 'model',
@@ -199,7 +203,8 @@ app.post('/api/ai/personal-cbt/generate', async (req, res) => {
     documentText = '',
     imageBase64,
     mimeType,
-    examType = 'Personal CBT'
+    examType = 'Personal CBT',
+    apiKey
   } = req.body || {};
 
   try {
@@ -257,6 +262,7 @@ STRICT QUESTION CONSTRUCTION CRITERIA:
     }
 
     const { text } = await generateWithFallback({
+      customApiKey: apiKey,
       contents: [{ role: 'user', parts: userParts }],
       config: {
         responseMimeType: 'application/json',
@@ -347,7 +353,7 @@ STRICT QUESTION CONSTRUCTION CRITERIA:
  */
 app.post('/api/ai/audio-explain', async (req, res) => {
   try {
-    const { audioBase64, mimeType = 'audio/webm', customPrompt } = req.body;
+    const { audioBase64, mimeType = 'audio/webm', customPrompt, apiKey } = req.body;
     const cleanAudio = stripDataUrl(audioBase64);
     if (!cleanAudio) {
       return res.status(400).json({ error: 'Audio data is required' });
@@ -366,6 +372,7 @@ Highlight key terms in **bold** and format formulas using LaTeX ($E = mc^2$, $\\
     let textResult = '';
     try {
       const { text } = await generateWithFallback({
+        customApiKey: apiKey,
         contents: [
           {
             role: 'user',
@@ -418,7 +425,7 @@ Analysis of this audio lecture session indicates concentrated focus on core exam
  */
 app.post('/api/ai/audio-questions', async (req, res) => {
   try {
-    const { audioBase64, mimeType = 'audio/webm', questionCount = 10, topics = '', examType = 'Personal CBT' } = req.body;
+    const { audioBase64, mimeType = 'audio/webm', questionCount = 10, topics = '', examType = 'Personal CBT', apiKey } = req.body;
     const cleanAudio = stripDataUrl(audioBase64);
     if (!cleanAudio) {
       return res.status(400).json({ error: 'Audio data is required' });
@@ -438,6 +445,7 @@ STRICT CRITERIA:
     let formatted: any[] = [];
     try {
       const { text } = await generateWithFallback({
+        customApiKey: apiKey,
         contents: [
           {
             role: 'user',
@@ -536,7 +544,7 @@ STRICT CRITERIA:
  */
 app.post('/api/ai/chat', async (req, res) => {
   try {
-    const { message, history = [], context = {} } = req.body;
+    const { message, history = [], context = {}, apiKey } = req.body;
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
@@ -546,6 +554,7 @@ User Context: Active Subject: ${context.subject || 'All'}, Exam: ${context.examT
 Provide concise, accurate academic answers with step-by-step clarity, speed tips, and LaTeX math.`;
 
     const { text } = await generateWithFallback({
+      customApiKey: apiKey,
       contents: [
         ...history.map((h: any) => ({
           role: h.sender === 'user' ? 'user' : 'model',

@@ -1,6 +1,6 @@
-# NECO GCE Past Questions Ingestion & AI Prompt Master Guide
+# WAEC GCE Past Questions Ingestion & AI Prompt Master Guide
 
-This guide contains the question ingestion standards and AI extraction prompts for **NECO GCE (National Examinations Council - Private Candidate Series)**.
+This guide contains the question ingestion standards and AI extraction prompts for **WAEC GCE (General Certificate of Education - Private Candidate Series)**.
 
 ---
 
@@ -8,48 +8,48 @@ This guide contains the question ingestion standards and AI extraction prompts f
 
 Save your extracted JSON file in the following structure:
 ```text
-src/data/question_banks/neco_gce/{subject_lowercase}/neco_gce_{subject_lowercase}_{year}.json
+src/data/continents/africa/regional_exams/waec_gce/{subject_lowercase}/waec_gce_{subject_lowercase}_{year}.json
 ```
 
 ### Examples:
-- **Mathematics 2024**: `src/data/question_banks/neco_gce/mathematics/neco_gce_math_2024.json`
-- **English Language 2024**: `src/data/question_banks/neco_gce/english/neco_gce_english_2024.json`
-- **Physics 2024**: `src/data/question_banks/neco_gce/physics/neco_gce_physics_2024.json`
+- **Mathematics 2024**: `src/data/continents/africa/regional_exams/waec_gce/mathematics/waec_gce_math_2024.json`
+- **English Language 2024**: `src/data/continents/africa/regional_exams/waec_gce/english/waec_gce_english_2024.json`
+- **Physics 2024**: `src/data/continents/africa/regional_exams/waec_gce/physics/waec_gce_physics_2024.json`
 
 ---
 
-## 2. [ARCHIVED - OLD PROMPT] Historical NECO GCE Master Prompt (Kept for Reference Records)
+## 2. [ARCHIVED - OLD PROMPT] Historical WAEC GCE Master Prompt (Kept for Reference Records)
 
 > ⚠️ **NOTE**: Kept strictly for audit and reference records. Use the active production prompt in Section 3 for all new extractions.
 
 ```markdown
-You are a senior NECO GCE Assessment Specialist.
-Your task is to transcribe, mathematically verify, and output all questions and solutions from the attached NECO GCE exam paper images into a pure, valid JSON array.
+You are a senior West African Examinations Council (WAEC) GCE Chief Examiner.
+Your task is to transcribe, mathematically verify, and output all questions and solutions from the attached WAEC GCE exam paper images into a pure, valid JSON array.
 
 ### TARGET SPECIFICATIONS:
-- Examination Body: NECO GCE
+- Examination Body: WAEC GCE
 - Subject: [SUBJECT]
 - Year: [YEAR]
-- File Destination: src/data/question_banks/neco_gce/[subject_lowercase]/neco_gce_[subject_lowercase]_[year].json
+- File Destination: src/data/continents/africa/regional_exams/waec_gce/[subject_lowercase]/waec_gce_[subject_lowercase]_[year].json
 ```
 
 ---
 
-## 3. [ACTIVE / CURRENT] Professional Grade-A NECO GCE AI Extraction Master Prompt (New Production Standard)
+## 3. [ACTIVE / CURRENT] Professional Grade-A WAEC GCE AI Extraction Master Prompt (New Production Standard)
 
 > ⭐️ **USE THIS PROMPT FOR ALL NEW EXTRACTIONS**:
 > Copy the entire block below, replace `[SUBJECT]` and `[YEAR]`, attach your scanned question images, and send to ChatGPT (GPT-4o), Claude 3.5 Sonnet, or Gemini 2.0 Pro.
 
 ```markdown
-You are a Principal National Examinations Council (NECO/GCE) Chief Examiner, Senior Academic Specialist, and CBT Architect.
+You are a Principal West African Examinations Council (WAEC/GCE) Chief Examiner, Senior Academic Specialist, and CBT Architect.
 
-Your mission is to transcribe, mathematically solve, and output every single question and solution from the attached NECO GCE exam paper images into a pure, valid, production-grade JSON array.
+Your mission is to transcribe, mathematically solve, and output every single question and solution from the attached WAEC GCE exam paper images into a pure, valid, production-grade JSON array.
 
 ### TARGET SPECIFICATIONS:
-- Examination Body: NECO GCE
+- Examination Body: WAEC GCE
 - Subject: [SUBJECT] (e.g. Mathematics, English Language, Physics, Chemistry, Biology, Economics)
 - Year: [YEAR] (e.g. 2024)
-- Target File: src/data/question_banks/neco_gce/[subject_lowercase]/neco_gce_[subject_lowercase]_[year].json
+- Target File: src/data/continents/africa/regional_exams/waec_gce/[subject_lowercase]/waec_gce_[subject_lowercase]_[year].json
 
 ### MANDATORY PRODUCTION RULES:
 
@@ -70,7 +70,7 @@ Your mission is to transcribe, mathematically solve, and output every single que
      **Step 4:** Affirm the final value and corresponding option letter: Option X ($value$).
 
 3. ZERO QUESTION DROPPING:
-   - Transcribe every question faithfully. Include all 60 objective questions and Paper 2 theory section questions.
+   - Transcribe every question faithfully. Include all 50 objective questions and Paper 2 theory section questions.
 
 4. DIAGRAMS & GRAPHS (INLINE SVG):
    - If an exam item includes a geometric shape, circle theorem, physics circuit, ray diagram, or graph, generate a clean inline SVG inside `"diagram"`:
@@ -89,26 +89,26 @@ Your mission is to transcribe, mathematically solve, and output every single que
 ### JSON RECORD TEMPLATE:
 [
   {
-    "id": "neco-gce-[subject_short]-[year]-q1",
+    "id": "waec-gce-[subject_short]-[year]-q1",
     "subject": "[SUBJECT]",
-    "examType": "NECO GCE",
+    "examType": "WAEC GCE",
     "year": [YEAR],
     "section": "General",
     "type": "objective",
     "passage": null,
-    "question": "Factorise completely: $6x^2 - 11x - 10$.",
+    "question": "The $8$th term of an Arithmetic Progression is $31$. If the first term is $3$, find the common difference $d$.",
     "diagram": null,
     "options": [
-      "$(2x - 5)(3x + 2)$",
-      "$(2x + 5)(3x - 2)$",
-      "$(6x - 5)(x + 2)$",
-      "$(3x - 5)(2x + 2)$"
+      "$4$",
+      "$5$",
+      "$6$",
+      "$7$"
     ],
     "correctAnswer": 0,
-    "explanation": "**Step 1:** Find two numbers whose product is $6 \\times (-10) = -60$ and whose sum is $-11$: the numbers are $-15$ and $+4$.\n\n**Step 2:** Rewrite the middle term: $6x^2 - 15x + 4x - 10$.\n\n**Step 3:** Factor by grouping: $3x(2x - 5) + 2(2x - 5) = (2x - 5)(3x + 2)$.\n\n**Step 4:** The complete factorisation is $(2x - 5)(3x + 2)$, which is Option A ($(2x - 5)(3x + 2)$).",
+    "explanation": "**Step 1:** Use the $n$th term formula for an AP: $T_n = a + (n - 1)d$.\n\n**Step 2:** Given $T_8 = 31$, $a = 3$, $n = 8$.\n\n**Step 3:** Substitute: $31 = 3 + (8 - 1)d \\implies 31 = 3 + 7d \\implies 7d = 28 \\implies d = 4$.\n\n**Step 4:** The common difference is $4$, which is Option A ($4$).",
     "solutionDiagram": null,
-    "topic": "Algebra - Quadratic Factorisation",
-    "difficulty": "Medium"
+    "topic": "Algebra - Arithmetic Progressions",
+    "difficulty": "Easy"
   }
 ]
 ```
@@ -117,16 +117,16 @@ Your mission is to transcribe, mathematically solve, and output every single que
 
 ## 4. How to Manually Register a New Year in `index.ts`
 
-1. Save the file to `src/data/question_banks/neco_gce/[subject]/neco_gce_[subject]_[year].json`.
-2. Open `src/data/question_banks/neco_gce/index.ts` and add:
+1. Save the file to `src/data/continents/africa/regional_exams/waec_gce/[subject]/waec_gce_[subject]_[year].json`.
+2. Open `src/data/continents/africa/regional_exams/waec_gce/index.ts` and add:
    ```typescript
    import { Question } from '../../../types';
-   import necoGceMath2024Json from './mathematics/neco_gce_math_2024.json';
-   import necoGceMath2023Json from './mathematics/neco_gce_math_2023.json'; // <-- 1. Import
+   import waecGceMath2024Json from './mathematics/waec_gce_math_2024.json';
+   import waecGceMath2023Json from './mathematics/waec_gce_math_2023.json'; // <-- 1. Import
 
    export const manualQuestions: Question[] = [
-     ...(necoGceMath2024Json as unknown as Question[]),
-     ...(necoGceMath2023Json as unknown as Question[])                  // <-- 2. Register
+     ...(waecGceMath2024Json as unknown as Question[]),
+     ...(waecGceMath2023Json as unknown as Question[])                  // <-- 2. Register
    ];
    ```
 3. The year will immediately display with its question count button in the CBT screen.

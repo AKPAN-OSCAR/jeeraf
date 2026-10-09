@@ -1,5 +1,4 @@
-import { Question } from '../../../types';
-import { normalizeQuestion } from '../../lib/utils';
+import { Question, normalizeQuestion } from '../../../helper';
 
 // Explicit Manual Imports of Past Question Files
 import waecMath2010Json from './mathematics/waec_math_2010.json';

@@ -214,28 +214,50 @@ Your mission is to transcribe, mathematically solve, format, and output EVERY SI
 
 ---
 
-## 5. How to Register a New Subject or Year in the App
+## 5. How to Register a New Subject, Year, or Regional Exam Body in the App
 
+### A. Adding a New Year or Subject to an Existing Exam (e.g. WAEC, JAMB, NECO):
 1. **Save the JSON file:**
-   Save your extracted JSON into the appropriate folder:
+   Save your extracted JSON into the appropriate subject folder:
    ```text
-   src/data/question_banks/waec/mathematics/waec_math_2011.json
+   src/data/question_banks/waec/mathematics/waec_math_2016.json
    ```
 2. **Register it in the exam body's `index.ts`:**
    Open `src/data/question_banks/waec/index.ts` and add:
    ```typescript
-   import { Question } from '../../../types';
-   import waecMath2011Json from './mathematics/waec_math_2011.json'; // <--- 1. Import
-   import waecMath2012Json from './mathematics/waec_math_2012.json';
-   import waecMath2013Json from './mathematics/waec_math_2013.json';
-   import waecMath2015Json from './mathematics/waec_math_2015.json';
+   import waecMath2016Json from './mathematics/waec_math_2016.json';
 
    export const manualQuestions: Question[] = [
-     ...(waecMath2011Json as unknown as Question[]),                  // <--- 2. Register
-     ...(waecMath2012Json as unknown as Question[]),
-     ...(waecMath2013Json as unknown as Question[]),
-     ...(waecMath2015Json as unknown as Question[])
+     // ... existing years
+     ...(waecMath2016Json as unknown as Question[])
    ];
    ```
-3. **Done!**
-   The questions and year buttons appear immediately across the entire app with exact question counts.
+3. **Done!** The year buttons and questions appear immediately in CBT mock and practice modes.
+
+### B. Adding a New Country or National Examination Body (e.g. Ghana BECE, Kenya KCSE, South Africa NSC):
+1. **Create the exam folder:**
+   ```text
+   src/data/question_banks/ghana/bece/
+     ├── mathematics/
+     │    └── bece_math_2024.json
+     └── index.ts
+   ```
+2. **Export the bank in `index.ts`:**
+   ```typescript
+   import { Question } from '../../../../types';
+   import beceMath2024 from './mathematics/bece_math_2024.json';
+
+   export const beceBank = { mathematics: { '2024': beceMath2024 as Question[] } };
+   export const beceQuestions: Question[] = [...(beceMath2024 as Question[])];
+   ```
+3. **Register in Master Question Registry (`src/data/question_banks/index.ts`):**
+   ```typescript
+   import { beceQuestions, beceBank } from './ghana/bece';
+
+   export const allBuiltinQuestions: Question[] = [
+     // ... existing questions
+     ...beceQuestions
+   ];
+   ```
+4. **Shared Regional Bodies (No File Duplication):**
+   Exams written across multiple nations (like **WAEC WASSCE** across Nigeria, Ghana, Sierra Leone, Liberia, and The Gambia) are saved **once** in `src/data/question_banks/waec/`. In `src/data/regions/index.ts`, each country simply references the shared bank with `scope: 'regional_shared'`. The dashboard automatically surfaces WAEC alongside that country's domestic exams!

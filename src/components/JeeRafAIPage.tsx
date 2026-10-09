@@ -1187,6 +1187,21 @@ FORMATTING INSTRUCTIONS:
     }, 400);
   };
 
+  // Seamless auto-pickup of questions transferred from Solution AI (Pillar 2 -> Pillar 3)
+  useEffect(() => {
+    try {
+      const transferredQuery = sessionStorage.getItem('jeeraf_transferred_ai_query');
+      if (transferredQuery && transferredQuery.trim()) {
+        sessionStorage.removeItem('jeeraf_transferred_ai_query');
+        setTimeout(() => {
+          handleSendMessage(transferredQuery.trim());
+        }, 350);
+      }
+    } catch (e) {
+      console.warn("Could not check transferred query:", e);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-theme-bg text-theme-text p-3 md:p-6 flex flex-col transition-colors duration-300">
       {/* Top Navigation Bar */}

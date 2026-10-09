@@ -1,5 +1,4 @@
-import { Question } from '../../../types';
-import { normalizeQuestion } from '../../lib/utils';
+import { Question, normalizeQuestion } from '../../../../helper';
 
 // Explicit Manual Imports of JAMB Past Question Files
 import jambMath2024Json from './mathematics/jamb_math_2024.json';

@@ -706,6 +706,13 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           profile={profile}
           onOpenFullScreenAI={(initialQuery) => {
             setActiveAiQuestion(null);
+            if (initialQuery) {
+              try {
+                sessionStorage.setItem('jeeraf_transferred_ai_query', initialQuery);
+              } catch (e) {
+                console.warn('Could not save transferred AI query:', e);
+              }
+            }
             if (onNavigateTo) {
               onNavigateTo('system_ai');
             }

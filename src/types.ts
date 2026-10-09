@@ -22,7 +22,26 @@ export type Subject =
   | 'French'
   | 'General';
 
-export type ExamType = 'JAMB' | 'WAEC' | 'NECO' | 'WAEC GCE' | 'NECO GCE' | 'Personal CBT';
+export type ExamType = 
+  | 'JAMB' 
+  | 'WAEC' 
+  | 'NECO' 
+  | 'WAEC GCE' 
+  | 'NECO GCE' 
+  | 'BECE'
+  | 'KCSE'
+  | 'KCPE'
+  | 'NSC'
+  | 'IEB'
+  | 'S6_NAT'
+  | 'THANAWEYA'
+  | 'EUEE'
+  | 'UCE'
+  | 'UACE'
+  | 'CSEE'
+  | 'ACSEE'
+  | 'Personal CBT'
+  | (string & {});
 
 export type QuestionSection = 'Comprehension' | 'Lexis and Structure' | 'Word Stress' | 'Oral English' | 'General' | 'Theory' | 'Practical';
 

@@ -1,5 +1,4 @@
-import { Question } from '../../../types';
-import { normalizeQuestion } from '../../lib/utils';
+import { Question, normalizeQuestion } from '../../../helper';
 import waecGceMath2024Json from './mathematics/waec_gce_math_2024.json';
 
 /**

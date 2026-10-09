@@ -8,18 +8,18 @@ This guide contains the question ingestion standards and AI extraction prompts f
 
 Always save your extracted JSON file in the following structure:
 ```text
-src/data/question_banks/waec/{subject_lowercase}/waec_{subject_lowercase}_{year}.json
+src/data/continents/africa/regional_exams/waec/{subject_lowercase}/waec_{subject_lowercase}_{year}.json
 ```
 
 ### Examples:
-- **Mathematics 2012**: `src/data/question_banks/waec/mathematics/waec_math_2012.json`
-- **Mathematics 2013**: `src/data/question_banks/waec/mathematics/waec_math_2013.json`
-- **Mathematics 2015**: `src/data/question_banks/waec/mathematics/waec_math_2015.json`
-- **Mathematics 2016**: `src/data/question_banks/waec/mathematics/waec_math_2016.json`
-- **English Language 2018**: `src/data/question_banks/waec/english/waec_english_2018.json`
-- **Physics 2020**: `src/data/question_banks/waec/physics/waec_physics_2020.json`
-- **Chemistry 2021**: `src/data/question_banks/waec/chemistry/waec_chemistry_2021.json`
-- **Biology 2022**: `src/data/question_banks/waec/biology/waec_biology_2022.json`
+- **Mathematics 2012**: `src/data/continents/africa/regional_exams/waec/mathematics/waec_math_2012.json`
+- **Mathematics 2013**: `src/data/continents/africa/regional_exams/waec/mathematics/waec_math_2013.json`
+- **Mathematics 2015**: `src/data/continents/africa/regional_exams/waec/mathematics/waec_math_2015.json`
+- **Mathematics 2016**: `src/data/continents/africa/regional_exams/waec/mathematics/waec_math_2016.json`
+- **English Language 2018**: `src/data/continents/africa/regional_exams/waec/english/waec_english_2018.json`
+- **Physics 2020**: `src/data/continents/africa/regional_exams/waec/physics/waec_physics_2020.json`
+- **Chemistry 2021**: `src/data/continents/africa/regional_exams/waec/chemistry/waec_chemistry_2021.json`
+- **Biology 2022**: `src/data/continents/africa/regional_exams/waec/biology/waec_biology_2022.json`
 
 ---
 
@@ -63,7 +63,7 @@ Your task is to transcribe, thoroughly verify, and output every single question 
 - Examination Body: WAEC (WASSCE)
 - Subject: [SUBJECT] (e.g., Mathematics, English, Physics, Chemistry, Biology)
 - Year: [YEAR] (e.g., 2016)
-- File Destination: src/data/question_banks/waec/[subject_lowercase]/waec_[subject_lowercase]_[year].json
+- File Destination: src/data/continents/africa/regional_exams/waec/[subject_lowercase]/waec_[subject_lowercase]_[year].json
 
 ### MANDATORY INGESTION RULES (CRITICAL):
 1. PURE JSON ONLY: Output ONLY a valid JSON array starting with `[` and ending with `]`. No conversational preamble, no markdown backticks ```json, no postscript comments.
@@ -137,7 +137,7 @@ Your mission is to transcribe, mathematically solve, and output every single que
 - Examination Body: WAEC
 - Subject: [SUBJECT] (e.g. Mathematics, English Language, Physics, Chemistry, Biology)
 - Year: [YEAR] (e.g. 2014)
-- Target File: src/data/question_banks/waec/[subject_lowercase]/waec_[subject_lowercase]_[year].json
+- Target File: src/data/continents/africa/regional_exams/waec/[subject_lowercase]/waec_[subject_lowercase]_[year].json
 
 ### MANDATORY PRODUCTION RULES (STRICT COMPLIANCE):
 
@@ -241,8 +241,8 @@ Your mission is to transcribe, mathematically solve, and output every single que
 
 To ensure 100% stability without any glob or caching issues, past questions are registered via direct TypeScript imports:
 
-1. Place your extracted JSON in `src/data/question_banks/waec/[subject]/waec_[subject]_[year].json`.
-2. Open `src/data/question_banks/waec/index.ts` and add:
+1. Place your extracted JSON in `src/data/continents/africa/regional_exams/waec/[subject]/waec_[subject]_[year].json`.
+2. Open `src/data/continents/africa/regional_exams/waec/index.ts` and add:
    ```typescript
    import { Question } from '../../../types';
    import waecMath2012Json from './mathematics/waec_math_2012.json';

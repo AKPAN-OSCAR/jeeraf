@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, GraduationCap, FileText, Upload, ChevronRight, X, FileUp, Loader2, Minus, Plus, Clock, Settings2, AlertCircle, Menu, Sparkles, Mic } from 'lucide-react';
+import { BookOpen, GraduationCap, FileText, Upload, ChevronRight, X, FileUp, Loader2, Minus, Plus, Clock, Settings2, AlertCircle, Menu, Sparkles, Mic, Globe, Award, CheckCircle2 } from 'lucide-react';
 import { SidebarMenu } from './SidebarMenu';
 import { AudioWorkstation } from './AudioWorkstation';
 import { ExamType, Question } from '../types';
 import { cn } from '../data/lib/utils';
 import { generateQuestionsFromText, extractQuestionsWithAI } from '../services/aiQuestions';
+import { getCountryById, CONTINENTS, SupportedExamConfig } from '../data/regions';
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 
@@ -97,6 +98,21 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
   const [topics, setTopics] = useState('');
   const [difficulty, setDifficulty] = useState<'Mixed' | 'Easy' | 'Medium' | 'Hard'>('Mixed');
   const [selectedSubject, setSelectedSubject] = useState<string>('General');
+  const [activeCountryId, setActiveCountryId] = useState<string>(() => profile?.cbtCountry || 'Nigeria');
+  const [showCountryModal, setShowCountryModal] = useState(false);
+  const [unsupportedExamModal, setUnsupportedExamModal] = useState<SupportedExamConfig | null>(null);
+
+  const activeCountryConfig = useMemo(() => getCountryById(activeCountryId), [activeCountryId]);
+  const allCountries = useMemo(() => CONTINENTS.find(c => c.isActive)?.countries || [], []);
+
+  const getExamIconComponent = (iconName?: string) => {
+    switch (iconName) {
+      case 'GraduationCap': return GraduationCap;
+      case 'BookOpen': return BookOpen;
+      case 'Award': return Award;
+      case 'FileText': default: return FileText;
+    }
+  };
 
   // Check active CBT Category Mode
   const cbtCategory = profile?.cbtCategory || 'national_exams';
@@ -386,15 +402,27 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
         ) : isNationalExamsMode ? (
           <>
             <div className="text-center mb-10">
-              <span className="inline-block text-[10px] bg-amber-500/10 text-amber-500 font-black uppercase tracking-widest px-3 py-1 rounded-full border border-amber-500/20 mb-3">
-                National Exams Center
-              </span>
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1.5 text-[11px] bg-amber-500/10 text-amber-500 font-black uppercase tracking-wider px-3.5 py-1 rounded-full border border-amber-500/20">
+                  <span>{activeCountryConfig.flag}</span>
+                  <span>{activeCountryConfig.name} National CBT Center</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowCountryModal(true)}
+                  className="inline-flex items-center gap-1 text-[11px] bg-theme-card hover:bg-theme-bg text-theme-muted hover:text-theme-text font-bold px-3 py-1 rounded-full border border-theme-border transition-all cursor-pointer shadow-xs"
+                >
+                  <Globe size={12} className="text-theme-accent" />
+                  <span>Switch Country</span>
+                </button>
+              </div>
+
               <motion.h1 
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-3xl md:text-4xl font-bold text-theme-text mb-2"
               >
-                National Exams
+                {activeCountryConfig.name} National & Regional Examinations
               </motion.h1>
               <motion.p 
                 initial={{ opacity: 0, y: -10 }}
@@ -402,30 +430,63 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                 transition={{ delay: 0.1 }}
                 className="text-theme-muted text-xs md:text-sm max-w-xl mx-auto"
               >
-                Choose your national examination body to start practicing past questions and timed mock tests.
+                Official standardized examination bodies for {activeCountryConfig.name}, including domestic exams and shared multinational bodies (such as WAEC WASSCE).
               </motion.p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {EXAM_TYPES.filter(exam => exam.id !== 'Personal CBT' && exam.id !== 'Audio Study').map((exam, index) => (
-                <motion.button
-                  key={exam.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  onClick={() => onSelect(exam.id)}
-                  className="group bg-theme-card p-6 rounded-2xl shadow-sm border border-theme-border hover:border-theme-accent hover:shadow-md transition-all text-left flex flex-col h-full"
-                >
-                  <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110", exam.lightColor)}>
-                    <exam.icon className={cn("w-6 h-6", exam.color.replace('bg-', 'text-'))} />
-                  </div>
-                  <h3 className="text-xl font-bold text-theme-text mb-2">{exam.title}</h3>
-                  <p className="text-theme-muted text-sm flex-grow">{exam.description}</p>
-                  <div className="mt-4 flex items-center text-theme-accent font-medium text-sm">
-                    Start Practice <ChevronRight className="w-4 h-4 ml-1" />
-                  </div>
-                </motion.button>
-              ))}
+              {activeCountryConfig.supportedExams.map((exam, index) => {
+                const IconComponent = getExamIconComponent(exam.iconName);
+                return (
+                  <motion.button
+                    key={exam.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.08 }}
+                    onClick={() => {
+                      if (exam.isAvailable) {
+                        onSelect(exam.id as ExamType);
+                      } else {
+                        setUnsupportedExamModal(exam);
+                      }
+                    }}
+                    className="group bg-theme-card p-6 rounded-2xl shadow-sm border border-theme-border hover:border-theme-accent hover:shadow-md transition-all text-left flex flex-col h-full cursor-pointer relative"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", exam.lightColor)}>
+                        <IconComponent className={cn("w-6 h-6", exam.color.replace('bg-', 'text-'))} />
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1">
+                        {exam.scope === 'regional_shared' ? (
+                          <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            🌐 West Africa Shared
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                            🏛️ National Exam
+                          </span>
+                        )}
+                        <span className={cn(
+                          "text-[9px] font-bold",
+                          exam.isAvailable ? "text-emerald-500" : "text-amber-500"
+                        )}>
+                          {exam.isAvailable ? "● Live Question Bank" : "◌ In Provisioning"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <h3 className="text-xl font-bold text-theme-text mb-1">{exam.name}</h3>
+                    <p className="text-[11px] font-semibold text-theme-muted mb-2">{exam.fullName}</p>
+                    <p className="text-theme-muted text-xs flex-grow leading-relaxed">{exam.description}</p>
+                    
+                    <div className="mt-4 pt-3 border-t border-theme-border/60 flex items-center justify-between text-theme-accent font-bold text-xs">
+                      <span>{exam.isAvailable ? "Start Practice" : "Exam Bank Details"}</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
           </>
         ) : (
@@ -452,81 +513,86 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {EXAM_TYPES.map((exam, index) => {
-                if (exam.id === 'Personal CBT') {
-                  return (
-                    <motion.button
-                      key={exam.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                      onClick={() => onNavigateTo('file_upload')}
-                      className="group relative overflow-hidden bg-theme-accent p-6 rounded-2xl shadow-sm border border-theme-accent/20 hover:shadow-lg transition-all text-left flex flex-col h-full cursor-pointer"
-                    >
-                      <div className="absolute top-0 right-0 p-3">
-                        <div className="bg-white/10 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                          Custom AI
-                        </div>
-                      </div>
-                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-                        <Upload className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Personal CBT</h3>
-                      <p className="text-white/80 text-sm flex-grow">
-                        Upload notes or textbooks. Our AI will automatically generate questions for you.
-                      </p>
-                      <div className="mt-4 flex items-center text-white font-medium text-sm">
-                        Upload Files <ChevronRight className="w-4 h-4 ml-1" />
-                      </div>
-                    </motion.button>
-                  );
-                }
+              {/* Personal CBT Card */}
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => onNavigateTo('file_upload')}
+                className="group relative overflow-hidden bg-theme-accent p-6 rounded-2xl shadow-sm border border-theme-accent/20 hover:shadow-lg transition-all text-left flex flex-col h-full cursor-pointer"
+              >
+                <div className="absolute top-0 right-0 p-3">
+                  <div className="bg-white/10 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                    Custom AI
+                  </div>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                  <Upload className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Personal CBT</h3>
+                <p className="text-white/80 text-sm flex-grow">
+                  Upload notes or textbooks. Our AI will automatically generate questions for you.
+                </p>
+                <div className="mt-4 flex items-center text-white font-medium text-sm">
+                  Upload Files <ChevronRight className="w-4 h-4 ml-1" />
+                </div>
+              </motion.button>
 
-                if (exam.id === 'Audio Study') {
-                  return (
-                    <motion.button
-                      key={exam.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                      onClick={() => onNavigateTo('audio')}
-                      className="group relative overflow-hidden bg-rose-600 p-6 rounded-2xl shadow-sm border border-rose-500/20 hover:shadow-lg transition-all text-left flex flex-col h-full cursor-pointer"
-                    >
-                      <div className="absolute top-0 right-0 p-3">
-                        <div className="bg-white/10 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                          Audio Multi-Modal
-                        </div>
-                      </div>
-                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-                        <Mic className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Audio AI Study</h3>
-                      <p className="text-white/80 text-sm flex-grow">
-                        Record your lecturers or voice notes. AI generates full explanations and tests.
-                      </p>
-                      <div className="mt-4 flex items-center text-white font-medium text-sm">
-                        Open Studio <ChevronRight className="w-4 h-4 ml-1" />
-                      </div>
-                    </motion.button>
-                  );
-                }
+              {/* Audio AI Study Card */}
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => onNavigateTo('audio')}
+                className="group relative overflow-hidden bg-rose-600 p-6 rounded-2xl shadow-sm border border-rose-500/20 hover:shadow-lg transition-all text-left flex flex-col h-full cursor-pointer"
+              >
+                <div className="absolute top-0 right-0 p-3">
+                  <div className="bg-white/10 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                    Audio Multi-Modal
+                  </div>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                  <Mic className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Audio AI Study</h3>
+                <p className="text-white/80 text-sm flex-grow">
+                  Record your lecturers or voice notes. AI generates full explanations and tests.
+                </p>
+                <div className="mt-4 flex items-center text-white font-medium text-sm">
+                  Open Studio <ChevronRight className="w-4 h-4 ml-1" />
+                </div>
+              </motion.button>
 
+              {/* Active Country National & Regional Exams */}
+              {activeCountryConfig.supportedExams.map((exam, index) => {
+                const IconComponent = getExamIconComponent(exam.iconName);
                 return (
                   <motion.button
                     key={exam.id}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => onSelect(exam.id)}
-                    className="group bg-theme-card p-6 rounded-2xl shadow-sm border border-theme-border hover:border-theme-accent hover:shadow-md transition-all text-left flex flex-col h-full"
+                    transition={{ delay: index * 0.08 }}
+                    onClick={() => {
+                      if (exam.isAvailable) {
+                        onSelect(exam.id as ExamType);
+                      } else {
+                        setUnsupportedExamModal(exam);
+                      }
+                    }}
+                    className="group bg-theme-card p-6 rounded-2xl shadow-sm border border-theme-border hover:border-theme-accent hover:shadow-md transition-all text-left flex flex-col h-full cursor-pointer"
                   >
                     <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110", exam.lightColor)}>
-                      <exam.icon className={cn("w-6 h-6", exam.color.replace('bg-', 'text-'))} />
+                      <IconComponent className={cn("w-6 h-6", exam.color.replace('bg-', 'text-'))} />
                     </div>
-                    <h3 className="text-xl font-bold text-theme-text mb-2">{exam.title}</h3>
-                    <p className="text-theme-muted text-sm flex-grow">{exam.description}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-xl font-bold text-theme-text">{exam.name}</h3>
+                      {exam.scope === 'regional_shared' && (
+                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">
+                          Shared
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-theme-muted text-xs flex-grow leading-relaxed">{exam.description}</p>
                     <div className="mt-4 flex items-center text-theme-accent font-medium text-sm">
-                      Start Practice <ChevronRight className="w-4 h-4 ml-1" />
+                      {exam.isAvailable ? "Start Practice" : "View Exam Status"} <ChevronRight className="w-4 h-4 ml-1" />
                     </div>
                   </motion.button>
                 );
@@ -545,6 +611,155 @@ export function ExamTypeSelection({ onSelect, user, profile, onLogout, onNavigat
                 onSelect('Personal CBT', questions, duration);
               }}
             />
+          )}
+
+          {/* Country Selection Modal */}
+          {showCountryModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowCountryModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-theme-card rounded-3xl p-6 sm:p-8 max-w-xl w-full border border-theme-border shadow-2xl space-y-6"
+              >
+                <div className="flex items-center justify-between pb-4 border-b border-theme-border/60">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                      <Globe size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-theme-text">Select Default Country</h3>
+                      <p className="text-xs text-theme-muted">Choose your country to view corresponding national examinations.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCountryModal(false)}
+                    className="p-2 hover:bg-theme-bg rounded-full text-theme-muted hover:text-theme-text transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+                  {allCountries.map((country) => {
+                    const isSelected = activeCountryId === country.id || activeCountryId === country.name;
+                    return (
+                      <button
+                        key={country.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveCountryId(country.id);
+                          setShowCountryModal(false);
+                        }}
+                        className={cn(
+                          "p-3 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer",
+                          isSelected
+                            ? "bg-amber-500/10 border-amber-500 text-theme-text shadow-sm ring-1 ring-amber-500/30"
+                            : "bg-theme-bg/50 border-theme-border hover:bg-theme-bg hover:border-theme-accent/40 text-theme-muted hover:text-theme-text"
+                        )}
+                      >
+                        <span className="text-2xl">{country.flag}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-xs truncate text-theme-text">{country.name}</p>
+                          <p className="text-[10px] text-theme-muted truncate">{country.code}</p>
+                        </div>
+                        {isSelected && <CheckCircle2 size={16} className="text-amber-500 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-2 text-center">
+                  <p className="text-[11px] text-theme-muted">
+                    Shared regional bodies (like WAEC across West Africa) are seamlessly available across participating countries.
+                  </p>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* Unsupported / In-Provisioning Exam Modal */}
+          {unsupportedExamModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setUnsupportedExamModal(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-theme-card rounded-3xl p-6 sm:p-8 max-w-md w-full border border-theme-border shadow-2xl space-y-5"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-black">
+                      <AlertCircle size={20} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-base text-theme-text">{unsupportedExamModal.name}</h3>
+                      <span className="text-[10px] font-bold text-amber-500">Bank Ingestion In Progress</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setUnsupportedExamModal(null)}
+                    className="p-2 hover:bg-theme-bg rounded-full text-theme-muted transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <p className="text-xs text-theme-muted leading-relaxed">
+                  The official past question bank for <strong className="text-theme-text">{unsupportedExamModal.fullName}</strong> is registered and in the provisioning phase.
+                </p>
+
+                <div className="p-4 bg-theme-bg/60 rounded-2xl border border-theme-border/60 space-y-2 text-xs">
+                  <p className="font-bold text-theme-text">How would you like to practice?</p>
+                  <ul className="list-disc list-inside space-y-1 text-theme-muted text-[11px]">
+                    <li>Upload your own past question notes or PDF into <strong className="text-theme-accent">Personal CBT</strong>.</li>
+                    <li>Or practice with active shared banks like <strong className="text-emerald-500">WAEC WASSCE</strong>.</li>
+                  </ul>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUnsupportedExamModal(null);
+                      onNavigateTo('file_upload');
+                    }}
+                    className="w-full py-3 bg-theme-accent hover:opacity-90 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+                  >
+                    <Upload size={14} />
+                    <span>Upload Notes in Personal CBT</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUnsupportedExamModal(null);
+                      onSelect('WAEC');
+                    }}
+                    className="w-full py-3 bg-theme-card hover:bg-theme-bg text-theme-text font-bold rounded-xl text-xs border border-theme-border flex items-center justify-center gap-2 transition-all"
+                  >
+                    <BookOpen size={14} />
+                    <span>Practice Live WAEC Bank Instead</span>
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
           )}
 
           {showUpload && (

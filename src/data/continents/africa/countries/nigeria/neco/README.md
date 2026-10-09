@@ -8,13 +8,13 @@ This guide contains the question ingestion standards and AI extraction prompts f
 
 Save your extracted JSON file in the following structure:
 ```text
-src/data/question_banks/neco/{subject_lowercase}/neco_{subject_lowercase}_{year}.json
+src/data/continents/africa/countries/nigeria/neco/{subject_lowercase}/neco_{subject_lowercase}_{year}.json
 ```
 
 ### Examples:
-- **Mathematics 2024**: `src/data/question_banks/neco/mathematics/neco_math_2024.json`
-- **English Language 2024**: `src/data/question_banks/neco/english/neco_english_2024.json`
-- **Physics 2024**: `src/data/question_banks/neco/physics/neco_physics_2024.json`
+- **Mathematics 2024**: `src/data/continents/africa/countries/nigeria/neco/mathematics/neco_math_2024.json`
+- **English Language 2024**: `src/data/continents/africa/countries/nigeria/neco/english/neco_english_2024.json`
+- **Physics 2024**: `src/data/continents/africa/countries/nigeria/neco/physics/neco_physics_2024.json`
 
 ---
 
@@ -48,7 +48,7 @@ Your task is to transcribe, mathematically verify, and output all questions and 
 - Examination Body: NECO (SSCE)
 - Subject: [SUBJECT]
 - Year: [YEAR]
-- File Destination: src/data/question_banks/neco/[subject_lowercase]/neco_[subject_lowercase]_[year].json
+- File Destination: src/data/continents/africa/countries/nigeria/neco/[subject_lowercase]/neco_[subject_lowercase]_[year].json
 
 ### MANDATORY RULES:
 1. PURE JSON ONLY: Output ONLY a valid JSON array starting with `[` and ending with `]`. No markdown backticks.
@@ -75,7 +75,7 @@ Your mission is to transcribe, mathematically solve, and output every single que
 - Examination Body: NECO
 - Subject: [SUBJECT] (e.g. Mathematics, English Language, Physics, Chemistry, Biology, Economics)
 - Year: [YEAR] (e.g. 2024)
-- Target File: src/data/question_banks/neco/[subject_lowercase]/neco_[subject_lowercase]_[year].json
+- Target File: src/data/continents/africa/countries/nigeria/neco/[subject_lowercase]/neco_[subject_lowercase]_[year].json
 
 ### MANDATORY PRODUCTION RULES:
 
@@ -143,8 +143,8 @@ Your mission is to transcribe, mathematically solve, and output every single que
 
 ## 5. How to Manually Register a New Year in `index.ts`
 
-1. Save the file to `src/data/question_banks/neco/[subject]/neco_[subject]_[year].json`.
-2. Open `src/data/question_banks/neco/index.ts` and add:
+1. Save the file to `src/data/continents/africa/countries/nigeria/neco/[subject]/neco_[subject]_[year].json`.
+2. Open `src/data/continents/africa/countries/nigeria/neco/index.ts` and add:
    ```typescript
    import { Question } from '../../../types';
    import necoMath2024Json from './mathematics/neco_math_2024.json';

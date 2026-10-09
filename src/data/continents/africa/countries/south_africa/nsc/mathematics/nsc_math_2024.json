@@ -1,0 +1,36 @@
+[
+  {
+    "id": "nsc-math-2024-q1",
+    "examType": "NSC",
+    "subject": "Mathematics",
+    "year": 2024,
+    "difficulty": "Easy",
+    "question": "Solve for $x$: $x^2 - 5x - 6 = 0$.",
+    "options": [
+      "$x = 6$ or $x = -1$",
+      "$x = -6$ or $x = 1$",
+      "$x = 2$ or $x = 3$",
+      "$x = -2$ or $x = -3$"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Factorise the quadratic: $(x - 6)(x + 1) = 0$.\nTherefore $x = 6$ or $x = -1$.",
+    "topic": "Algebra - Quadratics"
+  },
+  {
+    "id": "nsc-math-2024-q2",
+    "examType": "NSC",
+    "subject": "Mathematics",
+    "year": 2024,
+    "difficulty": "Medium",
+    "question": "Determine the derivative $f'(x)$ if $f(x) = 3x^3 - 4x + 7$.",
+    "options": [
+      "$9x^2 - 4$",
+      "$9x^2 - 4x$",
+      "$6x^2 - 4$",
+      "$9x^3 - 4$"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Applying the power rule: $\\frac{d}{dx}(3x^3) = 9x^2$, $\\frac{d}{dx}(-4x) = -4$, and the derivative of a constant is 0.\nThus, $f'(x) = 9x^2 - 4$.",
+    "topic": "Differential Calculus"
+  }
+]

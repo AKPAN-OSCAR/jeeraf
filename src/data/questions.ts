@@ -1,5 +1,5 @@
 import { Question, ExamType } from '../types';
-import { allBuiltinQuestions } from './question_banks';
+import { allBuiltinQuestions } from './continents';
 
 export interface RawQuestion extends Omit<Question, 'examType' | 'id'> {
   id: string;
@@ -10,6 +10,7 @@ export const rawQuestions: RawQuestion[] = [];
 
 /**
  * Clean Built-in Core Syllabus Question Bank
- * Sourced directly from verified past questions in src/data/question_banks/
+ * Sourced directly from verified past questions organized by Continent -> Country / Regional Exam
  */
 export const questions: Question[] = allBuiltinQuestions;
+

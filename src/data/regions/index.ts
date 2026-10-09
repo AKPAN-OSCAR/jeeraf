@@ -8,6 +8,19 @@ export interface RegionalServer {
   status: 'active' | 'provisioning' | 'standby';
 }
 
+export interface SupportedExamConfig {
+  id: string;
+  name: string;
+  fullName: string;
+  description: string;
+  scope: 'national' | 'regional_shared';
+  databasePath: string;
+  isAvailable: boolean;
+  color: string;
+  lightColor: string;
+  iconName: 'GraduationCap' | 'BookOpen' | 'FileText' | 'Award' | 'Scroll' | 'Shield';
+}
+
 export interface CountryConfig {
   id: string;
   name: string;
@@ -16,13 +29,7 @@ export interface CountryConfig {
   code: string;
   currency: string;
   preferredServer: RegionalServer;
-  supportedExams: {
-    id: string;
-    name: string;
-    fullName: string;
-    databasePath: string;
-    isAvailable: boolean;
-  }[];
+  supportedExams: SupportedExamConfig[];
   educationBodies: string[];
   databaseType: 'json_file_bank' | 'firestore_nosql' | 'hybrid';
 }
@@ -127,11 +134,66 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['JAMB', 'WAEC', 'NECO', 'NABTEB', 'TRCN', 'POST-UTME'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'JAMB', name: 'JAMB UTME', fullName: 'Joint Admissions and Matriculation Board', databasePath: 'src/data/question_banks/jamb', isAvailable: true },
-          { id: 'WAEC', name: 'WAEC WASSCE', fullName: 'West African Examinations Council May/June', databasePath: 'src/data/question_banks/waec', isAvailable: true },
-          { id: 'NECO', name: 'NECO SSCE', fullName: 'National Examinations Council June/July', databasePath: 'src/data/question_banks/neco', isAvailable: true },
-          { id: 'WAEC GCE', name: 'WAEC GCE', fullName: 'West African Senior School Certificate (Private)', databasePath: 'src/data/question_banks/waec_gce', isAvailable: true },
-          { id: 'NECO GCE', name: 'NECO GCE', fullName: 'National Examinations Council (Nov/Dec Private)', databasePath: 'src/data/question_banks/neco_gce', isAvailable: true }
+          { 
+            id: 'JAMB', 
+            name: 'JAMB UTME', 
+            fullName: 'Joint Admissions and Matriculation Board', 
+            description: 'Unified Tertiary Matriculation Examination for Nigerian universities, polytechnics & colleges.',
+            scope: 'national',
+            databasePath: 'src/data/continents/africa/countries/nigeria/jamb', 
+            isAvailable: true,
+            color: 'bg-blue-600',
+            lightColor: 'bg-blue-50 dark:bg-blue-950/40',
+            iconName: 'GraduationCap'
+          },
+          { 
+            id: 'WAEC', 
+            name: 'WAEC WASSCE', 
+            fullName: 'West African Examinations Council (May/June)', 
+            description: 'West African Senior School Certificate Examination taken across Nigeria, Ghana, and West Africa.',
+            scope: 'regional_shared',
+            databasePath: 'src/data/continents/africa/regional_exams/waec', 
+            isAvailable: true,
+            color: 'bg-emerald-600',
+            lightColor: 'bg-emerald-50 dark:bg-emerald-950/40',
+            iconName: 'BookOpen'
+          },
+          { 
+            id: 'NECO', 
+            name: 'NECO SSCE', 
+            fullName: 'National Examinations Council June/July', 
+            description: 'Nigeria Senior School Certificate Examination for secondary school completion.',
+            scope: 'national',
+            databasePath: 'src/data/continents/africa/countries/nigeria/neco', 
+            isAvailable: true,
+            color: 'bg-amber-600',
+            lightColor: 'bg-amber-50 dark:bg-amber-950/40',
+            iconName: 'FileText'
+          },
+          { 
+            id: 'WAEC GCE', 
+            name: 'WAEC GCE', 
+            fullName: 'West African Senior School Certificate (Private Candidates)', 
+            description: 'General Certificate of Education for private candidates across West Africa.',
+            scope: 'regional_shared',
+            databasePath: 'src/data/continents/africa/regional_exams/waec_gce', 
+            isAvailable: true,
+            color: 'bg-purple-600',
+            lightColor: 'bg-purple-50 dark:bg-purple-950/40',
+            iconName: 'Award'
+          },
+          { 
+            id: 'NECO GCE', 
+            name: 'NECO GCE', 
+            fullName: 'National Examinations Council (Nov/Dec Private)', 
+            description: 'Private candidate examination by NECO.',
+            scope: 'national',
+            databasePath: 'src/data/continents/africa/countries/nigeria/neco_gce', 
+            isAvailable: true,
+            color: 'bg-rose-600',
+            lightColor: 'bg-rose-50 dark:bg-rose-950/40',
+            iconName: 'FileText'
+          }
         ]
       },
       {
@@ -145,9 +207,42 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['WAEC Ghana', 'BECE', 'WASSCE'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'WAEC', name: 'WAEC Ghana WASSCE', fullName: 'West African Examinations Council (Ghana)', databasePath: 'src/data/question_banks/waec', isAvailable: true },
-          { id: 'BECE', name: 'BECE', fullName: 'Basic Education Certificate Examination', databasePath: 'src/data/question_banks/ghana/bece', isAvailable: true },
-          { id: 'NOVDEC', name: 'Nov/Dec Private', fullName: 'General Certificate of Education Private', databasePath: 'src/data/question_banks/ghana/novdec', isAvailable: true }
+          { 
+            id: 'WAEC', 
+            name: 'WAEC (WASSCE Ghana)', 
+            fullName: 'West African Examinations Council (Ghana)', 
+            description: 'Senior School Certificate written across Ghana and West Africa (Shared Syllabus).',
+            scope: 'regional_shared',
+            databasePath: 'src/data/continents/africa/regional_exams/waec', 
+            isAvailable: true,
+            color: 'bg-emerald-600',
+            lightColor: 'bg-emerald-50 dark:bg-emerald-950/40',
+            iconName: 'BookOpen'
+          },
+          { 
+            id: 'BECE', 
+            name: 'BECE (Ghana)', 
+            fullName: 'Basic Education Certificate Examination', 
+            description: 'National examination for transition into senior high schools in Ghana.',
+            scope: 'national',
+            databasePath: 'src/data/continents/africa/countries/ghana/bece', 
+            isAvailable: true,
+            color: 'bg-blue-600',
+            lightColor: 'bg-blue-50 dark:bg-blue-950/40',
+            iconName: 'GraduationCap'
+          },
+          { 
+            id: 'NOVDEC', 
+            name: 'Nov/Dec Private', 
+            fullName: 'General Certificate of Education Private (WASSCE Ghana)', 
+            description: 'Private candidate secondary assessment in Ghana.',
+            scope: 'national',
+            databasePath: 'src/data/continents/africa/countries/ghana/novdec', 
+            isAvailable: false,
+            color: 'bg-purple-600',
+            lightColor: 'bg-purple-50 dark:bg-purple-950/40',
+            iconName: 'Award'
+          }
         ]
       },
       {
@@ -161,8 +256,30 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['KNEC', 'KCSE', 'KCPE'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'KCSE', name: 'KCSE', fullName: 'Kenya Certificate of Secondary Education', databasePath: 'src/data/question_banks/kenya/kcse', isAvailable: true },
-          { id: 'KCPE', name: 'KCPE', fullName: 'Kenya Certificate of Primary Education', databasePath: 'src/data/question_banks/kenya/kcpe', isAvailable: true }
+          { 
+            id: 'KCSE', 
+            name: 'KCSE', 
+            fullName: 'Kenya Certificate of Secondary Education', 
+            description: 'National secondary school examination administered by KNEC.',
+            scope: 'national',
+            databasePath: 'src/data/continents/africa/countries/kenya/kcse', 
+            isAvailable: true,
+            color: 'bg-teal-600',
+            lightColor: 'bg-teal-50 dark:bg-teal-950/40',
+            iconName: 'BookOpen'
+          },
+          { 
+            id: 'KCPE', 
+            name: 'KCPE', 
+            fullName: 'Kenya Certificate of Primary Education', 
+            description: 'National primary level completion assessment.',
+            scope: 'national',
+            databasePath: 'src/data/continents/africa/countries/kenya/kcpe', 
+            isAvailable: false,
+            color: 'bg-blue-600',
+            lightColor: 'bg-blue-50 dark:bg-blue-950/40',
+            iconName: 'GraduationCap'
+          }
         ]
       },
       {
@@ -176,8 +293,30 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['DBE', 'IEB', 'NSC Matric'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'NSC', name: 'NSC Matric', fullName: 'National Senior Certificate Examinations', databasePath: 'src/data/question_banks/south_africa/nsc', isAvailable: true },
-          { id: 'IEB', name: 'IEB National', fullName: 'Independent Examinations Board', databasePath: 'src/data/question_banks/south_africa/ieb', isAvailable: true }
+          { 
+            id: 'NSC', 
+            name: 'NSC Matric', 
+            fullName: 'National Senior Certificate Examinations', 
+            description: 'South African secondary school graduation examination administered by DBE.',
+            scope: 'national',
+            databasePath: 'src/data/continents/africa/countries/south_africa/nsc', 
+            isAvailable: true,
+            color: 'bg-indigo-600',
+            lightColor: 'bg-indigo-50 dark:bg-indigo-950/40',
+            iconName: 'Award'
+          },
+          { 
+            id: 'IEB', 
+            name: 'IEB National', 
+            fullName: 'Independent Examinations Board', 
+            description: 'South African private secondary examinations assessment.',
+            scope: 'national',
+            databasePath: 'src/data/continents/africa/countries/south_africa/ieb', 
+            isAvailable: false,
+            color: 'bg-amber-600',
+            lightColor: 'bg-amber-50 dark:bg-amber-950/40',
+            iconName: 'FileText'
+          }
         ]
       },
       {
@@ -191,7 +330,18 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['NESA', 'REB National'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'S6_NAT', name: 'S6 National Exam', fullName: 'National Examination and School Inspection Authority', databasePath: 'src/data/question_banks/rwanda/s6', isAvailable: true }
+          { 
+            id: 'S6_NAT', 
+            name: 'S6 National Exam', 
+            fullName: 'National Examination and School Inspection Authority', 
+            description: 'Rwanda Advanced Level Upper Secondary national examination.',
+            scope: 'national',
+            databasePath: 'src/data/question_banks/rwanda/s6', 
+            isAvailable: false,
+            color: 'bg-emerald-600',
+            lightColor: 'bg-emerald-50 dark:bg-emerald-950/40',
+            iconName: 'BookOpen'
+          }
         ]
       },
       {
@@ -205,7 +355,18 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['Thanaweya Amma', 'Ministry of Education'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'THANAWEYA', name: 'Thanaweya Amma', fullName: 'General Secondary Education Certificate', databasePath: 'src/data/question_banks/egypt/thanaweya', isAvailable: true }
+          { 
+            id: 'THANAWEYA', 
+            name: 'Thanaweya Amma', 
+            fullName: 'General Secondary Education Certificate', 
+            description: 'Egyptian university entrance and general secondary examination.',
+            scope: 'national',
+            databasePath: 'src/data/question_banks/egypt/thanaweya', 
+            isAvailable: false,
+            color: 'bg-rose-600',
+            lightColor: 'bg-rose-50 dark:bg-rose-950/40',
+            iconName: 'GraduationCap'
+          }
         ]
       },
       {
@@ -219,7 +380,18 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['EAES National'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'EUEE', name: 'EUEE Grade 12', fullName: 'Ethiopian University Entrance Examination', databasePath: 'src/data/question_banks/ethiopia/euee', isAvailable: true }
+          { 
+            id: 'EUEE', 
+            name: 'EUEE Grade 12', 
+            fullName: 'Ethiopian University Entrance Examination', 
+            description: 'National secondary school leaving and university entrance test.',
+            scope: 'national',
+            databasePath: 'src/data/question_banks/ethiopia/euee', 
+            isAvailable: false,
+            color: 'bg-amber-600',
+            lightColor: 'bg-amber-50 dark:bg-amber-950/40',
+            iconName: 'FileText'
+          }
         ]
       },
       {
@@ -233,8 +405,30 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['UNEB', 'UCE', 'UACE'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'UCE', name: 'UCE O-Level', fullName: 'Uganda Certificate of Education', databasePath: 'src/data/question_banks/uganda/uce', isAvailable: true },
-          { id: 'UACE', name: 'UACE A-Level', fullName: 'Uganda Advanced Certificate of Education', databasePath: 'src/data/question_banks/uganda/uace', isAvailable: true }
+          { 
+            id: 'UCE', 
+            name: 'UCE O-Level', 
+            fullName: 'Uganda Certificate of Education', 
+            description: 'Ordinary level secondary examinations administered by UNEB.',
+            scope: 'national',
+            databasePath: 'src/data/question_banks/uganda/uce', 
+            isAvailable: false,
+            color: 'bg-blue-600',
+            lightColor: 'bg-blue-50 dark:bg-blue-950/40',
+            iconName: 'BookOpen'
+          },
+          { 
+            id: 'UACE', 
+            name: 'UACE A-Level', 
+            fullName: 'Uganda Advanced Certificate of Education', 
+            description: 'Advanced level secondary examinations administered by UNEB.',
+            scope: 'national',
+            databasePath: 'src/data/question_banks/uganda/uace', 
+            isAvailable: false,
+            color: 'bg-indigo-600',
+            lightColor: 'bg-indigo-50 dark:bg-indigo-950/40',
+            iconName: 'GraduationCap'
+          }
         ]
       },
       {
@@ -248,8 +442,30 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['NECTA', 'CSEE', 'ACSEE'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'CSEE', name: 'CSEE Form 4', fullName: 'Certificate of Secondary Education Examination', databasePath: 'src/data/question_banks/tanzania/csee', isAvailable: true },
-          { id: 'ACSEE', name: 'ACSEE Form 6', fullName: 'Advanced Certificate of Secondary Education Examination', databasePath: 'src/data/question_banks/tanzania/acsee', isAvailable: true }
+          { 
+            id: 'CSEE', 
+            name: 'CSEE Form 4', 
+            fullName: 'Certificate of Secondary Education Examination', 
+            description: 'Form 4 secondary school certificate administered by NECTA.',
+            scope: 'national',
+            databasePath: 'src/data/question_banks/tanzania/csee', 
+            isAvailable: false,
+            color: 'bg-teal-600',
+            lightColor: 'bg-teal-50 dark:bg-teal-950/40',
+            iconName: 'FileText'
+          },
+          { 
+            id: 'ACSEE', 
+            name: 'ACSEE Form 6', 
+            fullName: 'Advanced Certificate of Secondary Education Examination', 
+            description: 'Form 6 advanced secondary certificate administered by NECTA.',
+            scope: 'national',
+            databasePath: 'src/data/question_banks/tanzania/acsee', 
+            isAvailable: false,
+            color: 'bg-purple-600',
+            lightColor: 'bg-purple-50 dark:bg-purple-950/40',
+            iconName: 'Award'
+          }
         ]
       },
       {
@@ -263,8 +479,30 @@ export const CONTINENTS: ContinentConfig[] = [
         educationBodies: ['Pan-African Examination Alliance', 'Cambridge International Africa'],
         databaseType: 'json_file_bank',
         supportedExams: [
-          { id: 'WAEC', name: 'WAEC All-Region', fullName: 'West African Examinations Council International', databasePath: 'src/data/question_banks/waec', isAvailable: true },
-          { id: 'CAMBRIDGE', name: 'Cambridge IGCSE', fullName: 'Cambridge International Secondary Assessment', databasePath: 'src/data/question_banks/international/cambridge', isAvailable: true }
+          { 
+            id: 'WAEC', 
+            name: 'WAEC All-Region', 
+            fullName: 'West African Examinations Council International', 
+            description: 'West Africa international senior school examination.',
+            scope: 'regional_shared',
+            databasePath: 'src/data/continents/africa/regional_exams/waec', 
+            isAvailable: true,
+            color: 'bg-emerald-600',
+            lightColor: 'bg-emerald-50 dark:bg-emerald-950/40',
+            iconName: 'BookOpen'
+          },
+          { 
+            id: 'CAMBRIDGE', 
+            name: 'Cambridge IGCSE', 
+            fullName: 'Cambridge International Secondary Assessment', 
+            description: 'International General Certificate of Secondary Education.',
+            scope: 'national',
+            databasePath: 'src/data/question_banks/international/cambridge', 
+            isAvailable: false,
+            color: 'bg-blue-600',
+            lightColor: 'bg-blue-50 dark:bg-blue-950/40',
+            iconName: 'GraduationCap'
+          }
         ]
       }
     ]

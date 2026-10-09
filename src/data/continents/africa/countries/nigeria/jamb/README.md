@@ -8,15 +8,15 @@ This guide contains the question ingestion standards and AI extraction prompts f
 
 Save your extracted JSON file in the following structure:
 ```text
-src/data/question_banks/jamb/{subject_lowercase}/jamb_{subject_lowercase}_{year}.json
+src/data/continents/africa/countries/nigeria/jamb/{subject_lowercase}/jamb_{subject_lowercase}_{year}.json
 ```
 
 ### Examples:
-- **Mathematics 2024**: `src/data/question_banks/jamb/mathematics/jamb_math_2024.json`
-- **English Language 2024**: `src/data/question_banks/jamb/english/jamb_english_2024.json`
-- **Physics 2024**: `src/data/question_banks/jamb/physics/jamb_physics_2024.json`
-- **Chemistry 2024**: `src/data/question_banks/jamb/chemistry/jamb_chemistry_2024.json`
-- **Biology 2024**: `src/data/question_banks/jamb/biology/jamb_biology_2024.json`
+- **Mathematics 2024**: `src/data/continents/africa/countries/nigeria/jamb/mathematics/jamb_math_2024.json`
+- **English Language 2024**: `src/data/continents/africa/countries/nigeria/jamb/english/jamb_english_2024.json`
+- **Physics 2024**: `src/data/continents/africa/countries/nigeria/jamb/physics/jamb_physics_2024.json`
+- **Chemistry 2024**: `src/data/continents/africa/countries/nigeria/jamb/chemistry/jamb_chemistry_2024.json`
+- **Biology 2024**: `src/data/continents/africa/countries/nigeria/jamb/biology/jamb_biology_2024.json`
 
 ---
 
@@ -49,7 +49,7 @@ Your task is to transcribe, mathematically verify, and output all questions and 
 - Examination Body: JAMB (UTME)
 - Subject: [SUBJECT]
 - Year: [YEAR]
-- File Destination: src/data/question_banks/jamb/[subject_lowercase]/jamb_[subject_lowercase]_[year].json
+- File Destination: src/data/continents/africa/countries/nigeria/jamb/[subject_lowercase]/jamb_[subject_lowercase]_[year].json
 
 ### MANDATORY RULES:
 1. PURE JSON ONLY: Output ONLY a valid JSON array starting with `[` and ending with `]`. No conversational text, no markdown wrappers.
@@ -76,7 +76,7 @@ Your mission is to transcribe, mathematically solve, and output every single que
 - Examination Body: JAMB
 - Subject: [SUBJECT] (e.g. Mathematics, English Language, Physics, Chemistry, Biology, Economics, Government)
 - Year: [YEAR] (e.g. 2023)
-- Target File: src/data/question_banks/jamb/[subject_lowercase]/jamb_[subject_lowercase]_[year].json
+- Target File: src/data/continents/africa/countries/nigeria/jamb/[subject_lowercase]/jamb_[subject_lowercase]_[year].json
 
 ### MANDATORY PRODUCTION RULES:
 
@@ -145,8 +145,8 @@ Your mission is to transcribe, mathematically solve, and output every single que
 
 ## 5. How to Manually Register a New Year in `index.ts`
 
-1. Save the file to `src/data/question_banks/jamb/[subject]/jamb_[subject]_[year].json`.
-2. Open `src/data/question_banks/jamb/index.ts` and add:
+1. Save the file to `src/data/continents/africa/countries/nigeria/jamb/[subject]/jamb_[subject]_[year].json`.
+2. Open `src/data/continents/africa/countries/nigeria/jamb/index.ts` and add:
    ```typescript
    import { Question } from '../../../types';
    import jambMath2024Json from './mathematics/jamb_math_2024.json';
