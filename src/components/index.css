@@ -122,15 +122,15 @@ body, button, input, select, textarea, .theme-card, .theme-transition {
 
 /* KaTeX Formula Typography & Size Harmonization - enlarged, crisp, and comfortable */
 .katex {
-  font-size: 1.15em;
+  font-size: 1.08em;
   color: inherit;
 }
 .katex-display {
-  margin: 0.85em 0 !important;
-  font-size: 1.22em;
+  margin: 0.6em 0 !important;
+  font-size: 1.15em;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.35em 0;
+  padding: 0.25em 0;
   color: inherit;
 }
 

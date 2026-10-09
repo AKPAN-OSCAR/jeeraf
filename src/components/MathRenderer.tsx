@@ -26,7 +26,7 @@ interface ListBlock {
 
 interface ParagraphBlock {
   type: 'paragraph';
-  lines: string[];
+  content: string;
 }
 
 type Block = TableBlock | HeadingBlock | ListBlock | ParagraphBlock;
@@ -41,8 +41,6 @@ function cleanMathExpression(math: string): string {
     .replace(/\\\$/g, '')
     // Handle currency inside math: \text{₦}
     .replace(/₦/g, '\\text{₦}')
-    // Insert spacing for mixed fractions like 1\frac{1}{2} -> 1\,\frac{1}{2}
-    .replace(/([0-9])\\frac/g, '$1\\,\\frac')
     // Convert single digit fractions like \frac12 to \frac{1}{2}
     .replace(/\\frac([0-9a-zA-Z])([0-9a-zA-Z])/g, '\\frac{$1}{$2}')
     // Convert \frac{1}2 to \frac{1}{2}
@@ -52,7 +50,6 @@ function cleanMathExpression(math: string): string {
     .trim();
 }
 
-// Split a markdown row by pipe
 function splitTableRow(rowStr: string): string[] {
   let cleaned = rowStr.trim();
   if (cleaned.startsWith('|')) cleaned = cleaned.substring(1);
@@ -93,85 +90,86 @@ function parseMarkdownTable(tableLines: string[]): TableBlock | null {
   return null;
 }
 
-// Formats text with **bold** and *italic*
-function parseFormattedText(text: string): React.ReactNode[] {
-  if (!text) return [];
-
-  // Match bold **...**
-  const boldParts = text.split(/(\*\*.*?\*\*)/g);
-  return boldParts.map((bPart, i) => {
-    if (bPart.startsWith('**') && bPart.endsWith('**') && bPart.length >= 4) {
-      const inner = bPart.slice(2, -2);
-      return <strong key={i} className="font-extrabold text-theme-text">{inner}</strong>;
-    }
-
-    // Match italic *...* (only when not empty and at least 2 chars)
-    const italicParts = bPart.split(/(\*[^*\n]+?\*)/g);
-    return italicParts.map((iPart, j) => {
-      if (iPart.startsWith('*') && iPart.endsWith('*') && iPart.length >= 2) {
-        const inner = iPart.slice(1, -1);
-        return <em key={j} className="italic">{inner}</em>;
-      }
-      return iPart;
-    });
-  });
-}
-
-// Helper to safely render inline tokens including math ($...$ and $$...$$) and newlines
-function parseInlineContent(str: string): React.ReactNode[] {
+// Safely parses inline math, HTML underline, bold, italic, and soft linebreaks
+function renderInlineContent(str: string): React.ReactNode[] {
   if (!str) return [];
 
-  // Split string by:
+  // Match:
   // 1. $$...$$ (block math)
   // 2. $...$ (inline math)
-  // 3. \n (newline inside paragraph)
-  const parts = str.split(/(\$\$[\s\S]*?\$\$|\$[^\$\n]+?\$|\n)/g);
+  // 3. <u>...</u> (underline tag e.g. JAMB English antonym/synonym questions)
+  // 4. **...** (bold markdown)
+  // 5. *...* (italic markdown)
+  // 6. \n (soft newline)
+  const regex = /(\$\$[\s\S]*?\$\$|\$[^\$\n]+?\$|<u>[\s\S]*?<\/u>|\*\*[\s\S]*?\*\*|\*[^*\n]+?\*|\n)/g;
+  const tokens = str.split(regex);
 
-  return parts.map((part, index) => {
-    if (!part) return null;
+  return tokens.map((token, index) => {
+    if (!token) return null;
 
-    if (part === '\n') {
+    if (token === '\n') {
       return <br key={`br-${index}`} />;
     }
 
-    // Block Math $$...$$
-    if (part.startsWith('$$') && part.endsWith('$$') && part.length >= 4) {
-      const rawMath = part.slice(2, -2).trim();
+    // Block math $$...$$
+    if (token.startsWith('$$') && token.endsWith('$$') && token.length >= 4) {
+      const rawMath = token.slice(2, -2).trim();
       const math = cleanMathExpression(rawMath);
       try {
         return (
-          <span key={index} className="block my-2 text-center max-w-full overflow-x-auto text-theme-text">
+          <div key={`bm-${index}`} className="my-2.5 text-center max-w-full overflow-x-auto text-theme-text">
             <BlockMath 
               math={math} 
               renderError={() => <span className="italic text-theme-text px-1">[{rawMath}]</span>} 
             />
-          </span>
+          </div>
         );
       } catch {
-        return <span key={index} className="italic text-theme-text px-1">[{rawMath}]</span>;
+        return <span key={`bm-err-${index}`} className="italic text-theme-text px-1">[{rawMath}]</span>;
       }
     }
 
-    // Inline Math $...$
-    if (part.startsWith('$') && part.endsWith('$') && part.length >= 2) {
-      const rawMath = part.slice(1, -1).trim();
+    // Inline math $...$
+    if (token.startsWith('$') && token.endsWith('$') && token.length >= 2) {
+      const rawMath = token.slice(1, -1).trim();
       const math = cleanMathExpression(rawMath);
       try {
         return (
-          <span key={index} className="inline align-baseline text-theme-text">
-            <InlineMath 
-              math={math} 
-              renderError={() => <span className="italic text-theme-text">{rawMath}</span>} 
-            />
-          </span>
+          <InlineMath 
+            key={`im-${index}`}
+            math={math} 
+            renderError={() => <span className="italic text-theme-text">{rawMath}</span>} 
+          />
         );
       } catch {
-        return <span key={index} className="italic text-theme-text">{rawMath}</span>;
+        return <span key={`im-err-${index}`} className="italic text-theme-text">{rawMath}</span>;
       }
     }
 
-    // Regular inline text with formatting (**bold**, *italic*)
-    return <React.Fragment key={index}>{parseFormattedText(part)}</React.Fragment>;
+    // Underline <u>...</u>
+    if (token.startsWith('<u>') && token.endsWith('</u>') && token.length >= 7) {
+      const inner = token.slice(3, -4);
+      return (
+        <u key={`u-${index}`} className="underline decoration-theme-accent underline-offset-4 font-semibold text-theme-text">
+          {inner}
+        </u>
+      );
+    }
+
+    // Bold **...**
+    if (token.startsWith('**') && token.endsWith('**') && token.length >= 4) {
+      const inner = token.slice(2, -2);
+      return <strong key={`b-${index}`} className="font-bold text-theme-text">{inner}</strong>;
+    }
+
+    // Italic *...*
+    if (token.startsWith('*') && token.endsWith('*') && token.length >= 2) {
+      const inner = token.slice(1, -1);
+      return <em key={`i-${index}`} className="italic">{inner}</em>;
+    }
+
+    // Plain text token - return as-is to preserve natural word spacing
+    return <React.Fragment key={`txt-${index}`}>{token}</React.Fragment>;
   });
 }
 
@@ -181,7 +179,32 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
   // Clean raw carriage returns
   const sanitized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-  // Group into blocks: Tables, Headings, Lists, Paragraphs
+  // If text does not contain tables, headings, or lists, render directly without block overhead
+  const hasMarkdownStructure = /\|.*\||^(#{1,4}\s+|[\*\-\+]\s+)/m.test(sanitized);
+
+  if (!hasMarkdownStructure) {
+    // Check if there are double newlines (multiple paragraphs)
+    const paragraphs = sanitized.split(/\n\s*\n/);
+    if (paragraphs.length <= 1) {
+      return (
+        <div className={`text-theme-text leading-relaxed tracking-normal ${className}`}>
+          {renderInlineContent(sanitized)}
+        </div>
+      );
+    }
+
+    return (
+      <div className={`text-theme-text leading-relaxed tracking-normal ${className}`}>
+        {paragraphs.map((p, idx) => (
+          <p key={idx} className={idx > 0 ? "mt-3" : ""}>
+            {renderInlineContent(p)}
+          </p>
+        ))}
+      </div>
+    );
+  }
+
+  // Parse structured blocks: Tables, Headings, Lists, Paragraphs
   const rawLines = sanitized.split('\n');
   const blocks: Block[] = [];
   let currentTableLines: string[] = [];
@@ -192,7 +215,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
     if (currentParagraphLines.length > 0) {
       blocks.push({
         type: 'paragraph',
-        lines: [...currentParagraphLines]
+        content: currentParagraphLines.join('\n')
       });
       currentParagraphLines = [];
     }
@@ -214,7 +237,6 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
       if (parsedTable) {
         blocks.push(parsedTable);
       } else {
-        // Fallback: append table lines to paragraph
         currentParagraphLines.push(...currentTableLines);
         flushParagraph();
       }
@@ -226,9 +248,8 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
     const line = rawLines[i];
     const trimmed = line.trim();
 
-    // Check if markdown table row
+    // Markdown table row
     const isTableRow = trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.length > 2 && !trimmed.startsWith('$$');
-
     if (isTableRow) {
       flushParagraph();
       flushList();
@@ -238,14 +259,14 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
       flushTable();
     }
 
-    // Check if empty line (marks paragraph break)
+    // Empty line (paragraph boundary)
     if (!trimmed) {
       flushParagraph();
       flushList();
       continue;
     }
 
-    // Check for Markdown Headings
+    // Markdown Headings
     if (/^#{1,4}\s+/.test(trimmed)) {
       flushParagraph();
       flushList();
@@ -260,7 +281,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
       }
     }
 
-    // Check for Markdown Bullet List (- item or * item)
+    // Markdown Bullet List
     if (/^[\*\-\+]\s+/.test(trimmed)) {
       flushParagraph();
       currentListItems.push(trimmed.replace(/^[\*\-\+]\s+/, ''));
@@ -269,7 +290,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
       flushList();
     }
 
-    // Normal content line - preserve naturally inside paragraph
+    // Normal line inside paragraph
     currentParagraphLines.push(line);
   }
 
@@ -277,17 +298,8 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
   flushList();
   flushParagraph();
 
-  // If only one simple paragraph, render directly without wrapping margins
-  if (blocks.length === 1 && blocks[0].type === 'paragraph') {
-    return (
-      <div className={`leading-relaxed text-theme-text ${className}`}>
-        {parseInlineContent(blocks[0].lines.join('\n'))}
-      </div>
-    );
-  }
-
   return (
-    <div className={`text-theme-text leading-relaxed ${className}`}>
+    <div className={`text-theme-text leading-relaxed tracking-normal ${className}`}>
       {blocks.map((block, idx) => {
         if (block.type === 'table') {
           return (
@@ -304,7 +316,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
                           key={hIdx} 
                           className="px-4 py-2 text-xs font-black uppercase tracking-wider text-theme-text border border-theme-border text-center sm:text-left bg-theme-bg"
                         >
-                          {parseInlineContent(head)}
+                          {renderInlineContent(head)}
                         </th>
                       ))}
                     </tr>
@@ -321,7 +333,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
                           key={cIdx} 
                           className="px-4 py-1.5 text-theme-text font-medium text-center sm:text-left border border-theme-border whitespace-nowrap"
                         >
-                          {parseInlineContent(cell)}
+                          {renderInlineContent(cell)}
                         </td>
                       ))}
                     </tr>
@@ -336,27 +348,27 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
           if (block.level === 1) {
             return (
               <h1 key={`h1-${idx}`} className="text-xl sm:text-2xl font-black mt-3 mb-1 tracking-tight text-theme-text">
-                {parseInlineContent(block.text)}
+                {renderInlineContent(block.text)}
               </h1>
             );
           }
           if (block.level === 2) {
             return (
-              <h2 key={`h2-${idx}`} className="text-lg sm:text-xl font-extrabold mt-2 mb-1 tracking-tight text-theme-text">
-                {parseInlineContent(block.text)}
+              <h2 key={`h2-${idx}`} className="text-lg sm:text-xl font-extrabold mt-2.5 mb-1 tracking-tight text-theme-text">
+                {renderInlineContent(block.text)}
               </h2>
             );
           }
           if (block.level === 3) {
             return (
               <h3 key={`h3-${idx}`} className="text-base sm:text-lg font-bold text-theme-accent mt-2 mb-0.5 tracking-snug">
-                {parseInlineContent(block.text)}
+                {renderInlineContent(block.text)}
               </h3>
             );
           }
           return (
             <h4 key={`h4-${idx}`} className="text-sm sm:text-base font-bold mt-1.5 mb-0.5 text-theme-text">
-              {parseInlineContent(block.text)}
+              {renderInlineContent(block.text)}
             </h4>
           );
         }
@@ -366,7 +378,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
             <ul key={`list-${idx}`} className="my-1.5 space-y-1 pl-4 list-disc marker:text-theme-accent">
               {block.items.map((item, itemIdx) => (
                 <li key={itemIdx} className="text-theme-text leading-relaxed">
-                  {parseInlineContent(item)}
+                  {renderInlineContent(item)}
                 </li>
               ))}
             </ul>
@@ -375,8 +387,8 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
 
         if (block.type === 'paragraph') {
           return (
-            <div key={`p-${idx}`} className={idx > 0 ? "mt-2" : ""}>
-              {parseInlineContent(block.lines.join('\n'))}
+            <div key={`p-${idx}`} className={idx > 0 ? "mt-2.5" : ""}>
+              {renderInlineContent(block.content)}
             </div>
           );
         }

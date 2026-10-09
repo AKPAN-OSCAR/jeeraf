@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, X, Send, Bot, CheckCircle2, XCircle, 
   CornerUpRight, RefreshCw, HelpCircle, Lightbulb, 
-  BookOpen, Brain, Zap, Maximize2
+  BookOpen, Brain, Zap, Maximize2, Minimize2
 } from 'lucide-react';
 import { Question, Subject, ExamType } from '../types';
 import { MathRenderer } from './MathRenderer';
@@ -49,6 +49,7 @@ export const CBTQuestionAISolutionModal: React.FC<CBTQuestionAISolutionModalProp
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasGeneratedInitial, setHasGeneratedInitial] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -237,13 +238,21 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+    <div className={cn(
+      "fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md animate-in fade-in duration-200",
+      isFullScreen ? "p-0" : "p-3 sm:p-6"
+    )}>
       <motion.div 
         initial={{ opacity: 0, scale: 0.96, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 15 }}
         transition={{ duration: 0.2 }}
-        className="w-full max-w-4xl bg-theme-card border-2 border-theme-accent/30 rounded-3xl shadow-2xl flex flex-col h-[90vh] max-h-[850px] overflow-hidden"
+        className={cn(
+          "w-full bg-theme-card border-2 border-theme-accent/30 shadow-2xl flex flex-col overflow-hidden transition-all duration-300",
+          isFullScreen 
+            ? "fixed inset-0 z-50 h-screen w-screen max-w-none max-h-none rounded-none border-0" 
+            : "max-w-4xl rounded-3xl h-[90vh] max-h-[850px]"
+        )}
       >
         {/* ===================================================================== */}
         {/* MODAL HEADER                                                          */}
@@ -269,18 +278,16 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Open in full AI screen button */}
-            {onOpenFullScreenAI && (
-              <button
-                type="button"
-                onClick={handleOpenInFullScreen}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-theme-bg hover:bg-theme-accent hover:text-white text-theme-text text-xs font-bold rounded-xl border border-theme-border transition-all shadow-xs cursor-pointer"
-                title="Transfer this question to full-screen JeeRaf AI page (/ai)"
-              >
-                <Maximize2 size={13} />
-                <span>Full AI Screen</span>
-              </button>
-            )}
+            {/* Toggle Fullscreen / Pop-out view */}
+            <button
+              type="button"
+              onClick={() => setIsFullScreen(!isFullScreen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-theme-bg hover:bg-theme-card text-theme-text text-xs font-bold rounded-xl border border-theme-border transition-all shadow-xs cursor-pointer"
+              title={isFullScreen ? "Exit Fullscreen (Pop-out view)" : "Expand to Full Screen"}
+            >
+              {isFullScreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+              <span className="hidden sm:inline">{isFullScreen ? 'Pop-out View' : 'Full Screen'}</span>
+            </button>
 
             {/* Close button */}
             <button
@@ -486,9 +493,11 @@ Always eliminate obvious outliers first, and check units or sign changes to answ
             <button
               type="button"
               onClick={handleOpenInFullScreen}
-              className="text-theme-accent hover:opacity-85 font-bold underline flex items-center gap-1 cursor-pointer"
+              className="px-3.5 py-1.5 bg-theme-accent hover:opacity-95 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Transfer this question and explanation to the Main System AI in Dashboard"
             >
-              <span>Continue in Full AI Studio</span>
+              <Bot size={14} />
+              <span>Discuss with JeeRaf AI in Dashboard</span>
               <CornerUpRight size={13} />
             </button>
           )}

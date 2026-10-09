@@ -467,7 +467,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="bg-theme-card rounded-3xl p-5 sm:p-8 border border-theme-border shadow-sm space-y-6"
+            className="bg-theme-card rounded-3xl p-5 sm:p-7 border border-theme-border shadow-sm space-y-5"
           >
             {/* Question Card Meta Bar */}
             <div className="flex items-center justify-between pb-3 border-b border-theme-border/60">
@@ -533,13 +533,13 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
             )}
 
             {/* Question Text */}
-            <div className="text-lg sm:text-xl font-medium text-theme-text leading-relaxed tracking-normal">
+            <div className="text-base sm:text-lg font-medium text-theme-text leading-relaxed tracking-normal">
               <MathRenderer text={currentQuestion?.question || 'Question content loading...'} />
             </div>
 
             {/* Question Diagram / SVG / Image if present */}
             {currentQuestion?.diagram && (
-              <div className="my-5 p-4 sm:p-6 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-2xl sm:max-w-3xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-xl relative group transition-all">
+              <div className="my-3.5 sm:my-4 p-4 sm:p-6 bg-slate-950/95 rounded-3xl border-2 border-theme-border max-w-2xl sm:max-w-3xl mx-auto overflow-hidden flex flex-col items-center justify-center text-slate-100 shadow-xl relative group transition-all">
                 <div className="w-full flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-800 text-[11px] font-bold text-slate-400">
                   <span className="uppercase tracking-wider flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-sky-400" /> Exam Figure / Geometric Reference
@@ -560,7 +560,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
               </div>
             )}
             {currentQuestion?.imageUrl && (
-              <div className="my-5 p-4 sm:p-6 bg-theme-bg rounded-3xl border-2 border-theme-border max-w-3xl sm:max-w-4xl mx-auto shadow-md">
+              <div className="my-3.5 sm:my-4 p-4 sm:p-6 bg-theme-bg rounded-3xl border-2 border-theme-border max-w-2xl sm:max-w-3xl mx-auto shadow-md">
                 <div className="flex justify-end pb-2 mb-2 border-b border-theme-border">
                   <button
                     type="button"
@@ -574,14 +574,14 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                 <img 
                   src={currentQuestion.imageUrl} 
                   alt="Question Diagram" 
-                  className="rounded-2xl w-full h-auto object-contain max-h-[500px] sm:max-h-[580px] mx-auto"
+                  className="rounded-2xl w-full h-auto object-contain max-h-[460px] sm:max-h-[520px] mx-auto"
                 />
               </div>
             )}
 
             {/* OBJECTIVES MODE: Multi-Choice Options A, B, C, D */}
             {!isTheoryQuestion && currentQuestion?.options && currentQuestion.options.length > 0 && (
-              <div className="space-y-3.5 pt-2">
+              <div className="space-y-3 pt-1.5">
                 {currentQuestion.options.map((option, idx) => {
                   const isSelected = answers[currentQuestion.id] === idx;
                   const optionLabel = String.fromCharCode(65 + idx);
@@ -593,14 +593,14 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                       type="button"
                       onClick={() => handleSelectAnswer(idx)}
                       className={cn(
-                        "w-full p-4 sm:p-4.5 rounded-2xl border-2 text-left transition-all flex items-start gap-4 group cursor-pointer active:scale-98",
+                        "w-full p-3.5 sm:p-4 rounded-2xl border-2 text-left transition-all flex items-start gap-3.5 group cursor-pointer active:scale-98",
                         isSelected
                           ? "bg-amber-500/10 border-amber-500 shadow-sm ring-1 ring-amber-500/30"
                           : "bg-theme-bg border-theme-border hover:border-theme-muted"
                       )}
                     >
                       <div className={cn(
-                        "w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-colors border mt-0.5",
+                        "w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 transition-colors border mt-0.5",
                         isSelected
                           ? "bg-amber-500 text-slate-950 border-amber-500 shadow-xs"
                           : "bg-theme-card text-theme-muted border-theme-border group-hover:text-theme-text"
@@ -608,7 +608,7 @@ export const CBTInterface: React.FC<CBTInterfaceProps> = ({
                         {optionLabel}
                       </div>
 
-                      <div className="flex-1 text-base sm:text-lg text-theme-text pt-0.5 leading-relaxed overflow-x-auto">
+                      <div className="flex-1 text-sm sm:text-base text-theme-text pt-0.5 leading-relaxed overflow-x-auto">
                         {isSvgOption ? (
                           <div 
                             className="p-2 bg-white dark:bg-slate-900 rounded-xl inline-block max-w-full overflow-hidden text-slate-800 dark:text-slate-200 border border-theme-border" 
